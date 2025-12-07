@@ -1,0 +1,78 @@
+======================================================================
+Fixed-Size KV Cache Compression Benchmark
+======================================================================
+
+Configuration:
+  Model: EleutherAI/pythia-70m-deduped
+  Fix KV sizes: [512]
+  Strategies: ['keep_low', 'random']
+  Keep ratio: 0.7
+  Skip layers: [0, 1]
+  Number of samples: 10
+  Max tokens: 3000
+Loading model: EleutherAI/pythia-70m-deduped
+Using device: mps
+
+======================================================================
+AGGREGATED RESULTS
+======================================================================
+
+Fix KV Size  Strategy            PPL     Accuracy   Cache Size
+------------------------------------------------------------
+baseline     none              40.28      34.83%         2999
+512          keep_low          42.01      34.29%         2999
+512          random            43.47      33.73%         2999
+512          recent_only       44.11      33.59%         2999
+============================================================
+
+Comparison with baseline:
+  fix_kv_size=512, keep_low: PPL +4.3%, Acc -1.6%  （最优）
+  fix_kv_size=512, random: PPL +7.9%, Acc -3.1%
+  fix_kv_size=512, recent_only: PPL +9.5%, Acc -3.6%
+
+
+
+======================================================================
+Fixed-Size KV Cache Compression Benchmark
+======================================================================
+
+Configuration:
+  Model: EleutherAI/pythia-70m-deduped
+  Fix KV sizes: [512]
+  Strategies: ['keep_low', 'random']
+  Keep ratios: [0.3, 0.4, 0.5, 0.6]
+  Skip layers: [0, 1]
+  Number of samples: 3
+  Max tokens: 3000
+  Enable baseline: True
+  Enable recent_only: True
+Loading model: EleutherAI/pythia-70m-deduped
+
+================================================================================
+AGGREGATED RESULTS
+================================================================================
+
+Fix KV     Strategy     Keep Ratio          PPL     Accuracy      Cache
+----------------------------------------------------------------------
+baseline   none         -                 47.04      35.66%       2999
+512        recent_only  1.0 (sw)          53.00      33.81%       2999
+512        keep_low     0.3               49.87      34.48%       2999
+512        keep_low     0.4               49.59      34.66%       2999
+512        keep_low     0.5               49.24      34.59%       2999
+512        keep_low     0.6               49.43      34.58%       2999
+512        random       0.3               50.94      33.96%       2999
+512        random       0.4               50.76      34.16%       2999
+512        random       0.5               51.90      33.86%       2999
+512        random       0.6               51.79      33.86%       2999
+======================================================================
+
+Comparison with baseline:
+  fix_kv=512, recent_only, sliding_window: PPL +12.7%, Acc -5.2%
+  fix_kv=512, keep_low, kr=0.3: PPL +6.0%, Acc -3.3%
+  fix_kv=512, keep_low, kr=0.4: PPL +5.4%, Acc -2.8%
+  fix_kv=512, keep_low, kr=0.5: PPL +4.7%, Acc -3.0% （最优）
+  fix_kv=512, keep_low, kr=0.6: PPL +5.1%, Acc -3.0%
+  fix_kv=512, random, kr=0.3: PPL +8.3%, Acc -4.8%
+  fix_kv=512, random, kr=0.4: PPL +7.9%, Acc -4.2%
+  fix_kv=512, random, kr=0.5: PPL +10.3%, Acc -5.0%
+  fix_kv=512, random, kr=0.6: PPL +10.1%, Acc -5.0%

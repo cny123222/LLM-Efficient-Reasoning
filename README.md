@@ -2,18 +2,51 @@
 
 CS2602大作业：针对大型语言模型的KV Cache优化与推理加速。
 
-本项目实现了 **KnormPress** (L2 Norm-Based KV Cache Compression) 算法，通过压缩KV缓存来加速 Pythia-70M 模型的推理过程。
+本项目实现了两种 KV Cache 压缩方法：
+
+1. **KnormPress** (L2 Norm-Based Ratio Compression) - 按比例压缩
+2. **Fix-Size KnormPress** (Fixed-Size KV Cache with Eviction) - 固定大小压缩
 
 ## 项目概述
 
 KnormPress 是一种基于 L2 范数的 KV Cache 压缩方法。核心思想是：**键嵌入（key embeddings）的 L2 范数较低的 token 通常与较高的注意力分数相关**。通过选择性地保留这些重要的低范数 token，可以在保持模型性能的同时显著减少内存占用和加速推理。
 
-### 算法原理
+### 两种压缩方法对比
 
-1. 计算每个 token 的键嵌入的 L2 范数
-2. 按范数升序排序（低范数 = 高重要性）
-3. 保留前 `keep_ratio` 百分比的最低范数 token
-4. 仅在缓存大小超过 `prune_after` 阈值时才进行压缩
+| 方法 | 说明 | 适用场景 |
+|------|------|----------|
+| `l2_compress` | 按 `keep_ratio` 比例压缩整个 KV Cache | 通用压缩 |
+| `fix_size_l2_compress` | 维持固定 KV Cache 大小，超出部分驱逐 | 内存受限场景 |
+
+## 项目结构
+
+```
+.
+├── README.md                    # 项目说明文档
+├── LICENSE                      # 许可证
+│
+├── docs/                        # 文档
+│   ├── lab-instruction.md       # 作业要求
+│   └── KnormPress.pdf           # 原始论文
+│
+├── data/                        # 数据集
+│   └── pg19.parquet             # PG-19 长文本数据集
+│
+├── knormpress/                  # 核心压缩模块 ⭐
+│   ├── __init__.py              # 模块导出
+│   ├── compress.py              # 压缩函数 (l2_compress, fix_size_l2_compress)
+│   ├── evaluate.py              # PPL/Accuracy 评估
+│   └── benchmark.py             # TTFT/TPOT 性能基准
+│
+├── baseline_test.py             # 基线性能测试
+├── benchmark_knormpress.py      # KnormPress 比例压缩基准测试
+├── benchmark_fix_size.py        # 固定大小压缩基准测试
+│
+├── results/                     # 结果图表
+│   └── compression_comparison.png
+│
+└── l2compress/                  # 原始论文参考实现
+```
 
 ## 环境配置
 
@@ -25,157 +58,147 @@ conda create -n nlp python=3.13
 conda activate nlp
 
 # 安装依赖
-pip install torch transformers datasets numpy
+pip install torch transformers datasets numpy tqdm
 ```
 
 ### 模型和数据集
 
 - **模型**: `EleutherAI/pythia-70m-deduped`
-- **数据集**: `wikitext-2-raw-v1` (用于测试)
+- **数据集**: `PG-19` (长文本), `wikitext-2-raw-v1` (短文本)
 
 ## 使用方法
 
 ### 1. 运行基线测试
-
-首先运行基线测试以获得未优化的性能指标：
 
 ```bash
 conda activate nlp
 python baseline_test.py
 ```
 
-这将测试原始模型在 wikitext 数据集上的性能，输出包括：
-- TTFT (Time To First Token): 生成第一个 token 的时间
-- TPOT (Time Per Output Token): 平均每个输出 token 的时间
-- Throughput: 吞吐量（tokens/秒）
-- Peak Memory: 峰值显存占用（仅 CUDA）
-- Perplexity (PPL): 困惑度
-
-### 2. 运行优化测试
-
-使用 KnormPress 压缩算法进行测试：
+### 2. KnormPress 比例压缩测试
 
 ```bash
-# 测试多个压缩比率
-python optimized_test.py --keep_ratios 1.0,0.9,0.8,0.7 --num_wikitext_samples 3
+# 测试不同压缩比率
+python benchmark_knormpress.py --keep_ratios 1.0,0.8,0.5,0.3 --num_samples 2
 
 # 自定义参数
-python optimized_test.py \
-    --keep_ratios 0.9,0.8,0.7,0.6 \
-    --prune_after 512 \
-    --skip_layers 0 \
-    --num_wikitext_samples 5
+python benchmark_knormpress.py \
+    --keep_ratios 0.9,0.8,0.7 \
+    --prune_after 100 \
+    --max_tokens 1500
 ```
 
 **参数说明**:
 - `--keep_ratios`: 压缩比率列表（1.0 = 无压缩，0.8 = 保留 80%）
-- `--prune_after`: 缓存超过此大小才压缩（默认 512）
-- `--skip_layers`: 跳过压缩的层（默认第 0 层）
-- `--num_wikitext_samples`: 测试的样本数量
+- `--prune_after`: 缓存超过此大小才压缩
+- `--max_tokens`: 评估的最大 token 数
+
+### 3. 固定大小 KV Cache 压缩测试
+
+```bash
+# 测试不同固定大小和驱逐策略
+python benchmark_fix_size.py --fix_kv_sizes 256,512 --strategies keep_low,keep_high,random
+
+# 自定义参数
+python benchmark_fix_size.py \
+    --fix_kv_sizes 256,512,1024 \
+    --strategies keep_low,random \
+    --keep_ratio 0.2 \
+    --max_tokens 2000
+
+python benchmark_fix_size.py \
+    --fix_kv_sizes 512 \
+    --strategies keep_low \
+    --keep_ratios 0.1,0.2,0.3 \
+    --no_baseline --no_recent_only
+
+```
+
+**参数说明**:
+- `--fix_kv_sizes`: 固定 KV Cache 大小列表
+- `--strategies`: 驱逐策略列表
+  - `keep_low`: 保留低 L2 范数 token（最重要）
+  - `keep_high`: 保留高 L2 范数 token
+  - `random`: 随机驱逐
+- `--keep_ratio`: 保护的最近 token 比例（不会被驱逐），支持列表
+- `--no_baseline` : 不开启non-compress benchmark
+- `--no_recent_only`: 不开启recent-only compress benchmark
+
+### 4. 在代码中使用
+
+```python
+from knormpress import l2_compress, fix_size_l2_compress, evaluate_with_compression
+
+# 方法1: 比例压缩
+compressed_kv = l2_compress(
+    past_key_values,
+    keep_ratio=0.8,      # 保留 80%
+    prune_after=1000,    # 超过 1000 token 才压缩
+    skip_layers=[0, 1]   # 跳过前两层
+)
+
+# 方法2: 固定大小压缩
+compressed_kv = fix_size_l2_compress(
+    past_key_values,
+    fix_kv_size=512,       # 最多保留 512 token
+    keep_ratio=0.2,        # 最近 20% 不驱逐
+    strategy="keep_low",   # 保留低范数 token
+    skip_layers=[0, 1]
+)
+
+# 评估 PPL 和 Accuracy
+results = evaluate_with_compression(
+    model, tokenizer, text,
+    keep_ratio=0.8,
+    prune_after=100
+)
+print(f"PPL: {results['perplexity']:.2f}, Acc: {results['accuracy']:.2%}")
+```
+
+## 核心算法
+
+### l2_compress (比例压缩)
+
+```
+输入: KV Cache (seq_len tokens), keep_ratio
+输出: 压缩后的 KV Cache (seq_len * keep_ratio tokens)
+
+1. 计算每个 token 的 L2 范数
+2. 按范数升序排序
+3. 保留前 keep_ratio 比例的低范数 token
+4. 恢复时间顺序
+```
+
+### fix_size_l2_compress (固定大小)
+
+```
+输入: KV Cache, fix_kv_size, keep_ratio
+输出: 最多 fix_kv_size tokens 的 KV Cache
+
+1. 如果 seq_len <= fix_kv_size，不压缩
+2. 计算保护区大小: protected = fix_kv_size * keep_ratio
+3. 驱逐区 = 前 (seq_len - protected) 个 token
+4. 从驱逐区选择 (fix_kv_size - protected) 个 token 保留
+5. 合并: 保留的驱逐区 token + 保护区 token
+```
 
 ## 实验结果
 
-### 性能对比表格
+### KnormPress 比例压缩
 
-在 Apple Silicon (MPS) 上使用 Pythia-70M 模型的测试结果：
+| 压缩率 | Keep Ratio | TTFT | PPL | Accuracy |
+|--------|------------|------|-----|----------|
+| 0% | 1.0 | baseline | 30.67 | 39.16% |
+| 50% | 0.5 | ↓92% | 47.30 | 34.22% |
+| 70% | 0.3 | ↓93% | 52.15 | 32.18% |
 
-| 压缩率 | 保留比例 | TTFT (秒) | TPOT (秒) | 吞吐量 (tok/s) | PPL | 说明 |
-|--------|----------|-----------|-----------|----------------|-----|------|
-| 0%     | 1.0      | 0.0623    | 0.0125    | 84.16          | 75.03 | 基线（无压缩） |
-| 10%    | 0.9      | **0.0080** | 0.0129    | 77.69          | 75.03 | **TTFT 降低 87%** |
-| 20%    | 0.8      | **0.0066** | 0.0130    | 76.79          | 75.03 | **TTFT 降低 89%** |
-| 30%    | 0.7      | **0.0063** | 0.0131    | 76.45          | 75.03 | **TTFT 降低 90%** |
+### 固定大小压缩 (预期结果)
 
-### 关键发现
-
-1. **显著降低 TTFT**: 使用 10% 压缩率（keep_ratio=0.9），TTFT 从 0.0623 秒降低到 0.0080 秒，**降低了 87%**
-
-2. **保持稳定吞吐量**: 压缩后的吞吐量仅略有下降（从 84.16 降至 77.69 tokens/s），**下降约 8%**
-
-3. **PPL 无损失**: 所有压缩率下，困惑度保持不变（75.03），表明**模型质量未受影响**
-
-4. **更高压缩率的边际收益递减**: 从 10% 压缩（0.9）到 30% 压缩（0.7），性能提升趋于平缓
-
-### 详细分析
-
-#### 为什么 TTFT 显著降低？
-
-KnormPress 压缩显著减少了首次前向传播时需要处理的 KV Cache 大小，这对于长上下文尤其重要：
-- 减少了注意力计算的复杂度（从 O(n²) 降至 O(kn²)，其中 k 是 keep_ratio）
-- 降低了内存访问开销
-- 优化了缓存利用率
-
-#### 为什么 PPL 没有下降？
-
-L2 范数低的 token 确实对应高注意力分数，保留这些关键 token 可以维持模型的预测能力。KnormPress 是一种**智能压缩**方法，不是简单的截断。
-
-### 适用场景
-
-KnormPress 特别适合：
-- **长上下文推理**: 超长文本生成任务（如 pg-19 数据集）
-- **实时应用**: 需要低延迟的应用（降低 TTFT）
-- **资源受限环境**: 内存或显存有限的设备
-
-## 项目结构
-
-```
-.
-├── README.md                 # 本文件
-├── lab-instruction.md        # 作业要求文档
-├── baseline_test.py          # 基线性能测试脚本
-├── optimized_test.py         # KnormPress 优化测试脚本
-├── kv_compress.py            # KV Cache 压缩核心实现
-├── custom_generate.py        # 自定义生成函数（带压缩）
-└── l2compress/               # KnormPress 参考实现（原始仓库）
-```
-
-## 核心代码说明
-
-### KV Cache 压缩 (`kv_compress.py`)
-
-```python
-def l2_compress(past_key_values, keep_ratio=1.0, prune_after=512, skip_layers=[]):
-    """
-    基于 L2 范数压缩 KV Cache
-    
-    参数:
-        past_key_values: KV 缓存 (list of tuples)
-        keep_ratio: 保留比例 (0.0-1.0)
-        prune_after: 压缩阈值
-        skip_layers: 跳过的层
-    """
-    # 计算每个 token 的 L2 范数
-    token_norms = torch.norm(keys, p=2, dim=-1)
-    
-    # 按范数排序（升序）
-    sorted_indices = token_norms.argsort(dim=-1)
-    
-    # 保留低范数 token
-    tokens_to_keep = ceil(keep_ratio * seq_len)
-    compressed_keys = sorted_keys[:, :, :tokens_to_keep, :]
-    compressed_values = sorted_values[:, :, :tokens_to_keep, :]
-    
-    return compressed_cache
-```
-
-### 自定义生成 (`custom_generate.py`)
-
-实现了一个生成循环，在每次前向传播后应用 KV Cache 压缩：
-
-```python
-def generate_with_compression(model, tokenizer, input_ids, 
-                              keep_ratio=1.0, prune_after=512):
-    for step in range(max_new_tokens):
-        outputs = model(input_ids, past_key_values=past_key_values)
-        
-        # 应用 KV Cache 压缩
-        if keep_ratio < 1.0:
-            past_key_values = l2_compress(
-                outputs.past_key_values,
-                keep_ratio=keep_ratio,
-                prune_after=prune_after
-            )
-```
+| Fix KV Size | Strategy | PPL | Accuracy |
+|-------------|----------|-----|----------|
+| 512 | keep_low | 较低 | 较高 |
+| 512 | keep_high | 较高 | 较低 |
+| 512 | random | 中等 | 中等 |
 
 ## 参考文献
 
@@ -185,18 +208,17 @@ def generate_with_compression(model, tokenizer, input_ids,
 
 ## 总结
 
-本项目成功实现了 KnormPress 算法，并在 Pythia-70M 模型上验证了其有效性：
+本项目实现了两种 KV Cache 压缩方法：
 
-✅ **TTFT 降低 87%** (从 0.062s 到 0.008s)  
-✅ **吞吐量基本保持** (仅下降 8%)  
-✅ **PPL 无损失** (保持 75.03)  
-✅ **易于集成** 到现有 transformers 工作流
-
-KnormPress 是一种简单、有效且**无需训练**的 KV Cache 压缩方法，特别适合长上下文推理场景。
+✅ **l2_compress**: 按比例压缩，适合通用场景  
+✅ **fix_size_l2_compress**: 固定大小，适合内存受限场景  
+✅ **多种驱逐策略**: keep_low, keep_high, random  
+✅ **完整评估**: TTFT, TPOT, PPL, Accuracy  
+✅ **模块化设计**: 易于集成到现有代码
 
 ## 作者
 
-[Your Name] - CS2602 课程作业
+CS2602 课程作业
 
 ## 致谢
 

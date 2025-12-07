@@ -22,18 +22,41 @@ Usage:
     metrics = benchmark(model, tokenizer, text, keep_ratio=0.8)
 """
 
-from .compress import l2_compress, get_cache_size_mb, get_cache_info, to_dynamic_cache
-from .evaluate import evaluate_with_compression, evaluate_baseline, compare_compression_levels
-from .benchmark import benchmark, measure_generation_metrics, run_benchmark_suite, print_benchmark_summary
+from .compress import (
+    l2_compress,
+    fix_size_l2_compress,
+    get_cache_size_mb,
+    get_cache_info,
+    to_dynamic_cache,
+    get_compress_fn,
+)
+from .evaluate import (
+    evaluate_with_compression,
+    evaluate_baseline,
+    compare_compression_levels,
+    evaluate_fix_size_compression,
+)
+from .benchmark import (
+    benchmark,
+    measure_generation_metrics,
+    run_benchmark_suite,
+    print_benchmark_summary,
+)
 
 __all__ = [
+    # Compression functions
     'l2_compress',
+    'fix_size_l2_compress',
     'get_cache_size_mb',
     'get_cache_info',
     'to_dynamic_cache',
+    'get_compress_fn',
+    # Evaluation functions
     'evaluate_with_compression',
     'evaluate_baseline',
     'compare_compression_levels',
+    'evaluate_fix_size_compression',
+    # Benchmark functions
     'benchmark',
     'measure_generation_metrics',
     'run_benchmark_suite',
