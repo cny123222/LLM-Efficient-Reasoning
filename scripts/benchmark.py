@@ -28,14 +28,14 @@ import sys
 import argparse
 import torch
 import numpy as np
-from transformers import GPTNeoXForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from kvcompress.methods import get_compress_fn, list_methods, l2_compress, fix_size_l2_compress, streaming_llm_compress
+from kvcompress.methods import get_compress_fn, list_methods, l2_compress, fix_size_l2_compress, streaming_llm_compress, recent_only_compress
 from kvcompress.benchmark import benchmark, run_benchmark_suite, print_benchmark_summary
 from kvcompress.evaluate import evaluate_with_compression
 
@@ -54,15 +54,27 @@ def get_device():
 
 
 def load_model_and_tokenizer(model_id: str = "EleutherAI/pythia-70m-deduped"):
-    """Load model and tokenizer (following baseline_test.py approach)."""
+    """
+    Load model and tokenizer using Auto classes.
+    
+    AutoModelForCausalLM automatically detects the model architecture from config.json
+    and loads the appropriate model class (e.g., GPTNeoXForCausalLM for Pythia,
+    LlamaForCausalLM for Llama, etc.)
+    
+    Args:
+        model_id: HuggingFace model ID or local path
+    
+    Returns:
+        tuple: (model, tokenizer, device)
+    """
     print(f"Loading model: {model_id}")
     
     device = get_device()
     print(f"Using device: {device}")
     
-    # Use GPTNeoXForCausalLM directly (same as baseline_test.py)
-    # This works better with locally cached models
-    model = GPTNeoXForCausalLM.from_pretrained(model_id)
+    # Use AutoModelForCausalLM for automatic model class detection
+    # This provides better flexibility for different model architectures
+    model = AutoModelForCausalLM.from_pretrained(model_id)
     model.to(device)
     model.eval()
     
@@ -173,7 +185,7 @@ def build_methods_config(args) -> list:
         })
     
     if args.method == "l2_compress":
-        # L2 compression with different keep ratios
+        # L2 compression with different keep ratios (no recent_only control for dynamic size)
         keep_ratios = [float(x) for x in args.keep_ratios.split(",")]
         for kr in keep_ratios:
             if kr >= 1.0 and not args.no_baseline:
@@ -193,6 +205,17 @@ def build_methods_config(args) -> list:
         strategies = [x.strip() for x in args.strategies.split(",")]
         keep_ratios = [float(x) for x in args.keep_ratios.split(",")]
         
+        # Add recent_only control group for each fix_kv_size if not disabled
+        if not args.no_recent_only:
+            for fix_size in fix_kv_sizes:
+                methods.append({
+                    "name": f"recent_only_{fix_size}",
+                    "compress_fn": recent_only_compress,
+                    "kwargs": {
+                        "window_size": fix_size,
+                    }
+                })
+        
         for fix_size in fix_kv_sizes:
             for strategy in strategies:
                 for kr in keep_ratios:
@@ -209,6 +232,18 @@ def build_methods_config(args) -> list:
     elif args.method == "streaming_llm":
         # StreamingLLM with different cache sizes
         recent_sizes = [int(x) for x in args.recent_sizes.split(",")]
+        
+        # Add recent_only control group for each total cache size if not disabled
+        if not args.no_recent_only:
+            for recent_size in recent_sizes:
+                total_size = args.start_size + recent_size
+                methods.append({
+                    "name": f"recent_only_{total_size}",
+                    "compress_fn": recent_only_compress,
+                    "kwargs": {
+                        "window_size": total_size,
+                    }
+                })
         
         for recent_size in recent_sizes:
             total_size = args.start_size + recent_size
@@ -287,6 +322,8 @@ Examples:
                        help="Comma-separated layer indices to skip")
     parser.add_argument("--no_baseline", action="store_true",
                        help="Skip baseline (no compression) benchmark")
+    parser.add_argument("--no_recent_only", action="store_true",
+                       help="Skip recent_only (sliding window) control group for fixed-size methods")
     parser.add_argument("--num_warmup", type=int, default=3,
                        help="Number of warmup iterations before benchmark (default: 3)")
     
@@ -335,6 +372,7 @@ Examples:
     print(f"  Max new tokens: {args.max_new_tokens}")
     print(f"  Warmup iterations: {args.num_warmup}")
     
+    # args.model_id = "EleutherAI/pythia-6.9b"
     # Load model
     model, tokenizer, device = load_model_and_tokenizer(args.model_id)
     

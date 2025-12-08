@@ -10,12 +10,14 @@ from typing import Callable, Dict, List
 from .l2_compress import l2_compress
 from .fix_size_l2 import fix_size_l2_compress
 from .streaming_llm import streaming_llm_compress
+from .recent_only import recent_only_compress
 
 # Registry of all compression methods
 COMPRESS_METHODS: Dict[str, Callable] = {
     "l2_compress": l2_compress,
     "fix_size_l2": fix_size_l2_compress,
     "streaming_llm": streaming_llm_compress,
+    "recent_only": recent_only_compress,
 }
 
 
@@ -28,6 +30,7 @@ def get_compress_fn(method: str) -> Callable:
                 - "l2_compress": Original KnormPress ratio-based compression
                 - "fix_size_l2": Fixed-size KV cache with L2-based eviction
                 - "streaming_llm": StreamingLLM with attention sinks
+                - "recent_only": Simple sliding window (baseline)
     
     Returns:
         Compression function
@@ -64,6 +67,7 @@ __all__ = [
     'l2_compress',
     'fix_size_l2_compress',
     'streaming_llm_compress',
+    'recent_only_compress',
     'get_compress_fn',
     'list_methods',
     'register_method',

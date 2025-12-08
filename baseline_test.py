@@ -1,4 +1,4 @@
-from transformers import GPTNeoXForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import LogitsProcessor
 import torch
 import time
@@ -10,9 +10,10 @@ from typing import Optional, List, Tuple
 model_id = "EleutherAI/pythia-70m-deduped"
 
 # 加载最终的、完全训练好的模型和tokenizer
-# 不指定 revision 参数，Hugging Face 会默认拉取 main 分支，也就是 step143000
+# AutoModelForCausalLM 会自动根据 config.json 中的 model_type 选择正确的模型类
+# 对于 Pythia 系列，会自动加载 GPTNeoXForCausalLM
 print("Loading model and tokenizer...")
-model = GPTNeoXForCausalLM.from_pretrained(
+model = AutoModelForCausalLM.from_pretrained(
     model_id,
     # 如果需要，可以强制指定最终版本
     # revision="step143000", 
