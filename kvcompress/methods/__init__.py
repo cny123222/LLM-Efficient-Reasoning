@@ -13,7 +13,9 @@ from .streaming_llm import streaming_llm_compress
 from .recent_only import recent_only_compress
 from .head_aware_compress import (
     head_aware_compress,
+    generate_head_aware_mask,
     HeadAwareCompressor,
+    HeadAwareMaskGenerator,
     HeadCompressionConfig,
     LayerCompressionConfig,
 )
@@ -76,11 +78,13 @@ __all__ = [
     'streaming_llm_compress',
     'recent_only_compress',
     'head_aware_compress',
+    'generate_head_aware_mask',
     'get_compress_fn',
     'list_methods',
     'register_method',
     # Classes
     'HeadAwareCompressor',
+    'HeadAwareMaskGenerator',
     'HeadCompressionConfig',
     'LayerCompressionConfig',
     # Registry

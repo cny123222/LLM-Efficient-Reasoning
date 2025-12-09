@@ -555,6 +555,398 @@ class HeadAwareCompressor:
         }
 
 
+class HeadAwareMaskGenerator:
+    """
+    Generate per-head 4D attention masks based on head classifications.
+    
+    This class creates attention masks that allow different heads to attend to
+    different portions of the sequence, effectively simulating heterogeneous
+    attention windows without modifying the KV cache.
+    
+    Key insight: While this doesn't reduce memory usage (full KV cache is kept),
+    it allows us to validate whether head-aware windowing improves PPL/accuracy
+    compared to uniform windowing strategies like StreamingLLM.
+    
+    Usage:
+        mask_gen = HeadAwareMaskGenerator.from_classifications(
+            "results/attention_analysis_pythia-2.8b/head_classifications.json"
+        )
+        
+        # Generate mask for a specific layer and sequence length
+        mask = mask_gen.generate_layer_mask(layer_idx=0, seq_len=1024, device='cuda')
+        # Shape: (1, num_heads, seq_len, seq_len)
+    """
+    
+    # Default window sizes by head type
+    DEFAULT_WINDOW_SIZES = {
+        'positional': 8,        # Positional heads: sink(4) + window(8) = 12
+        'sink_positional': 8,
+        'true_positional': 8,
+        'mixed': 64,            # Mixed heads: sink(4) + window(64) = 68
+        'sink_mixed': 24,
+        'gathering': -1,        # Gathering heads: full context (no masking)
+        'dead': 0,              # Dead heads: mask everything (effectively prune)
+    }
+    
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        default_sink_size: int = 4,
+        default_window_size: int = 64,
+    ):
+        """
+        Initialize the mask generator.
+        
+        Args:
+            num_layers: Number of layers in the model
+            num_heads: Number of heads per layer
+            default_sink_size: Default number of sink tokens to preserve
+            default_window_size: Default recent window size
+        """
+        self.num_layers = num_layers
+        self.num_heads = num_heads
+        self.default_sink_size = default_sink_size
+        self.default_window_size = default_window_size
+        
+        # Per-head configuration: {(layer_idx, head_idx): {'sink_size': int, 'window_size': int, 'head_type': str}}
+        self.head_configs: Dict[Tuple[int, int], Dict] = {}
+        
+        # Cache for generated masks
+        self._mask_cache: Dict[Tuple[int, int, str], torch.Tensor] = {}
+        
+    @classmethod
+    def from_classifications(
+        cls,
+        classifications_path: str,
+        window_size_override: Optional[Dict[str, int]] = None,
+        sink_size: int = 4,
+    ) -> "HeadAwareMaskGenerator":
+        """
+        Create mask generator from classification JSON file.
+        
+        Args:
+            classifications_path: Path to head_classifications.json
+            window_size_override: Optional dict to override default window sizes by head type
+            sink_size: Number of sink tokens (default: 4)
+        
+        Returns:
+            Configured HeadAwareMaskGenerator instance
+        """
+        with open(classifications_path, 'r') as f:
+            data = json.load(f)
+        
+        classifications = data.get('classifications', data)
+        if isinstance(classifications, dict):
+            classifications = classifications.get('classifications', [])
+        
+        # Infer model dimensions
+        num_layers = max(c['layer_idx'] for c in classifications) + 1
+        num_heads = max(c['head_idx'] for c in classifications) + 1
+        
+        # Merge default window sizes with overrides
+        window_sizes = cls.DEFAULT_WINDOW_SIZES.copy()
+        if window_size_override:
+            window_sizes.update(window_size_override)
+        
+        generator = cls(
+            num_layers=num_layers,
+            num_heads=num_heads,
+            default_sink_size=sink_size,
+        )
+        
+        # Configure each head based on classification
+        for c in classifications:
+            layer_idx = c['layer_idx']
+            head_idx = c['head_idx']
+            head_type = c['head_type']
+            
+            # Get window size for this head type
+            # Use recommended_window from classification if available and positive
+            recommended = c.get('recommended_window', -1)
+            if recommended > 0:
+                window_size = recommended
+            else:
+                window_size = window_sizes.get(head_type, 64)
+            
+            generator.head_configs[(layer_idx, head_idx)] = {
+                'head_type': head_type,
+                'sink_size': sink_size,
+                'window_size': window_size,
+            }
+        
+        return generator
+    
+    @classmethod
+    def create_uniform(
+        cls,
+        num_layers: int,
+        num_heads: int,
+        sink_size: int = 4,
+        window_size: int = 508,
+    ) -> "HeadAwareMaskGenerator":
+        """
+        Create a mask generator with uniform settings for all heads.
+        
+        This is useful as a baseline (equivalent to StreamingLLM masking).
+        
+        Args:
+            num_layers: Number of layers
+            num_heads: Number of heads per layer
+            sink_size: Number of sink tokens
+            window_size: Recent window size
+        
+        Returns:
+            HeadAwareMaskGenerator with uniform configuration
+        """
+        generator = cls(
+            num_layers=num_layers,
+            num_heads=num_heads,
+            default_sink_size=sink_size,
+            default_window_size=window_size,
+        )
+        
+        # Configure all heads with the same settings
+        for layer_idx in range(num_layers):
+            for head_idx in range(num_heads):
+                generator.head_configs[(layer_idx, head_idx)] = {
+                    'head_type': 'uniform',
+                    'sink_size': sink_size,
+                    'window_size': window_size,
+                }
+        
+        return generator
+    
+    def get_head_config(self, layer_idx: int, head_idx: int) -> Dict:
+        """Get configuration for a specific head."""
+        key = (layer_idx, head_idx)
+        if key in self.head_configs:
+            return self.head_configs[key]
+        
+        # Return default configuration
+        return {
+            'head_type': 'default',
+            'sink_size': self.default_sink_size,
+            'window_size': self.default_window_size,
+        }
+    
+    def _create_causal_mask(
+        self,
+        seq_len: int,
+        device: torch.device,
+        dtype: torch.dtype = torch.float32,
+    ) -> torch.Tensor:
+        """Create a standard causal mask (lower triangular)."""
+        # Create causal mask: 0 for allowed positions, -inf for masked positions
+        mask = torch.zeros(seq_len, seq_len, device=device, dtype=dtype)
+        # Upper triangular (excluding diagonal) should be -inf
+        mask = torch.triu(torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype), diagonal=1)
+        return mask
+    
+    def _create_sink_window_mask(
+        self,
+        seq_len: int,
+        sink_size: int,
+        window_size: int,
+        device: torch.device,
+        dtype: torch.dtype = torch.float32,
+    ) -> torch.Tensor:
+        """
+        Create a sink + window mask for a single head.
+        
+        Each query position q can attend to:
+        - Positions [0, sink_size): Always visible (attention sinks)
+        - Positions [q - window_size + 1, q]: Recent window (causal)
+        
+        Args:
+            seq_len: Sequence length
+            sink_size: Number of sink tokens at the beginning
+            window_size: Size of recent window
+            device: Device to create mask on
+            dtype: Data type for mask
+        
+        Returns:
+            Mask tensor of shape (seq_len, seq_len)
+        """
+        # Start with all masked (-inf)
+        mask = torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype)
+        
+        for q_pos in range(seq_len):
+            # Sink tokens: always visible (positions 0 to sink_size-1)
+            if sink_size > 0:
+                mask[q_pos, :min(sink_size, q_pos + 1)] = 0.0
+            
+            # Recent window: positions within window_size of current position
+            # Must also be causal (k_pos <= q_pos)
+            window_start = max(0, q_pos - window_size + 1)
+            window_end = q_pos + 1  # Inclusive of current position (causal)
+            mask[q_pos, window_start:window_end] = 0.0
+        
+        return mask
+    
+    def generate_layer_mask(
+        self,
+        layer_idx: int,
+        seq_len: int,
+        device: Union[torch.device, str] = 'cpu',
+        dtype: torch.dtype = torch.float32,
+        use_cache: bool = True,
+    ) -> torch.Tensor:
+        """
+        Generate a 4D attention mask for a specific layer.
+        
+        Args:
+            layer_idx: Layer index
+            seq_len: Current sequence length
+            device: Device to create mask on
+            dtype: Data type for mask
+            use_cache: Whether to cache generated masks
+        
+        Returns:
+            Attention mask of shape (1, num_heads, seq_len, seq_len)
+        """
+        if isinstance(device, str):
+            device = torch.device(device)
+        
+        # Check cache
+        cache_key = (layer_idx, seq_len, str(device))
+        if use_cache and cache_key in self._mask_cache:
+            cached = self._mask_cache[cache_key]
+            if cached.device == device:
+                return cached.to(dtype)
+        
+        # Create per-head masks
+        masks = []
+        
+        for head_idx in range(self.num_heads):
+            config = self.get_head_config(layer_idx, head_idx)
+            head_type = config['head_type']
+            sink_size = config['sink_size']
+            window_size = config['window_size']
+            
+            if head_type == 'dead':
+                # Dead heads: mask everything except current token (to avoid NaN)
+                mask = torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype)
+                for i in range(seq_len):
+                    mask[i, i] = 0.0  # Allow self-attention to prevent NaN
+            elif window_size < 0 or head_type == 'gathering':
+                # Full context: standard causal mask
+                mask = self._create_causal_mask(seq_len, device, dtype)
+            else:
+                # Sink + window mask
+                mask = self._create_sink_window_mask(
+                    seq_len, sink_size, window_size, device, dtype
+                )
+            
+            masks.append(mask)
+        
+        # Stack to create (num_heads, seq_len, seq_len)
+        layer_mask = torch.stack(masks, dim=0)
+        
+        # Add batch dimension: (1, num_heads, seq_len, seq_len)
+        layer_mask = layer_mask.unsqueeze(0)
+        
+        # Cache the result
+        if use_cache:
+            self._mask_cache[cache_key] = layer_mask
+        
+        return layer_mask
+    
+    def generate_all_layer_masks(
+        self,
+        seq_len: int,
+        device: Union[torch.device, str] = 'cpu',
+        dtype: torch.dtype = torch.float32,
+    ) -> List[torch.Tensor]:
+        """
+        Generate attention masks for all layers.
+        
+        Args:
+            seq_len: Sequence length
+            device: Device to create masks on
+            dtype: Data type for masks
+        
+        Returns:
+            List of masks, one per layer, each of shape (1, num_heads, seq_len, seq_len)
+        """
+        return [
+            self.generate_layer_mask(layer_idx, seq_len, device, dtype)
+            for layer_idx in range(self.num_layers)
+        ]
+    
+    def clear_cache(self):
+        """Clear the mask cache."""
+        self._mask_cache.clear()
+    
+    def get_summary(self) -> Dict:
+        """Get a summary of the mask generator configuration."""
+        type_counts: Dict[str, int] = {}
+        total_effective_context = 0
+        
+        for (layer_idx, head_idx), config in self.head_configs.items():
+            head_type = config['head_type']
+            type_counts[head_type] = type_counts.get(head_type, 0) + 1
+            
+            window_size = config['window_size']
+            sink_size = config['sink_size']
+            
+            if window_size < 0:
+                # Full context - we'll estimate based on typical sequence length
+                effective = 1024  # placeholder
+            else:
+                effective = sink_size + window_size
+            total_effective_context += effective
+        
+        num_configured = len(self.head_configs)
+        avg_effective = total_effective_context / num_configured if num_configured > 0 else 0
+        
+        return {
+            'num_layers': self.num_layers,
+            'num_heads': self.num_heads,
+            'total_heads': self.num_layers * self.num_heads,
+            'configured_heads': num_configured,
+            'head_type_distribution': type_counts,
+            'average_effective_context': avg_effective,
+            'default_sink_size': self.default_sink_size,
+            'default_window_size': self.default_window_size,
+        }
+
+
+def generate_head_aware_mask(
+    layer_idx: int,
+    seq_len: int,
+    num_heads: int,
+    classifications_path: Optional[str] = None,
+    mask_generator: Optional[HeadAwareMaskGenerator] = None,
+    device: Union[torch.device, str] = 'cpu',
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """
+    Generate a head-aware attention mask for a single layer.
+    
+    This is a convenience function for generating per-head attention masks.
+    
+    Args:
+        layer_idx: Layer index
+        seq_len: Sequence length
+        num_heads: Number of attention heads
+        classifications_path: Path to head classifications JSON
+        mask_generator: Pre-configured HeadAwareMaskGenerator (if provided, ignores classifications_path)
+        device: Device to create mask on
+        dtype: Data type for mask
+    
+    Returns:
+        Attention mask of shape (1, num_heads, seq_len, seq_len)
+    """
+    if mask_generator is None:
+        if classifications_path is not None and os.path.exists(classifications_path):
+            mask_generator = HeadAwareMaskGenerator.from_classifications(classifications_path)
+        else:
+            raise ValueError("Either classifications_path or mask_generator must be provided")
+    
+    return mask_generator.generate_layer_mask(layer_idx, seq_len, device, dtype)
+
+
 def head_aware_compress(
     past_key_values: Union[List[Tuple[torch.Tensor, torch.Tensor]], DynamicCache],
     classifications_path: Optional[str] = None,
@@ -607,6 +999,8 @@ __all__ = [
     'HeadCompressionConfig',
     'LayerCompressionConfig',
     'HeadAwareCompressor',
+    'HeadAwareMaskGenerator',
     'head_aware_compress',
+    'generate_head_aware_mask',
 ]
 

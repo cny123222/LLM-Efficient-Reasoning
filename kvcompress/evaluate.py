@@ -11,6 +11,10 @@ Key implementation points:
 4. PPL = exp(mean(nlls))
 5. Accuracy = num_correct / num_tokens
 6. TTFT/TPOT measured across ALL tokens (not just initial generation)
+
+Extended features:
+- evaluate_with_head_aware_mask: Uses 4D attention masks to simulate per-head 
+  different attention windows WITHOUT modifying KV cache (for validation)
 """
 
 import time
@@ -21,6 +25,7 @@ from tqdm import tqdm
 from transformers import DynamicCache
 
 from .utils import to_dynamic_cache, normalize_kv_cache
+from .methods.head_aware_compress import HeadAwareMaskGenerator
 
 
 def evaluate_with_compression(
@@ -327,8 +332,235 @@ def compare_methods(
     return results
 
 
+def evaluate_with_head_aware_mask(
+    model,
+    tokenizer,
+    text: str,
+    mask_generator: Optional[HeadAwareMaskGenerator] = None,
+    classifications_path: Optional[str] = None,
+    max_tokens: int = 3000,
+    device: Optional[torch.device] = None,
+    show_progress: bool = True,
+) -> Dict[str, float]:
+    """
+    Evaluate PPL and Accuracy using head-aware 4D attention masks.
+    
+    This function keeps the FULL KV cache but uses per-head attention masks
+    to simulate different attention windows for different heads. This is useful
+    for validating whether head-aware strategies improve PPL/accuracy before
+    implementing actual KV cache compression.
+    
+    Key insight: By using 4D attention masks (batch, heads, query, key), we can
+    force different heads to attend to different portions of the context:
+    - Positional heads: Only see sink tokens + small recent window
+    - Mixed heads: See sink tokens + medium window
+    - Gathering heads: See full context (standard causal mask)
+    
+    This does NOT save memory (full KV cache is kept), but allows us to
+    validate the head-aware strategy concept quickly.
+    
+    Args:
+        model: The language model (must be GPT-NeoX/Pythia architecture)
+        tokenizer: The tokenizer
+        text: Input text to evaluate
+        mask_generator: Pre-configured HeadAwareMaskGenerator
+        classifications_path: Path to head_classifications.json (used if mask_generator is None)
+        max_tokens: Maximum number of tokens to evaluate
+        device: Device to use (auto-detected if None)
+        show_progress: Whether to show progress bar
+    
+    Returns:
+        Dict containing:
+        - perplexity: The perplexity score
+        - accuracy: Next token prediction accuracy
+        - num_tokens: Number of tokens evaluated
+        - final_cache_size: Final KV cache size (full, not compressed)
+        - effective_context: Average effective context per head
+        - timing metrics: ttft, tpot, throughput, total_time
+    
+    Example:
+        >>> from kvcompress.methods import HeadAwareMaskGenerator
+        >>> mask_gen = HeadAwareMaskGenerator.from_classifications(
+        ...     "results/attention_analysis_pythia-2.8b/head_classifications.json"
+        ... )
+        >>> results = evaluate_with_head_aware_mask(
+        ...     model, tokenizer, text,
+        ...     mask_generator=mask_gen,
+        ...     max_tokens=2000
+        ... )
+    """
+    import os
+    
+    if device is None:
+        device = next(model.parameters()).device
+    
+    # Create mask generator if not provided
+    if mask_generator is None:
+        if classifications_path is not None and os.path.exists(classifications_path):
+            mask_generator = HeadAwareMaskGenerator.from_classifications(classifications_path)
+        else:
+            raise ValueError(
+                "Either mask_generator or classifications_path must be provided"
+            )
+    
+    # Tokenize input
+    input_ids = tokenizer.encode(text, return_tensors="pt")
+    input_ids = input_ids[:, :max_tokens].to(device)
+    seq_len = input_ids.shape[1]
+    
+    if seq_len < 2:
+        return {
+            "perplexity": float('inf'),
+            "accuracy": 0.0,
+            "num_tokens": 0,
+            "final_cache_size": 0,
+            "effective_context": 0.0,
+            "ttft": 0.0,
+            "tpot": 0.0,
+            "throughput": 0.0,
+            "total_time": 0.0,
+        }
+    
+    # Loss function for per-token NLL
+    loss_fn = CrossEntropyLoss(reduction="none")
+    
+    # Initialize
+    past_key_values = None
+    nlls = []
+    num_correct = []
+    
+    # Timing metrics
+    ttft = None
+    token_times = []
+    
+    model.eval()
+    
+    # Create progress bar if requested
+    token_range = range(seq_len - 1)
+    if show_progress:
+        token_range = tqdm(token_range, desc="Evaluating (head-aware mask)")
+    
+    total_start = time.perf_counter()
+    
+    # Get model config
+    num_layers = model.config.num_hidden_layers
+    
+    with torch.inference_mode():
+        for idx in token_range:
+            token_start = time.perf_counter()
+            
+            # Current token (single token input)
+            current_token = input_ids[:, idx:idx+1]
+            
+            # Target token (next token)
+            target = input_ids[:, idx+1:idx+2].view(-1)
+            
+            # Current sequence length (including past)
+            current_seq_len = idx + 1
+            
+            # Generate head-aware attention mask for current sequence length
+            # For incremental decoding, we only need mask for the new query position
+            # But HuggingFace expects full mask, so we generate for full sequence
+            # Note: We use layer 0's mask pattern - in practice, each layer could have
+            # different patterns, but GPT-NeoX applies same mask to all layers
+            attention_mask = mask_generator.generate_layer_mask(
+                layer_idx=0,  # Use layer 0 pattern (applied uniformly by HF)
+                seq_len=current_seq_len,
+                device=device,
+                dtype=model.dtype if hasattr(model, 'dtype') else torch.float32,
+                use_cache=True,
+            )
+            
+            # For autoregressive with past_key_values, we only pass the current token
+            # but the attention mask should cover the full sequence
+            # HuggingFace expects (batch, 1, 1, seq_len) for incremental decoding
+            # We'll use the last row of our full mask
+            if past_key_values is not None:
+                # Extract mask for the current query position (last row)
+                # Shape: (1, num_heads, 1, current_seq_len)
+                attention_mask = attention_mask[:, :, -1:, :]
+            
+            # Forward pass with custom attention mask
+            outputs = model(
+                current_token,
+                attention_mask=attention_mask,
+                past_key_values=past_key_values,
+                use_cache=True,
+            )
+            
+            # Get logits for next token prediction
+            logits = outputs.logits[:, -1, :].view(-1, model.config.vocab_size)
+            
+            # Calculate NLL for this token
+            nll = loss_fn(logits, target)
+            nlls.append(nll.item())
+            
+            # Calculate accuracy
+            predicted = torch.argmax(logits, dim=-1)
+            num_correct.append((predicted == target).int().item())
+            
+            # Get KV cache from outputs (keep full, no compression)
+            past_key_values = outputs.past_key_values
+            
+            # Record timing
+            token_time = time.perf_counter() - token_start
+            token_times.append(token_time)
+            
+            # Record TTFT (first token time)
+            if ttft is None:
+                ttft = token_time
+            
+            # Update progress bar
+            if show_progress:
+                current_ppl = torch.exp(torch.tensor(nlls).mean()).item()
+                current_acc = sum(num_correct) / len(num_correct)
+                token_range.set_description(
+                    f"PPL: {current_ppl:.2f}, Acc: {current_acc:.2%}"
+                )
+    
+    total_time = time.perf_counter() - total_start
+    
+    # Calculate final metrics
+    perplexity = torch.exp(torch.tensor(nlls).mean()).item()
+    accuracy = sum(num_correct) / len(num_correct)
+    
+    # Calculate timing metrics
+    num_tokens = len(nlls)
+    if num_tokens > 1:
+        tpot = sum(token_times[1:]) / (num_tokens - 1)
+    else:
+        tpot = ttft if ttft else 0.0
+    
+    throughput = num_tokens / total_time if total_time > 0 else 0.0
+    
+    # Get final cache size
+    final_cache_size = 0
+    if past_key_values is not None:
+        kv_list = list(normalize_kv_cache(past_key_values))
+        if kv_list:
+            final_cache_size = kv_list[0][0].size(2)
+    
+    # Get effective context from mask generator
+    summary = mask_generator.get_summary()
+    effective_context = summary.get('average_effective_context', 0.0)
+    
+    return {
+        "perplexity": perplexity,
+        "accuracy": accuracy,
+        "num_tokens": num_tokens,
+        "final_cache_size": final_cache_size,
+        "effective_context": effective_context,
+        # Timing metrics
+        "ttft": ttft if ttft else 0.0,
+        "tpot": tpot,
+        "throughput": throughput,
+        "total_time": total_time,
+    }
+
+
 __all__ = [
     'evaluate_with_compression',
+    'evaluate_with_head_aware_mask',
     'evaluate_baseline',
     'compare_methods',
 ]
