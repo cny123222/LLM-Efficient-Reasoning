@@ -1,0 +1,239 @@
+{
+  "timestamp": "2025-12-09T15:03:30.600279",
+  "results": [
+    {
+      "method": "baseline",
+      "perplexity": 32.67985153198242,
+      "accuracy": 0.4081360453484495,
+      "eval_tokens": 2999,
+      "elapsed_time": 30.170063972473145,
+      "strategy": "none"
+    },
+    {
+      "method": "sink+window_64",
+      "perplexity": 30.213043212890625,
+      "accuracy": 0.4081360453484495,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.48447060585022,
+      "start_size": 4,
+      "recent_size": 60,
+      "has_sinks": true,
+      "total_cache_size": 64
+    },
+    {
+      "method": "window_only_64",
+      "perplexity": 58.745357513427734,
+      "accuracy": 0.32444148049349786,
+      "eval_tokens": 2999,
+      "elapsed_time": 32.57615351676941,
+      "window_size": 64,
+      "has_sinks": false,
+      "total_cache_size": 64
+    },
+    {
+      "method": "sink+window_128",
+      "perplexity": 28.063339233398438,
+      "accuracy": 0.4168056018672891,
+      "eval_tokens": 2999,
+      "elapsed_time": 35.043848514556885,
+      "start_size": 4,
+      "recent_size": 124,
+      "has_sinks": true,
+      "total_cache_size": 128
+    },
+    {
+      "method": "window_only_128",
+      "perplexity": 44.47071075439453,
+      "accuracy": 0.34411470490163387,
+      "eval_tokens": 2999,
+      "elapsed_time": 33.17416071891785,
+      "window_size": 128,
+      "has_sinks": false,
+      "total_cache_size": 128
+    },
+    {
+      "method": "sink+window_256",
+      "perplexity": 26.501079559326172,
+      "accuracy": 0.41380460153384463,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.578696727752686,
+      "start_size": 4,
+      "recent_size": 252,
+      "has_sinks": true,
+      "total_cache_size": 256
+    },
+    {
+      "method": "window_only_256",
+      "perplexity": 36.73591995239258,
+      "accuracy": 0.3677892630876959,
+      "eval_tokens": 2999,
+      "elapsed_time": 32.75173377990723,
+      "window_size": 256,
+      "has_sinks": false,
+      "total_cache_size": 256
+    },
+    {
+      "method": "sink+window_512",
+      "perplexity": 24.445798873901367,
+      "accuracy": 0.42447482494164723,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.387614488601685,
+      "start_size": 4,
+      "recent_size": 508,
+      "has_sinks": true,
+      "total_cache_size": 512
+    },
+    {
+      "method": "window_only_512",
+      "perplexity": 31.89848518371582,
+      "accuracy": 0.3837945981993998,
+      "eval_tokens": 2999,
+      "elapsed_time": 32.657498836517334,
+      "window_size": 512,
+      "has_sinks": false,
+      "total_cache_size": 512
+    },
+    {
+      "method": "sink4_window4",
+      "perplexity": 87.52824401855469,
+      "accuracy": 0.2874291430476826,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.68147587776184,
+      "start_size": 4,
+      "recent_size": 4,
+      "sink_size": 4,
+      "window_size": 4,
+      "total_cache_size": 8
+    },
+    {
+      "method": "sink4_window8",
+      "perplexity": 65.23751831054688,
+      "accuracy": 0.31410470156718906,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.70590090751648,
+      "start_size": 4,
+      "recent_size": 8,
+      "sink_size": 4,
+      "window_size": 8,
+      "total_cache_size": 12
+    },
+    {
+      "method": "sink4_window16",
+      "perplexity": 40.8165397644043,
+      "accuracy": 0.3677892630876959,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.52443480491638,
+      "start_size": 4,
+      "recent_size": 16,
+      "sink_size": 4,
+      "window_size": 16,
+      "total_cache_size": 20
+    },
+    {
+      "method": "sink4_window32",
+      "perplexity": 34.05116271972656,
+      "accuracy": 0.39613204401467156,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.44463896751404,
+      "start_size": 4,
+      "recent_size": 32,
+      "sink_size": 4,
+      "window_size": 32,
+      "total_cache_size": 36
+    },
+    {
+      "method": "sink4_window64",
+      "perplexity": 29.952117919921875,
+      "accuracy": 0.4084694898299433,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.63343691825867,
+      "start_size": 4,
+      "recent_size": 64,
+      "sink_size": 4,
+      "window_size": 64,
+      "total_cache_size": 68
+    },
+    {
+      "method": "sink4_window128",
+      "perplexity": 28.06464385986328,
+      "accuracy": 0.41180393464488163,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.98948645591736,
+      "start_size": 4,
+      "recent_size": 128,
+      "sink_size": 4,
+      "window_size": 128,
+      "total_cache_size": 132
+    },
+    {
+      "method": "sink4_window256",
+      "perplexity": 26.211647033691406,
+      "accuracy": 0.41747249083027677,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.583272218704224,
+      "start_size": 4,
+      "recent_size": 256,
+      "sink_size": 4,
+      "window_size": 256,
+      "total_cache_size": 260
+    },
+    {
+      "method": "head_aware_full",
+      "perplexity": 32.67985153198242,
+      "accuracy": 0.4081360453484495,
+      "eval_tokens": 2999,
+      "elapsed_time": 38.84204459190369,
+      "classifications_path": "/root/LLM-Efficient-Reasoning/results/attention_analysis_pythia-2.8b/head_classifications.json",
+      "strategy": "head_aware"
+    },
+    {
+      "method": "uniform_streaming_128",
+      "perplexity": 28.063339233398438,
+      "accuracy": 0.4168056018672891,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.96623134613037,
+      "start_size": 4,
+      "recent_size": 124,
+      "strategy": "uniform",
+      "total_cache_size": 128
+    },
+    {
+      "method": "uniform_streaming_256",
+      "perplexity": 26.501079559326172,
+      "accuracy": 0.41380460153384463,
+      "eval_tokens": 2999,
+      "elapsed_time": 34.42276310920715,
+      "start_size": 4,
+      "recent_size": 252,
+      "strategy": "uniform",
+      "total_cache_size": 256
+    },
+    {
+      "method": "uniform_streaming_512",
+      "perplexity": 24.445798873901367,
+      "accuracy": 0.42447482494164723,
+      "eval_tokens": 2999,
+      "elapsed_time": 44.77304244041443,
+      "start_size": 4,
+      "recent_size": 508,
+      "strategy": "uniform",
+      "total_cache_size": 512
+    },
+    {
+      "method": "all_sink_window",
+      "perplexity": 65.23751831054688,
+      "accuracy": 0.31410470156718906,
+      "eval_tokens": 2999,
+      "elapsed_time": 50.40346813201904,
+      "strategy": "all_sink_window"
+    },
+    {
+      "method": "all_window_only",
+      "perplexity": 276.2773132324219,
+      "accuracy": 0.18506168722907637,
+      "eval_tokens": 2999,
+      "elapsed_time": 49.265034198760986,
+      "strategy": "all_window_only"
+    }
+  ]
+}

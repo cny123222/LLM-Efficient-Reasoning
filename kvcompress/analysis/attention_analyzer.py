@@ -25,10 +25,16 @@ from transformers import DynamicCache
 
 class HeadType(Enum):
     """Classification of attention head types."""
-    POSITIONAL = "positional"    # Low entropy, fixed position focus
-    GATHERING = "gathering"      # High entropy, content-dependent
-    DEAD = "dead"               # Near-uniform, low contribution
-    MIXED = "mixed"             # Does not fit clearly into categories
+    # Original types (kept for backward compatibility)
+    POSITIONAL = "positional"        # Low entropy, fixed position focus (legacy)
+    GATHERING = "gathering"          # High entropy, content-dependent
+    DEAD = "dead"                    # Near-uniform, low contribution
+    MIXED = "mixed"                  # Does not fit clearly into categories
+    
+    # Refined types for better optimization
+    SINK_POSITIONAL = "sink_positional"  # Low entropy, high sink ratio - needs sink + window
+    TRUE_POSITIONAL = "true_positional"  # Low entropy, low sink, high local - window only
+    SINK_MIXED = "sink_mixed"            # Medium entropy, high sink - needs sink + larger window
 
 
 @dataclass
@@ -73,6 +79,12 @@ class HeadClassification:
     can_limit_window: bool = False    # Can we limit this head's KV cache?
     recommended_window: int = -1      # Recommended window size (-1 = no limit)
     
+    # Enhanced compression recommendations
+    keep_sinks: bool = False          # Whether to keep sink tokens (initial tokens)
+    sink_size: int = 4                # Number of sink tokens to keep
+    use_full_cache: bool = True       # Whether to use full KV cache
+    compression_strategy: str = "none"  # "none", "window_only", "sink_window", "full"
+    
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -83,6 +95,10 @@ class HeadClassification:
             "can_prune": self.can_prune,
             "can_limit_window": self.can_limit_window,
             "recommended_window": self.recommended_window,
+            "keep_sinks": self.keep_sinks,
+            "sink_size": self.sink_size,
+            "use_full_cache": self.use_full_cache,
+            "compression_strategy": self.compression_strategy,
         }
 
 
@@ -475,64 +491,120 @@ class AttentionAnalyzer:
     
     def _classify_head(self, stats: HeadStatistics) -> HeadClassification:
         """
-        Classify a head based on its statistics.
+        Classify a head based on its statistics with refined categorization.
+        
+        The refined classification distinguishes between:
+        - SINK_POSITIONAL: Low entropy + high sink ratio -> needs sink tokens + small window
+        - TRUE_POSITIONAL: Low entropy + low sink + high local -> window only
+        - SINK_MIXED: Medium entropy + high sink -> needs sink tokens + larger window
+        - GATHERING: High entropy -> needs full KV cache
+        - DEAD: Near-uniform distribution -> can be pruned
+        - MIXED: Everything else
         
         Args:
             stats: HeadStatistics for this head
         
         Returns:
-            HeadClassification
+            HeadClassification with detailed compression recommendations
         """
         layer_idx = stats.layer_idx
         head_idx = stats.head_idx
         
-        # Classification thresholds (can be tuned)
+        # Classification thresholds (tuned based on Pythia-2.8b analysis)
         LOW_ENTROPY_THRESHOLD = 1.5       # Below this = positional head candidate
         HIGH_ENTROPY_THRESHOLD = 3.0      # Above this = gathering head candidate
         DEAD_UNIFORMITY_THRESHOLD = 0.1   # Below this KL divergence = dead head
-        HIGH_LOCAL_THRESHOLD = 0.6        # Above this local ratio = positional head
+        HIGH_LOCAL_THRESHOLD = 0.6        # Above this local ratio = true positional head
         HIGH_SINK_THRESHOLD = 0.3         # Above this sink ratio = sink-focused head
         
-        # Determine head type
+        # Default values
         head_type = HeadType.MIXED
         confidence = 0.5
         can_prune = False
         can_limit_window = False
         recommended_window = -1
+        keep_sinks = False
+        sink_size = 4
+        use_full_cache = True
+        compression_strategy = "none"
         
         # Check for dead head first (near-uniform distribution)
         if stats.uniformity_score < DEAD_UNIFORMITY_THRESHOLD:
             head_type = HeadType.DEAD
             confidence = 1.0 - stats.uniformity_score / DEAD_UNIFORMITY_THRESHOLD
             can_prune = True
+            use_full_cache = False
+            compression_strategy = "prune"
         
-        # Check for positional head (low entropy, high local attention)
+        # Check for low entropy heads (positional candidates)
         elif stats.mean_entropy < LOW_ENTROPY_THRESHOLD:
-            if stats.position_preference["local"] > HIGH_LOCAL_THRESHOLD:
-                head_type = HeadType.POSITIONAL
+            # Distinguish between sink-positional and true-positional
+            if stats.sink_ratio > HIGH_SINK_THRESHOLD:
+                # SINK_POSITIONAL: High sink ratio - needs sink tokens + small window
+                head_type = HeadType.SINK_POSITIONAL
+                confidence = stats.sink_ratio
+                can_limit_window = True
+                keep_sinks = True
+                sink_size = 4
+                recommended_window = 8  # Small recent window
+                use_full_cache = False
+                compression_strategy = "sink_window"
+                
+            elif stats.position_preference["local"] > HIGH_LOCAL_THRESHOLD:
+                # TRUE_POSITIONAL: High local attention, low sink - window only
+                head_type = HeadType.TRUE_POSITIONAL
                 confidence = (1.0 - stats.mean_entropy / LOW_ENTROPY_THRESHOLD) * \
                             (stats.position_preference["local"] / HIGH_LOCAL_THRESHOLD)
                 confidence = min(1.0, confidence)
                 can_limit_window = True
-                # Recommend window based on where most attention is concentrated
+                keep_sinks = False  # No need for sinks
+                use_full_cache = False
+                compression_strategy = "window_only"
+                
+                # Recommend window based on where 80% of attention is concentrated
+                cumsum = 0
                 for i, val in enumerate(stats.relative_position_dist[:16]):
-                    if sum(stats.relative_position_dist[:i+1]) > 0.8:
-                        recommended_window = max(8, i + 4)  # Add some buffer
+                    cumsum += val
+                    if cumsum > 0.8:
+                        recommended_window = max(8, i + 4)  # Add buffer
                         break
                 if recommended_window == -1:
                     recommended_window = 16
-            elif stats.sink_ratio > HIGH_SINK_THRESHOLD:
-                # Sink-focused but not strictly positional
-                head_type = HeadType.POSITIONAL
-                confidence = stats.sink_ratio
-                can_limit_window = True
-                recommended_window = 8  # Just need sinks + small window
+            else:
+                # Low entropy but neither high sink nor high local - keep as mixed
+                head_type = HeadType.MIXED
+                confidence = 0.5
+                use_full_cache = True
+                compression_strategy = "none"
+        
+        # Check for medium entropy with high sink ratio (SINK_MIXED)
+        elif stats.mean_entropy < HIGH_ENTROPY_THRESHOLD and stats.sink_ratio > HIGH_SINK_THRESHOLD:
+            head_type = HeadType.SINK_MIXED
+            confidence = stats.sink_ratio * (1.0 - (stats.mean_entropy - LOW_ENTROPY_THRESHOLD) / 
+                                             (HIGH_ENTROPY_THRESHOLD - LOW_ENTROPY_THRESHOLD))
+            confidence = min(1.0, max(0.0, confidence))
+            can_limit_window = True
+            keep_sinks = True
+            sink_size = 4
+            # Larger window for mixed heads (16-32 based on entropy)
+            entropy_ratio = (stats.mean_entropy - LOW_ENTROPY_THRESHOLD) / \
+                           (HIGH_ENTROPY_THRESHOLD - LOW_ENTROPY_THRESHOLD)
+            recommended_window = int(16 + entropy_ratio * 16)  # 16-32 tokens
+            use_full_cache = False
+            compression_strategy = "sink_window"
         
         # Check for gathering head (high entropy, distributed attention)
         elif stats.mean_entropy > HIGH_ENTROPY_THRESHOLD:
             head_type = HeadType.GATHERING
             # Higher confidence for very high entropy
             confidence = min(1.0, (stats.mean_entropy - HIGH_ENTROPY_THRESHOLD) / 2.0)
+            use_full_cache = True
+            compression_strategy = "full"
+        
+        # For backward compatibility, also set legacy POSITIONAL type
+        legacy_type = head_type
+        if head_type in (HeadType.SINK_POSITIONAL, HeadType.TRUE_POSITIONAL):
+            legacy_type = HeadType.POSITIONAL
         
         return HeadClassification(
             layer_idx=layer_idx,
@@ -542,6 +614,10 @@ class AttentionAnalyzer:
             can_prune=can_prune,
             can_limit_window=can_limit_window,
             recommended_window=recommended_window,
+            keep_sinks=keep_sinks,
+            sink_size=sink_size,
+            use_full_cache=use_full_cache,
+            compression_strategy=compression_strategy,
         )
     
     def save_results(
@@ -598,12 +674,27 @@ class AttentionAnalyzer:
         prunable_count = 0
         limitable_count = 0
         
+        # Compression strategy counts
+        strategy_counts = {
+            "none": 0,
+            "prune": 0,
+            "window_only": 0,
+            "sink_window": 0,
+            "full": 0,
+        }
+        
+        sink_heads_count = 0  # Heads that need sink tokens preserved
+        
         for c in classifications:
             type_counts[c.head_type.value] += 1
             if c.can_prune:
                 prunable_count += 1
             if c.can_limit_window:
                 limitable_count += 1
+            if c.compression_strategy in strategy_counts:
+                strategy_counts[c.compression_strategy] += 1
+            if c.keep_sinks:
+                sink_heads_count += 1
         
         return {
             "total_heads": total,
@@ -613,6 +704,10 @@ class AttentionAnalyzer:
             "prunable_percentage": prunable_count / total * 100,
             "limitable_heads": limitable_count,
             "limitable_percentage": limitable_count / total * 100,
+            "compression_strategies": strategy_counts,
+            "strategy_percentages": {k: v / total * 100 for k, v in strategy_counts.items()},
+            "sink_heads": sink_heads_count,
+            "sink_heads_percentage": sink_heads_count / total * 100,
         }
 
 

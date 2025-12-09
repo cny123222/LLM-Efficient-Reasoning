@@ -1,0 +1,81 @@
+================================================================================
+HEAD CLASSIFICATION VALIDATION REPORT
+================================================================================
+
+CLASSIFICATION SUMMARY
+----------------------------------------
+  sink_positional     :  361 heads ( 35.3%)
+  true_positional     :    9 heads (  0.9%)
+  sink_mixed          :  452 heads ( 44.1%)
+  gathering           :   88 heads (  8.6%)
+  mixed               :  114 heads ( 11.1%)
+  dead                :    0 heads (  0.0%)
+
+COMPRESSION STRATEGY SUMMARY
+----------------------------------------
+  sink_window         :  813 heads ( 79.4%)
+  window_only         :    9 heads (  0.9%)
+  full                :   88 heads (  8.6%)
+  none                :  114 heads ( 11.1%)
+  prune               :    0 heads (  0.0%)
+
+COMPRESSION POTENTIAL
+----------------------------------------
+  Total heads: 1024
+  Compressible (not full cache): 822 (80.3%)
+  Require sink tokens: 813 (79.4%)
+
+DETAILED STATISTICS BY TYPE
+----------------------------------------
+
+  SINK_POSITIONAL
+    Count: 361
+    Sink ratio: 0.513 ± 0.078
+    Local ratio: 0.140 ± 0.097
+    Entropy: 1.203 ± 0.242
+
+  TRUE_POSITIONAL
+    Count: 9
+    Sink ratio: 0.097 ± 0.081
+    Local ratio: 0.791 ± 0.168
+    Entropy: 1.152 ± 0.349
+
+  SINK_MIXED
+    Count: 452
+    Sink ratio: 0.419 ± 0.062
+    Local ratio: 0.183 ± 0.095
+    Entropy: 1.949 ± 0.351
+
+  GATHERING
+    Count: 88
+    Sink ratio: 0.111 ± 0.076
+    Local ratio: 0.296 ± 0.111
+    Entropy: 3.509 ± 0.278
+
+  MIXED
+    Count: 114
+    Sink ratio: 0.181 ± 0.096
+    Local ratio: 0.456 ± 0.209
+    Entropy: 2.207 ± 0.429
+
+KEY INSIGHTS
+----------------------------------------
+  • Sink-positional heads outnumber true-positional by 40.1x
+  • CRITICAL: 79.4% of heads require sink tokens!
+    -> StreamingLLM-style (sink + window) is essential
+  • 452 sink-mixed heads need larger windows (16-32)
+  • 88 gathering heads need full KV cache
+    -> These cannot be compressed without quality loss
+
+RECOMMENDED COMPRESSION CONFIG
+----------------------------------------
+  {
+    "sink_positional": {"sink_size": 4, "window_size": 8},
+    "true_positional": {"sink_size": 0, "window_size": 8},
+    "sink_mixed": {"sink_size": 4, "window_size": 24},
+    "gathering": {"use_full_cache": true},
+    "mixed": {"sink_size": 4, "window_size": 32},
+    "dead": {"prune": true}
+  }
+
+================================================================================

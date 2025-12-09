@@ -35,7 +35,11 @@ from datasets import load_dataset
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from kvcompress.methods import get_compress_fn, list_methods, l2_compress, fix_size_l2_compress, streaming_llm_compress, recent_only_compress
+from kvcompress.methods import (
+    get_compress_fn, list_methods, 
+    l2_compress, fix_size_l2_compress, streaming_llm_compress, recent_only_compress,
+    head_aware_compress, HeadAwareCompressor,
+)
 from kvcompress.benchmark import benchmark, run_benchmark_suite, print_benchmark_summary
 from kvcompress.evaluate import evaluate_with_compression
 
@@ -290,6 +294,36 @@ def build_methods_config(args) -> list:
                 }
             })
     
+    elif args.method == "head_aware":
+        # Head-aware compression with classification-based strategies
+        classifications_path = args.classifications_path
+        
+        if classifications_path and os.path.exists(classifications_path):
+            print(f"Using head classifications from: {classifications_path}")
+            methods.append({
+                "name": "head_aware_classified",
+                "compress_fn": head_aware_compress,
+                "kwargs": {
+                    "classifications_path": classifications_path,
+                }
+            })
+        else:
+            print("No classification file found, using uniform StreamingLLM-style fallback")
+        
+        # Add StreamingLLM comparison with same total cache size
+        # Estimate total cache: assume ~30% heads need full cache (gathering), 
+        # ~70% heads use sink(4) + window(8) = 12 tokens per head
+        # This is approximate; actual savings depend on classification
+        
+        # Add uniform StreamingLLM baselines for comparison
+        for total_size in [512, 256, 128]:
+            recent_size = total_size - args.start_size
+            methods.append({
+                "name": f"streaming_{total_size}",
+                "compress_fn": streaming_llm_compress,
+                "kwargs": {"start_size": args.start_size, "recent_size": recent_size}
+            })
+    
     elif args.compare_all:
         # Compare all methods with default configurations
         methods.extend([
@@ -319,6 +353,17 @@ def build_methods_config(args) -> list:
                 "kwargs": {"start_size": 4, "recent_size": 1020}
             },
         ])
+        
+        # Add head-aware if classification exists
+        default_class_path = os.path.join(
+            project_root, "results", "attention_analysis_pythia-2.8b", "head_classifications.json"
+        )
+        if os.path.exists(default_class_path):
+            methods.append({
+                "name": "head_aware",
+                "compress_fn": head_aware_compress,
+                "kwargs": {"classifications_path": default_class_path}
+            })
     
     return methods
 
@@ -364,10 +409,15 @@ Examples:
                        help="Number of warmup iterations before benchmark (default: 3)")
     
     # Method selection
-    parser.add_argument("--method", type=str, choices=["l2_compress", "fix_size_l2", "streaming_llm"],
+    parser.add_argument("--method", type=str, choices=["l2_compress", "fix_size_l2", "streaming_llm", "head_aware"],
                        help="Compression method to benchmark")
     parser.add_argument("--compare_all", action="store_true",
                        help="Compare all methods with default configurations")
+    
+    # Head-aware compression arguments
+    parser.add_argument("--classifications_path", type=str, 
+                       default=os.path.join(project_root, "results", "attention_analysis_pythia-2.8b", "head_classifications.json"),
+                       help="Path to head classifications JSON file (for head_aware method)")
     
     # L2 compress arguments
     parser.add_argument("--keep_ratios", type=str, default="0.8,0.5,0.3",

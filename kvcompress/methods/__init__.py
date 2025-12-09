@@ -11,6 +11,12 @@ from .l2_compress import l2_compress
 from .fix_size_l2 import fix_size_l2_compress
 from .streaming_llm import streaming_llm_compress
 from .recent_only import recent_only_compress
+from .head_aware_compress import (
+    head_aware_compress,
+    HeadAwareCompressor,
+    HeadCompressionConfig,
+    LayerCompressionConfig,
+)
 
 # Registry of all compression methods
 COMPRESS_METHODS: Dict[str, Callable] = {
@@ -18,6 +24,7 @@ COMPRESS_METHODS: Dict[str, Callable] = {
     "fix_size_l2": fix_size_l2_compress,
     "streaming_llm": streaming_llm_compress,
     "recent_only": recent_only_compress,
+    "head_aware": head_aware_compress,
 }
 
 
@@ -68,9 +75,14 @@ __all__ = [
     'fix_size_l2_compress',
     'streaming_llm_compress',
     'recent_only_compress',
+    'head_aware_compress',
     'get_compress_fn',
     'list_methods',
     'register_method',
+    # Classes
+    'HeadAwareCompressor',
+    'HeadCompressionConfig',
+    'LayerCompressionConfig',
     # Registry
     'COMPRESS_METHODS',
 ]
