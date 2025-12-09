@@ -5,13 +5,17 @@ import time
 from datasets import load_dataset
 import numpy as np
 from typing import Optional, List, Tuple
+import os
+
+os.environ['HF_HOME'] = '/root/autodl-tmp/cache/'
 
 # 指定模型ID
-model_id = "EleutherAI/pythia-70m-deduped"
+model_id = "EleutherAI/pythia-6.9b"
 
 # 加载最终的、完全训练好的模型和tokenizer
 # AutoModelForCausalLM 会自动根据 config.json 中的 model_type 选择正确的模型类
 # 对于 Pythia 系列，会自动加载 GPTNeoXForCausalLM
+print(f"HF_HOME: {os.environ['HF_HOME']}")
 print("Loading model and tokenizer...")
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
