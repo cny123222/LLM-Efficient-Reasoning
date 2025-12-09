@@ -752,7 +752,7 @@ class HeadAwareMaskGenerator:
         dtype: torch.dtype = torch.float32,
     ) -> torch.Tensor:
         """
-        Create a sink + window mask for a single head.
+        Create a sink + window mask for a single head (VECTORIZED).
         
         Each query position q can attend to:
         - Positions [0, sink_size): Always visible (attention sinks)
@@ -768,19 +768,33 @@ class HeadAwareMaskGenerator:
         Returns:
             Mask tensor of shape (seq_len, seq_len)
         """
-        # Start with all masked (-inf)
-        mask = torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype)
+        # Create position indices
+        # q_pos: query positions (rows), k_pos: key positions (columns)
+        q_pos = torch.arange(seq_len, device=device).unsqueeze(1)  # (seq_len, 1)
+        k_pos = torch.arange(seq_len, device=device).unsqueeze(0)  # (1, seq_len)
         
-        for q_pos in range(seq_len):
-            # Sink tokens: always visible (positions 0 to sink_size-1)
-            if sink_size > 0:
-                mask[q_pos, :min(sink_size, q_pos + 1)] = 0.0
-            
-            # Recent window: positions within window_size of current position
-            # Must also be causal (k_pos <= q_pos)
-            window_start = max(0, q_pos - window_size + 1)
-            window_end = q_pos + 1  # Inclusive of current position (causal)
-            mask[q_pos, window_start:window_end] = 0.0
+        # Causal mask: k_pos <= q_pos (can only attend to past and current)
+        causal_mask = k_pos <= q_pos  # (seq_len, seq_len)
+        
+        # Sink mask: k_pos < sink_size (always attend to sink tokens)
+        sink_mask = k_pos < sink_size  # (1, seq_len) broadcasts to (seq_len, seq_len)
+        
+        # Window mask: k_pos >= q_pos - window_size + 1 (recent window)
+        # This means: q_pos - k_pos < window_size
+        window_mask = (q_pos - k_pos) < window_size  # (seq_len, seq_len)
+        
+        # Combined: causal AND (sink OR window)
+        # A position is visible if:
+        # 1. It's causal (k <= q), AND
+        # 2. It's either a sink token OR within the recent window
+        visible_mask = causal_mask & (sink_mask | window_mask)
+        
+        # Convert to attention mask format: 0 for visible, -inf for masked
+        mask = torch.where(
+            visible_mask,
+            torch.zeros(1, device=device, dtype=dtype),
+            torch.full((1,), float('-inf'), device=device, dtype=dtype)
+        )
         
         return mask
     
