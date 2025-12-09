@@ -444,6 +444,15 @@ def evaluate_with_head_aware_mask(
     
     # Get model config
     num_layers = model.config.num_hidden_layers
+    num_heads = model.config.num_attention_heads
+    
+    # Determine mask dtype - use same as model for efficiency
+    mask_dtype = torch.bfloat16 if device.type == 'cuda' else torch.float32
+    if hasattr(model, 'dtype') and model.dtype is not None:
+        mask_dtype = model.dtype
+    
+    # Clear any existing mask cache to avoid memory buildup
+    mask_generator.clear_cache()
     
     with torch.inference_mode():
         for idx in token_range:
@@ -459,16 +468,15 @@ def evaluate_with_head_aware_mask(
             current_seq_len = idx + 1
             
             # Generate head-aware attention mask for current sequence length
-            # For incremental decoding, we only need mask for the new query position
-            # But HuggingFace expects full mask, so we generate for full sequence
-            # Note: We use layer 0's mask pattern - in practice, each layer could have
-            # different patterns, but GPT-NeoX applies same mask to all layers
+            # IMPORTANT: Disable caching since seq_len changes every iteration
+            # Caching would cause memory to grow unboundedly
+            # We only need the mask for the current query position (last row)
             attention_mask = mask_generator.generate_layer_mask(
                 layer_idx=0,  # Use layer 0 pattern (applied uniformly by HF)
                 seq_len=current_seq_len,
                 device=device,
-                dtype=model.dtype if hasattr(model, 'dtype') else torch.float32,
-                use_cache=True,
+                dtype=mask_dtype,
+                use_cache=False,  # CRITICAL: Don't cache to avoid OOM
             )
             
             # For autoregressive with past_key_values, we only pass the current token
@@ -487,6 +495,9 @@ def evaluate_with_head_aware_mask(
                 past_key_values=past_key_values,
                 use_cache=True,
             )
+            
+            # Explicitly delete mask to free GPU memory
+            del attention_mask
             
             # Get logits for next token prediction
             logits = outputs.logits[:, -1, :].view(-1, model.config.vocab_size)
@@ -519,6 +530,9 @@ def evaluate_with_head_aware_mask(
                 )
     
     total_time = time.perf_counter() - total_start
+    
+    # Clear mask cache to free memory
+    mask_generator.clear_cache()
     
     # Calculate final metrics
     perplexity = torch.exp(torch.tensor(nlls).mean()).item()

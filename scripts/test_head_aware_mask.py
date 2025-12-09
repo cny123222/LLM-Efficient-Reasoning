@@ -247,6 +247,14 @@ def main():
     print(f"Device: {device}")
     print(f"Classifications: {args.classifications}")
     
+    # Helper function to clear GPU memory between tests
+    def clear_gpu_memory():
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+    
     # Test 1: Baseline (full context)
     if not args.skip_baseline:
         print("\n" + "-"*70)
@@ -256,6 +264,7 @@ def main():
             model, tokenizer, text, args.max_tokens, device
         )
         print_results(results['baseline'], "Baseline Results")
+        clear_gpu_memory()  # Free memory before next test
     
     # Test 2: Uniform mask (StreamingLLM style)
     print("\n" + "-"*70)
@@ -266,6 +275,7 @@ def main():
         sink_size=args.sink_size, window_size=args.window_size
     )
     print_results(results['uniform_mask'], f"Uniform Mask Results (sink={args.sink_size}, window={args.window_size})")
+    clear_gpu_memory()  # Free memory before next test
     
     # Test 3: Head-aware mask
     if args.classifications and os.path.exists(args.classifications):
@@ -277,6 +287,7 @@ def main():
             classifications_path=args.classifications
         )
         print_results(results['head_aware_mask'], "Head-Aware Mask Results")
+        clear_gpu_memory()
     else:
         print("\n" + "-"*70)
         print("TEST 3: Head-Aware Mask - SKIPPED (no classifications file)")
