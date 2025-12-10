@@ -683,6 +683,178 @@ class HeadAwareMaskGenerator:
         return generator
     
     @classmethod
+    def from_classifications_with_confidence(
+        cls,
+        classifications_path: str,
+        confidence_threshold: float = 0.6,
+        base_window: int = 128,
+        high_conf_windows: Optional[Dict[str, int]] = None,
+        sink_size: int = 4,
+    ) -> "HeadAwareMaskGenerator":
+        """
+        Create mask generator using confidence-based window sizing.
+        
+        This approach treats low-confidence classifications as "unknown" and
+        gives them a conservative baseline window, while only applying
+        type-specific windows to high-confidence heads.
+        
+        Args:
+            classifications_path: Path to head_classifications.json
+            confidence_threshold: Minimum confidence to trust classification (default: 0.6)
+            base_window: Window size for low-confidence heads (default: 128)
+            high_conf_windows: Window sizes for high-confidence heads by type
+                              Default: {'positional': 16, 'mixed': 64, 'gathering': 512}
+            sink_size: Number of sink tokens (default: 4)
+        
+        Returns:
+            Configured HeadAwareMaskGenerator instance
+        """
+        with open(classifications_path, 'r') as f:
+            data = json.load(f)
+        
+        classifications = data.get('classifications', data)
+        if isinstance(classifications, dict):
+            classifications = classifications.get('classifications', [])
+        
+        # Infer model dimensions
+        num_layers = max(c['layer_idx'] for c in classifications) + 1
+        num_heads = max(c['head_idx'] for c in classifications) + 1
+        
+        # Default windows for high-confidence heads
+        if high_conf_windows is None:
+            high_conf_windows = {
+                'positional': 16,
+                'mixed': 64,
+                'gathering': 512,
+            }
+        
+        generator = cls(
+            num_layers=num_layers,
+            num_heads=num_heads,
+            default_sink_size=sink_size,
+            default_window_size=base_window,
+        )
+        
+        # Stats for logging
+        high_conf_count = 0
+        low_conf_count = 0
+        
+        # Configure each head based on classification AND confidence
+        for c in classifications:
+            layer_idx = c['layer_idx']
+            head_idx = c['head_idx']
+            head_type = c['head_type']
+            confidence = c.get('confidence', 0.5)
+            
+            # Determine window size based on confidence
+            if confidence >= confidence_threshold:
+                # High confidence: use type-specific window
+                window_size = high_conf_windows.get(head_type, base_window)
+                high_conf_count += 1
+            else:
+                # Low confidence: use conservative baseline
+                window_size = base_window
+                low_conf_count += 1
+            
+            generator.head_configs[(layer_idx, head_idx)] = {
+                'head_type': head_type,
+                'confidence': confidence,
+                'sink_size': sink_size,
+                'window_size': window_size,
+            }
+        
+        # Store confidence stats for summary
+        generator._confidence_stats = {
+            'threshold': confidence_threshold,
+            'high_conf_count': high_conf_count,
+            'low_conf_count': low_conf_count,
+            'base_window': base_window,
+            'high_conf_windows': high_conf_windows,
+        }
+        
+        return generator
+    
+    @classmethod
+    def from_classifications_inverse(
+        cls,
+        classifications_path: str,
+        base_window: int = 64,
+        gathering_window: int = 256,
+        gathering_confidence_threshold: float = 0.4,
+        sink_size: int = 4,
+    ) -> "HeadAwareMaskGenerator":
+        """
+        Inverse approach: uniform baseline, only expand for confident gathering heads.
+        
+        This approach gives ALL heads a moderate baseline window, and only
+        expands the window for gathering heads that have high confidence.
+        
+        Rationale: If we're unsure about head types, it's safer to give
+        everyone a moderate window. Only gathering heads that we're confident
+        about should get expanded context.
+        
+        Args:
+            classifications_path: Path to head_classifications.json
+            base_window: Baseline window for all heads (default: 64)
+            gathering_window: Window for confident gathering heads (default: 256)
+            gathering_confidence_threshold: Min confidence for gathering expansion (default: 0.4)
+            sink_size: Number of sink tokens (default: 4)
+        
+        Returns:
+            Configured HeadAwareMaskGenerator instance
+        """
+        with open(classifications_path, 'r') as f:
+            data = json.load(f)
+        
+        classifications = data.get('classifications', data)
+        if isinstance(classifications, dict):
+            classifications = classifications.get('classifications', [])
+        
+        # Infer model dimensions
+        num_layers = max(c['layer_idx'] for c in classifications) + 1
+        num_heads = max(c['head_idx'] for c in classifications) + 1
+        
+        generator = cls(
+            num_layers=num_layers,
+            num_heads=num_heads,
+            default_sink_size=sink_size,
+            default_window_size=base_window,
+        )
+        
+        expanded_count = 0
+        
+        # Configure each head
+        for c in classifications:
+            layer_idx = c['layer_idx']
+            head_idx = c['head_idx']
+            head_type = c['head_type']
+            confidence = c.get('confidence', 0.5)
+            
+            # Only expand window for confident gathering heads
+            if head_type == 'gathering' and confidence >= gathering_confidence_threshold:
+                window_size = gathering_window
+                expanded_count += 1
+            else:
+                window_size = base_window
+            
+            generator.head_configs[(layer_idx, head_idx)] = {
+                'head_type': head_type,
+                'confidence': confidence,
+                'sink_size': sink_size,
+                'window_size': window_size,
+            }
+        
+        # Store stats
+        generator._inverse_stats = {
+            'base_window': base_window,
+            'gathering_window': gathering_window,
+            'threshold': gathering_confidence_threshold,
+            'expanded_count': expanded_count,
+        }
+        
+        return generator
+    
+    @classmethod
     def create_uniform(
         cls,
         num_layers: int,
@@ -804,11 +976,11 @@ class HeadAwareMaskGenerator:
                 mask = torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype)
                 for i in range(seq_len):
                     mask[i, i] = 0.0
-            elif window_size < 0 or head_type == 'gathering':
-                # Full context: standard causal mask
+            elif window_size == -1:
+                # Full context: standard causal mask (only when explicitly set to -1)
                 mask = self._create_causal_mask(seq_len, device, dtype)
             else:
-                # Sink + window mask
+                # Sink + window mask (for any non-negative window_size)
                 mask = self._create_sink_window_mask(
                     seq_len, sink_size, window_size, device, dtype
                 )
@@ -936,11 +1108,11 @@ class HeadAwareMaskGenerator:
                 mask = torch.full((seq_len, seq_len), float('-inf'), device=device, dtype=dtype)
                 for i in range(seq_len):
                     mask[i, i] = 0.0  # Allow self-attention to prevent NaN
-            elif window_size < 0 or head_type == 'gathering':
-                # Full context: standard causal mask
+            elif window_size == -1:
+                # Full context: standard causal mask (only when explicitly set to -1)
                 mask = self._create_causal_mask(seq_len, device, dtype)
             else:
-                # Sink + window mask
+                # Sink + window mask (for any non-negative window_size)
                 mask = self._create_sink_window_mask(
                     seq_len, sink_size, window_size, device, dtype
                 )

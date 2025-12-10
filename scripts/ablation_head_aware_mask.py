@@ -102,6 +102,22 @@ def run_experiment(model, tokenizer, text, max_tokens, device, config):
             window_size_override=config.get('window_override'),
             sink_size=config.get('sink_size', 4),
         )
+    elif config['type'] == 'confidence_based':
+        mask_gen = HeadAwareMaskGenerator.from_classifications_with_confidence(
+            config['classifications_path'],
+            confidence_threshold=config.get('confidence_threshold', 0.6),
+            base_window=config.get('base_window', 128),
+            high_conf_windows=config.get('high_conf_windows'),
+            sink_size=config.get('sink_size', 4),
+        )
+    elif config['type'] == 'inverse':
+        mask_gen = HeadAwareMaskGenerator.from_classifications_inverse(
+            config['classifications_path'],
+            base_window=config.get('base_window', 64),
+            gathering_window=config.get('gathering_window', 256),
+            gathering_confidence_threshold=config.get('gathering_confidence_threshold', 0.4),
+            sink_size=config.get('sink_size', 4),
+        )
     else:
         raise ValueError(f"Unknown config type: {config['type']}")
     
@@ -241,6 +257,106 @@ def main():
         "type": "head_aware",
         "classifications_path": args.classifications,
         "window_override": {"gathering": 508},  # Only override gathering
+        "sink_size": 4,
+    })
+    
+    # ========== Group G: Confidence-based window sizing ==========
+    # Only trust high-confidence classifications, use baseline for uncertain heads
+    # G1: threshold=0.6, base=128 (strict - only trust very confident)
+    experiments.append({
+        "name": "G1_conf0.6_base128",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": args.classifications,
+        "confidence_threshold": 0.6,
+        "base_window": 128,
+        "high_conf_windows": {"positional": 16, "mixed": 64, "gathering": 512},
+        "sink_size": 4,
+    })
+    
+    # G2: threshold=0.5, base=128 (medium)
+    experiments.append({
+        "name": "G2_conf0.5_base128",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": args.classifications,
+        "confidence_threshold": 0.5,
+        "base_window": 128,
+        "high_conf_windows": {"positional": 16, "mixed": 64, "gathering": 512},
+        "sink_size": 4,
+    })
+    
+    # G3: threshold=0.4, base=64 (lenient, smaller baseline)
+    experiments.append({
+        "name": "G3_conf0.4_base64",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": args.classifications,
+        "confidence_threshold": 0.4,
+        "base_window": 64,
+        "high_conf_windows": {"positional": 8, "mixed": 64, "gathering": 256},
+        "sink_size": 4,
+    })
+    
+    # G4: threshold=0.6, base=64 (strict threshold, small baseline)
+    experiments.append({
+        "name": "G4_conf0.6_base64",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": args.classifications,
+        "confidence_threshold": 0.6,
+        "base_window": 64,
+        "high_conf_windows": {"positional": 8, "mixed": 64, "gathering": 256},
+        "sink_size": 4,
+    })
+    
+    # ========== Group H: Inverse approach (uniform + expand gathering) ==========
+    # Give everyone baseline, only expand confident gathering heads
+    # H1: base=64, gathering=256, threshold=0.4
+    experiments.append({
+        "name": "H1_base64_g256",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": args.classifications,
+        "base_window": 64,
+        "gathering_window": 256,
+        "gathering_confidence_threshold": 0.4,
+        "sink_size": 4,
+    })
+    
+    # H2: base=64, gathering=512, threshold=0.3
+    experiments.append({
+        "name": "H2_base64_g512",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": args.classifications,
+        "base_window": 64,
+        "gathering_window": 512,
+        "gathering_confidence_threshold": 0.3,
+        "sink_size": 4,
+    })
+    
+    # H3: base=128, gathering=256, threshold=0.4
+    experiments.append({
+        "name": "H3_base128_g256",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": args.classifications,
+        "base_window": 128,
+        "gathering_window": 256,
+        "gathering_confidence_threshold": 0.4,
+        "sink_size": 4,
+    })
+    
+    # H4: base=128, gathering=512, threshold=0.3
+    experiments.append({
+        "name": "H4_base128_g512",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": args.classifications,
+        "base_window": 128,
+        "gathering_window": 512,
+        "gathering_confidence_threshold": 0.3,
         "sink_size": 4,
     })
     
