@@ -1,439 +1,3 @@
-(base) root@autodl-container-ff5d489b4f-b6933d5f:~/LLM-Efficient-Reasoning# HF_HUB_OFFLINE=1 python scripts/ablation_head_aware_mask.py     --model EleutherAI/pythia-2.8b     --classifications results/attention_analysis_pythia-2.8b/head_classifications.json     --max-tokens 2000     --output results/ablation_head_aware_mask.json
-Loading model: EleutherAI/pythia-2.8b
-`torch_dtype` is deprecated! Use `dtype` instead!
-
-======================================================================
-ABLATION STUDY: HEAD-AWARE ATTENTION MASK
-======================================================================
-
-======================================================================
-GROUP: A_uniform
-======================================================================
-
-  Running: A_uniform_512...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=508):32
-  Layer 1: uniform(w=508):32
-  Layer 2: uniform(w=508):32
-  Layer 3: uniform(w=508):32
-  Layer 4: uniform(w=508):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 8.98, Acc: 52.93%: 100%|████████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.53it/s]
-    PPL: 8.98, Acc: 52.93%, Eff.Ctx: 512.0
-
-  Running: A_uniform_256...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=252):32
-  Layer 1: uniform(w=252):32
-  Layer 2: uniform(w=252):32
-  Layer 3: uniform(w=252):32
-  Layer 4: uniform(w=252):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 9.48, Acc: 51.83%: 100%|████████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:52<00:00, 11.57it/s]
-    PPL: 9.48, Acc: 51.83%, Eff.Ctx: 256.0
-
-  Running: A_uniform_128...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=124):32
-  Layer 1: uniform(w=124):32
-  Layer 2: uniform(w=124):32
-  Layer 3: uniform(w=124):32
-  Layer 4: uniform(w=124):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 9.89, Acc: 51.98%: 100%|████████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.55it/s]
-    PPL: 9.89, Acc: 51.98%, Eff.Ctx: 128.0
-
-  Running: A_uniform_64...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=60):32
-  Layer 1: uniform(w=60):32
-  Layer 2: uniform(w=60):32
-  Layer 3: uniform(w=60):32
-  Layer 4: uniform(w=60):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 10.97, Acc: 50.28%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:52<00:00, 11.57it/s]
-    PPL: 10.97, Acc: 50.28%, Eff.Ctx: 64.0
-
-  Running: A_uniform_32...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=28):32
-  Layer 1: uniform(w=28):32
-  Layer 2: uniform(w=28):32
-  Layer 3: uniform(w=28):32
-  Layer 4: uniform(w=28):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 13.11, Acc: 48.12%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.55it/s]
-    PPL: 13.11, Acc: 48.12%, Eff.Ctx: 32.0
-
-  Running: A_uniform_16...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=12):32
-  Layer 1: uniform(w=12):32
-  Layer 2: uniform(w=12):32
-  Layer 3: uniform(w=12):32
-  Layer 4: uniform(w=12):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 23.05, Acc: 40.32%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.50it/s]
-    PPL: 23.05, Acc: 40.32%, Eff.Ctx: 16.0
-
-======================================================================
-GROUP: B_sink_only
-======================================================================
-
-  Running: B_sink_only_512...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 123.80, Acc: 26.06%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.55it/s]
-    PPL: 123.80, Acc: 26.06%, Eff.Ctx: 512.0
-
-  Running: B_sink_only_256...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 207.51, Acc: 20.46%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.54it/s]
-    PPL: 207.51, Acc: 20.46%, Eff.Ctx: 256.0
-
-  Running: B_sink_only_128...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 407.12, Acc: 17.96%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:53<00:00, 11.53it/s]
-    PPL: 407.12, Acc: 17.96%, Eff.Ctx: 128.0
-
-  Running: B_sink_only_64...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 507.25, Acc: 15.71%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [04:16<00:00,  7.80it/s]
-    PPL: 507.25, Acc: 15.71%, Eff.Ctx: 64.0
-
-  Running: B_sink_only_32...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 659.46, Acc: 13.46%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:52<00:00, 11.57it/s]
-    PPL: 659.46, Acc: 13.46%, Eff.Ctx: 32.0
-
-  Running: B_sink_only_16...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: uniform(w=0):32
-  Layer 1: uniform(w=0):32
-  Layer 2: uniform(w=0):32
-  Layer 3: uniform(w=0):32
-  Layer 4: uniform(w=0):32
-  ... (showing first 5 of 32 layers)
-
-PPL: 829.85, Acc: 13.11%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:52<00:00, 11.57it/s]
-    PPL: 829.85, Acc: 13.11%, Eff.Ctx: 16.0
-
-======================================================================
-GROUP: C_head_aware_pos
-======================================================================
-
-  Running: C_ha_pos4...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=4):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=4):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=4):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 13.03, Acc: 46.92%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:54<00:00, 11.45it/s]
-    PPL: 13.03, Acc: 46.92%, Eff.Ctx: 128.5
-
-  Running: C_ha_pos8...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=8):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 12.05, Acc: 49.47%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:45<00:00, 12.10it/s]
-    PPL: 12.05, Acc: 49.47%, Eff.Ctx: 129.9
-
-  Running: C_ha_pos16...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=16):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=16):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=16):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 11.38, Acc: 50.38%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.15it/s]
-    PPL: 11.38, Acc: 50.38%, Eff.Ctx: 132.8
-
-  Running: C_ha_pos32...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=32):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=32):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=32):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 10.83, Acc: 51.38%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.15it/s]
-    PPL: 10.83, Acc: 51.38%, Eff.Ctx: 138.6
-
-  Running: C_ha_pos64...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=64):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=64):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=64):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 10.67, Acc: 50.48%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.14it/s]
-    PPL: 10.67, Acc: 50.48%, Eff.Ctx: 150.2
-
-======================================================================
-GROUP: D_head_aware_mix
-======================================================================
-
-  Running: D_ha_mix32...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=32):3
-  Layer 1: gathering(w=-1):13, mixed(w=32):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=32):8
-  Layer 3: gathering(w=-1):2, mixed(w=32):17, positional(w=8):13
-  Layer 4: gathering(w=-1):4, mixed(w=32):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 13.50, Acc: 47.22%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.12it/s]
-    PPL: 13.50, Acc: 47.22%, Eff.Ctx: 112.2
-
-  Running: D_ha_mix64...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=8):13
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 12.05, Acc: 49.47%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:45<00:00, 12.08it/s]
-    PPL: 12.05, Acc: 49.47%, Eff.Ctx: 129.9
-
-  Running: D_ha_mix128...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=128):3
-  Layer 1: gathering(w=-1):13, mixed(w=128):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=128):8
-  Layer 3: gathering(w=-1):2, mixed(w=128):17, positional(w=8):13
-  Layer 4: gathering(w=-1):4, mixed(w=128):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 11.41, Acc: 49.57%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:45<00:00, 12.11it/s]
-    PPL: 11.41, Acc: 49.57%, Eff.Ctx: 165.3
-
-  Running: D_ha_mix256...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=256):3
-  Layer 1: gathering(w=-1):13, mixed(w=256):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=256):8
-  Layer 3: gathering(w=-1):2, mixed(w=256):17, positional(w=8):13
-  Layer 4: gathering(w=-1):4, mixed(w=256):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 11.08, Acc: 49.22%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.16it/s]
-    PPL: 11.08, Acc: 49.22%, Eff.Ctx: 236.0
-
-======================================================================
-GROUP: E_head_aware_no_sink
-======================================================================
-
-  Running: E_ha_no_sink...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=68):3
-  Layer 1: gathering(w=-1):13, mixed(w=68):16, positional(w=12):3
-  Layer 2: gathering(w=-1):24, mixed(w=68):8
-  Layer 3: gathering(w=-1):2, mixed(w=68):17, positional(w=12):13
-  Layer 4: gathering(w=-1):4, mixed(w=68):25, positional(w=12):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 139.84, Acc: 25.46%: 100%|██████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.15it/s]
-    PPL: 139.84, Acc: 25.46%, Eff.Ctx: 129.9
-
-======================================================================
-GROUP: F_head_aware_default
-======================================================================
-
-  Running: F_ha_default...
-Evaluating (head-aware mask):   0%|                                                                                     | 0/1999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
-
-[Per-Layer Mask Config] Head type distribution per layer:
-  Layer 0: gathering(w=-1):29, mixed(w=64):3
-  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=8):3
-  Layer 2: gathering(w=-1):24, mixed(w=64):8
-  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=16):1, positional(w=8):12
-  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=8):3
-  ... (showing first 5 of 32 layers)
-
-PPL: 11.69, Acc: 49.77%: 100%|███████████████████████████████████████████████████████████████████████████████| 1999/1999 [02:44<00:00, 12.15it/s]
-    PPL: 11.69, Acc: 49.77%, Eff.Ctx: 130.0
-
-======================================================================
-ABLATION RESULTS SUMMARY (by group)
-======================================================================
-
---- A_uniform ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-A_uniform_512            8.98  52.93%      512.0
-A_uniform_256            9.48  51.83%      256.0
-A_uniform_128            9.89  51.98%      128.0
-A_uniform_64            10.97  50.28%       64.0
-A_uniform_32            13.11  48.12%       32.0
-A_uniform_16            23.05  40.32%       16.0
-
---- B_sink_only ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-B_sink_only_512        123.80  26.06%      512.0
-B_sink_only_256        207.51  20.46%      256.0
-B_sink_only_128        407.12  17.96%      128.0
-B_sink_only_64         507.25  15.71%       64.0
-B_sink_only_32         659.46  13.46%       32.0
-B_sink_only_16         829.85  13.11%       16.0
-
---- C_head_aware_pos ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-C_ha_pos4               13.03  46.92%      128.5
-C_ha_pos8               12.05  49.47%      129.9
-C_ha_pos16              11.38  50.38%      132.8
-C_ha_pos32              10.83  51.38%      138.6  * 
-C_ha_pos64              10.67  50.48%      150.2
-
---- D_head_aware_mix ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-D_ha_mix32              13.50  47.22%      112.2
-D_ha_mix64              12.05  49.47%      129.9
-D_ha_mix128             11.41  49.57%      165.3
-D_ha_mix256             11.08  49.22%      236.0
-
---- E_head_aware_no_sink ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-E_ha_no_sink           139.84  25.46%      129.9
-
---- F_head_aware_default ---
-Name                      PPL      Acc    Eff.Ctx
---------------------------------------------------
-F_ha_default            11.69  49.77%      130.0
-
-======================================================================
-KEY COMPARISONS
-======================================================================
-
-1. Head-Aware vs Uniform (similar effective context):
-   Head-Aware Default: PPL=11.69, Ctx=130
-   Closest Uniform:    PPL=9.89, Ctx=128
-   PPL difference: +18.24% (uniform better)
-
-2. Head-Aware (pos=4) vs Sink-Only 128:
-   Head-Aware pos4: PPL=13.03, Ctx=128
-   Sink-Only 128:   PPL=407.12, Ctx=128
-   PPL difference: -96.80%
-
-3. Effect of Sink Tokens (Head-Aware with vs without sink):
-   With sink (4):    PPL=11.69
-   Without sink:     PPL=139.84
-   PPL degradation without sink: +1096.06%
-
-4. Positional Window Sensitivity:
-   C_ha_pos4: PPL=13.03, Ctx=128
-   C_ha_pos8: PPL=12.05, Ctx=130
-   C_ha_pos16: PPL=11.38, Ctx=133
-   C_ha_pos32: PPL=10.83, Ctx=139
-   C_ha_pos64: PPL=10.67, Ctx=150
-
-Results saved to: results/ablation_head_aware_mask.json
-
-
-
-
 ======================================================================
 GROUP: C_head_aware_pos_mix_g
 ======================================================================
@@ -569,3 +133,646 @@ C_ha_pos32_mix64_g60    10.88  51.15%       56.1
 ======================================================================
 ABLATION STUDY COMPLETE
 ======================================================================
+
+======================================================================
+ABLATION STUDY: HEAD-AWARE ATTENTION MASK
+======================================================================
+
+======================================================================
+GROUP: A_window_only
+======================================================================
+
+  Running: A_window_512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=512):32
+  Layer 1: uniform(w=512):32
+  Layer 2: uniform(w=512):32
+  Layer 3: uniform(w=512):32
+  Layer 4: uniform(w=512):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 13.47, Acc: 47.85%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:26<00:00, 11.56it/s]
+    PPL: 13.47, Acc: 47.85%, Eff.Ctx: 512.0
+
+  Running: A_window_256...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=256):32
+  Layer 1: uniform(w=256):32
+  Layer 2: uniform(w=256):32
+  Layer 3: uniform(w=256):32
+  Layer 4: uniform(w=256):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 21.09, Acc: 43.14%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.67it/s]
+    PPL: 21.09, Acc: 43.14%, Eff.Ctx: 256.0
+
+  Running: A_window_128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=128):32
+  Layer 1: uniform(w=128):32
+  Layer 2: uniform(w=128):32
+  Layer 3: uniform(w=128):32
+  Layer 4: uniform(w=128):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 26.28, Acc: 40.94%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.66it/s]
+    PPL: 26.28, Acc: 40.94%, Eff.Ctx: 128.0
+
+  Running: A_window_64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=64):32
+  Layer 1: uniform(w=64):32
+  Layer 2: uniform(w=64):32
+  Layer 3: uniform(w=64):32
+  Layer 4: uniform(w=64):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 38.72, Acc: 36.04%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.68it/s]
+    PPL: 38.72, Acc: 36.04%, Eff.Ctx: 64.0
+
+  Running: A_window_32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=32):32
+  Layer 1: uniform(w=32):32
+  Layer 2: uniform(w=32):32
+  Layer 3: uniform(w=32):32
+  Layer 4: uniform(w=32):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 72.52, Acc: 31.33%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:50<00:00,  9.07it/s]
+    PPL: 72.52, Acc: 31.33%, Eff.Ctx: 32.0
+
+======================================================================
+GROUP: B_streaming
+======================================================================
+
+  Running: B_streaming_512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=508):32
+  Layer 1: uniform(w=508):32
+  Layer 2: uniform(w=508):32
+  Layer 3: uniform(w=508):32
+  Layer 4: uniform(w=508):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 8.81, Acc: 52.45%: 100%|████████████████████████████████████████████████████████████████████| 999/999 [01:59<00:00,  8.39it/s]
+    PPL: 8.81, Acc: 52.45%, Eff.Ctx: 512.0
+
+  Running: B_streaming_256...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=252):32
+  Layer 1: uniform(w=252):32
+  Layer 2: uniform(w=252):32
+  Layer 3: uniform(w=252):32
+  Layer 4: uniform(w=252):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 9.14, Acc: 51.95%: 100%|████████████████████████████████████████████████████████████████████| 999/999 [01:59<00:00,  8.35it/s]
+    PPL: 9.14, Acc: 51.95%, Eff.Ctx: 256.0
+
+  Running: B_streaming_128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=124):32
+  Layer 1: uniform(w=124):32
+  Layer 2: uniform(w=124):32
+  Layer 3: uniform(w=124):32
+  Layer 4: uniform(w=124):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 9.52, Acc: 52.05%: 100%|████████████████████████████████████████████████████████████████████| 999/999 [01:58<00:00,  8.40it/s]
+    PPL: 9.52, Acc: 52.05%, Eff.Ctx: 128.0
+
+  Running: B_streaming_64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=60):32
+  Layer 1: uniform(w=60):32
+  Layer 2: uniform(w=60):32
+  Layer 3: uniform(w=60):32
+  Layer 4: uniform(w=60):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.57, Acc: 51.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:59<00:00,  8.37it/s]
+    PPL: 10.57, Acc: 51.05%, Eff.Ctx: 64.0
+
+  Running: B_streaming_32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: uniform(w=28):32
+  Layer 1: uniform(w=28):32
+  Layer 2: uniform(w=28):32
+  Layer 3: uniform(w=28):32
+  Layer 4: uniform(w=28):32
+  ... (showing first 5 of 32 layers)
+
+PPL: 12.87, Acc: 49.35%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:59<00:00,  8.38it/s]
+    PPL: 12.87, Acc: 49.35%, Eff.Ctx: 32.0
+
+======================================================================
+GROUP: C_head_aware_pos_mix_g512
+======================================================================
+
+  Running: C_ha_pos8_mix32_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=32):3
+  Layer 1: gathering(w=508):13, mixed(w=32):16, positional(w=8):3
+  Layer 2: gathering(w=508):24, mixed(w=32):8
+  Layer 3: gathering(w=508):2, mixed(w=32):17, positional(w=8):13
+  Layer 4: gathering(w=508):4, mixed(w=32):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 13.56, Acc: 47.45%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.63it/s]
+    PPL: 13.56, Acc: 47.45%, Eff.Ctx: 68.2
+
+  Running: C_ha_pos8_mix64_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=64):3
+  Layer 1: gathering(w=508):13, mixed(w=64):16, positional(w=8):3
+  Layer 2: gathering(w=508):24, mixed(w=64):8
+  Layer 3: gathering(w=508):2, mixed(w=64):17, positional(w=8):13
+  Layer 4: gathering(w=508):4, mixed(w=64):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 12.16, Acc: 48.95%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.68it/s]
+    PPL: 12.16, Acc: 48.95%, Eff.Ctx: 85.9
+
+  Running: C_ha_pos8_mix128_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=128):3
+  Layer 1: gathering(w=508):13, mixed(w=128):16, positional(w=8):3
+  Layer 2: gathering(w=508):24, mixed(w=128):8
+  Layer 3: gathering(w=508):2, mixed(w=128):17, positional(w=8):13
+  Layer 4: gathering(w=508):4, mixed(w=128):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.29, Acc: 50.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:30<00:00, 10.98it/s]
+    PPL: 11.29, Acc: 50.05%, Eff.Ctx: 121.3
+
+  Running: C_ha_pos16_mix32_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=32):3
+  Layer 1: gathering(w=508):13, mixed(w=32):16, positional(w=16):3
+  Layer 2: gathering(w=508):24, mixed(w=32):8
+  Layer 3: gathering(w=508):2, mixed(w=32):17, positional(w=16):13
+  Layer 4: gathering(w=508):4, mixed(w=32):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 12.64, Acc: 48.15%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.68it/s]
+    PPL: 12.64, Acc: 48.15%, Eff.Ctx: 71.1
+
+  Running: C_ha_pos16_mix64_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=64):3
+  Layer 1: gathering(w=508):13, mixed(w=64):16, positional(w=16):3
+  Layer 2: gathering(w=508):24, mixed(w=64):8
+  Layer 3: gathering(w=508):2, mixed(w=64):17, positional(w=16):13
+  Layer 4: gathering(w=508):4, mixed(w=64):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.36, Acc: 50.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.68it/s]
+    PPL: 11.36, Acc: 50.05%, Eff.Ctx: 88.8
+
+  Running: C_ha_pos16_mix128_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=128):3
+  Layer 1: gathering(w=508):13, mixed(w=128):16, positional(w=16):3
+  Layer 2: gathering(w=508):24, mixed(w=128):8
+  Layer 3: gathering(w=508):2, mixed(w=128):17, positional(w=16):13
+  Layer 4: gathering(w=508):4, mixed(w=128):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.63, Acc: 51.25%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.71it/s]
+    PPL: 10.63, Acc: 51.25%, Eff.Ctx: 124.2
+
+  Running: C_ha_pos32_mix32_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=32):3
+  Layer 1: gathering(w=508):13, mixed(w=32):16, positional(w=32):3
+  Layer 2: gathering(w=508):24, mixed(w=32):8
+  Layer 3: gathering(w=508):2, mixed(w=32):17, positional(w=32):13
+  Layer 4: gathering(w=508):4, mixed(w=32):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.98, Acc: 50.35%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.70it/s]
+    PPL: 11.98, Acc: 50.35%, Eff.Ctx: 76.9
+
+  Running: C_ha_pos32_mix64_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=64):3
+  Layer 1: gathering(w=508):13, mixed(w=64):16, positional(w=32):3
+  Layer 2: gathering(w=508):24, mixed(w=64):8
+  Layer 3: gathering(w=508):2, mixed(w=64):17, positional(w=32):13
+  Layer 4: gathering(w=508):4, mixed(w=64):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.70, Acc: 50.65%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.69it/s]
+    PPL: 10.70, Acc: 50.65%, Eff.Ctx: 94.6
+
+  Running: C_ha_pos32_mix128_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=128):3
+  Layer 1: gathering(w=508):13, mixed(w=128):16, positional(w=32):3
+  Layer 2: gathering(w=508):24, mixed(w=128):8
+  Layer 3: gathering(w=508):2, mixed(w=128):17, positional(w=32):13
+  Layer 4: gathering(w=508):4, mixed(w=128):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.05, Acc: 51.15%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.69it/s]
+    PPL: 10.05, Acc: 51.15%, Eff.Ctx: 130.0
+
+  Running: C_ha_pos64_mix32_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=32):3
+  Layer 1: gathering(w=508):13, mixed(w=32):16, positional(w=64):3
+  Layer 2: gathering(w=508):24, mixed(w=32):8
+  Layer 3: gathering(w=508):2, mixed(w=32):17, positional(w=64):13
+  Layer 4: gathering(w=508):4, mixed(w=32):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.29, Acc: 50.55%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.69it/s]
+    PPL: 11.29, Acc: 50.55%, Eff.Ctx: 88.5
+
+  Running: C_ha_pos64_mix64_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=64):3
+  Layer 1: gathering(w=508):13, mixed(w=64):16, positional(w=64):3
+  Layer 2: gathering(w=508):24, mixed(w=64):8
+  Layer 3: gathering(w=508):2, mixed(w=64):17, positional(w=64):13
+  Layer 4: gathering(w=508):4, mixed(w=64):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.32, Acc: 50.55%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.67it/s]
+    PPL: 10.32, Acc: 50.55%, Eff.Ctx: 106.2
+
+  Running: C_ha_pos64_mix128_g512...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=508):29, mixed(w=128):3
+  Layer 1: gathering(w=508):13, mixed(w=128):16, positional(w=64):3
+  Layer 2: gathering(w=508):24, mixed(w=128):8
+  Layer 3: gathering(w=508):2, mixed(w=128):17, positional(w=64):13
+  Layer 4: gathering(w=508):4, mixed(w=128):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 9.75, Acc: 52.35%: 100%|████████████████████████████████████████████████████████████████████| 999/999 [01:25<00:00, 11.71it/s]
+    PPL: 9.75, Acc: 52.35%, Eff.Ctx: 141.5
+
+======================================================================
+GROUP: D_head_aware_pos_mix
+======================================================================
+
+  Running: D_ha_pos8_mix32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=32):3
+  Layer 1: gathering(w=-1):13, mixed(w=32):16, positional(w=8):3
+  Layer 2: gathering(w=-1):24, mixed(w=32):8
+  Layer 3: gathering(w=-1):2, mixed(w=32):17, positional(w=8):13
+  Layer 4: gathering(w=-1):4, mixed(w=32):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 13.65, Acc: 47.65%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.33it/s]
+    PPL: 13.65, Acc: 47.65%, Eff.Ctx: 112.2
+
+  Running: D_ha_pos8_mix64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=64):3
+  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=8):3
+  Layer 2: gathering(w=-1):24, mixed(w=64):8
+  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=8):13
+  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 12.06, Acc: 49.85%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.29it/s]
+    PPL: 12.06, Acc: 49.85%, Eff.Ctx: 129.9
+
+  Running: D_ha_pos8_mix128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=128):3
+  Layer 1: gathering(w=-1):13, mixed(w=128):16, positional(w=8):3
+  Layer 2: gathering(w=-1):24, mixed(w=128):8
+  Layer 3: gathering(w=-1):2, mixed(w=128):17, positional(w=8):13
+  Layer 4: gathering(w=-1):4, mixed(w=128):25, positional(w=8):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.34, Acc: 50.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.29it/s]
+    PPL: 11.34, Acc: 50.05%, Eff.Ctx: 165.3
+
+  Running: D_ha_pos16_mix32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=32):3
+  Layer 1: gathering(w=-1):13, mixed(w=32):16, positional(w=16):3
+  Layer 2: gathering(w=-1):24, mixed(w=32):8
+  Layer 3: gathering(w=-1):2, mixed(w=32):17, positional(w=16):13
+  Layer 4: gathering(w=-1):4, mixed(w=32):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 12.69, Acc: 48.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.32it/s]
+    PPL: 12.69, Acc: 48.05%, Eff.Ctx: 115.1
+
+  Running: D_ha_pos16_mix64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=64):3
+  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=16):3
+  Layer 2: gathering(w=-1):24, mixed(w=64):8
+  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=16):13
+  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.34, Acc: 50.65%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.29it/s]
+    PPL: 11.34, Acc: 50.65%, Eff.Ctx: 132.8
+
+  Running: D_ha_pos16_mix128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=128):3
+  Layer 1: gathering(w=-1):13, mixed(w=128):16, positional(w=16):3
+  Layer 2: gathering(w=-1):24, mixed(w=128):8
+  Layer 3: gathering(w=-1):2, mixed(w=128):17, positional(w=16):13
+  Layer 4: gathering(w=-1):4, mixed(w=128):25, positional(w=16):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.60, Acc: 50.85%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.29it/s]
+    PPL: 10.60, Acc: 50.85%, Eff.Ctx: 168.2
+
+  Running: D_ha_pos32_mix32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=32):3
+  Layer 1: gathering(w=-1):13, mixed(w=32):16, positional(w=32):3
+  Layer 2: gathering(w=-1):24, mixed(w=32):8
+  Layer 3: gathering(w=-1):2, mixed(w=32):17, positional(w=32):13
+  Layer 4: gathering(w=-1):4, mixed(w=32):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.90, Acc: 50.35%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:29<00:00, 11.16it/s]
+    PPL: 11.90, Acc: 50.35%, Eff.Ctx: 120.9
+
+  Running: D_ha_pos32_mix64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=64):3
+  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=32):3
+  Layer 2: gathering(w=-1):24, mixed(w=64):8
+  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=32):13
+  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.71, Acc: 51.35%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.28it/s]
+    PPL: 10.71, Acc: 51.35%, Eff.Ctx: 138.6
+
+  Running: D_ha_pos32_mix128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=128):3
+  Layer 1: gathering(w=-1):13, mixed(w=128):16, positional(w=32):3
+  Layer 2: gathering(w=-1):24, mixed(w=128):8
+  Layer 3: gathering(w=-1):2, mixed(w=128):17, positional(w=32):13
+  Layer 4: gathering(w=-1):4, mixed(w=128):25, positional(w=32):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.02, Acc: 51.05%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.26it/s]
+    PPL: 10.02, Acc: 51.05%, Eff.Ctx: 174.0
+
+  Running: D_ha_pos64_mix32...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=32):3
+  Layer 1: gathering(w=-1):13, mixed(w=32):16, positional(w=64):3
+  Layer 2: gathering(w=-1):24, mixed(w=32):8
+  Layer 3: gathering(w=-1):2, mixed(w=32):17, positional(w=64):13
+  Layer 4: gathering(w=-1):4, mixed(w=32):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 11.28, Acc: 50.65%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.27it/s]
+    PPL: 11.28, Acc: 50.65%, Eff.Ctx: 132.5
+
+  Running: D_ha_pos64_mix64...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=64):3
+  Layer 1: gathering(w=-1):13, mixed(w=64):16, positional(w=64):3
+  Layer 2: gathering(w=-1):24, mixed(w=64):8
+  Layer 3: gathering(w=-1):2, mixed(w=64):17, positional(w=64):13
+  Layer 4: gathering(w=-1):4, mixed(w=64):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 10.33, Acc: 51.15%: 100%|███████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.30it/s]
+    PPL: 10.33, Acc: 51.15%, Eff.Ctx: 150.2
+
+  Running: D_ha_pos64_mix128...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=128):3
+  Layer 1: gathering(w=-1):13, mixed(w=128):16, positional(w=64):3
+  Layer 2: gathering(w=-1):24, mixed(w=128):8
+  Layer 3: gathering(w=-1):2, mixed(w=128):17, positional(w=64):13
+  Layer 4: gathering(w=-1):4, mixed(w=128):25, positional(w=64):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 9.70, Acc: 51.85%: 100%|████████████████████████████████████████████████████████████████████| 999/999 [01:21<00:00, 12.29it/s]
+    PPL: 9.70, Acc: 51.85%, Eff.Ctx: 185.5
+
+======================================================================
+GROUP: E_head_aware_no_sink
+======================================================================
+
+  Running: E_ha_no_sink...
+Evaluating (head-aware mask):   0%|                                                                        | 0/999 [00:00<?, ?it/s][PerLayerMaskInjector] Registered 32 hooks
+
+[Per-Layer Mask Config] Head type distribution per layer:
+  Layer 0: gathering(w=-1):29, mixed(w=68):3
+  Layer 1: gathering(w=-1):13, mixed(w=68):16, positional(w=12):3
+  Layer 2: gathering(w=-1):24, mixed(w=68):8
+  Layer 3: gathering(w=-1):2, mixed(w=68):17, positional(w=12):13
+  Layer 4: gathering(w=-1):4, mixed(w=68):25, positional(w=12):3
+  ... (showing first 5 of 32 layers)
+
+PPL: 151.69, Acc: 24.42%: 100%|██████████████████████████████████████████████████████████████████| 999/999 [01:48<00:00,  9.18it/s]
+    PPL: 151.69, Acc: 24.42%, Eff.Ctx: 129.9
+
+======================================================================
+ABLATION RESULTS SUMMARY (by group)
+======================================================================
+
+--- A_window_only ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+A_window_512            13.47  47.85%      512.0
+A_window_256            21.09  43.14%      256.0
+A_window_128            26.28  40.94%      128.0
+A_window_64             38.72  36.04%       64.0
+A_window_32             72.52  31.33%       32.0
+
+--- B_streaming ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+B_streaming_512          8.81  52.45%      512.0
+B_streaming_256          9.14  51.95%      256.0
+B_streaming_128          9.52  52.05%      128.0
+B_streaming_64          10.57  51.05%       64.0 * 
+B_streaming_32          12.87  49.35%       32.0
+
+--- C1_head_aware_pos_mix_g ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+C_ha_pos32_mix32_g508    11.98  50.35%       76.9
+C_ha_pos32_mix32_g252    11.93  50.25%       54.9
+C_ha_pos32_mix32_g124    11.97  50.15%       43.9
+C_ha_pos32_mix32_g60    12.05  50.45%       38.4
+C_ha_pos32_mix64_g508    10.70  50.65%       94.6
+C_ha_pos32_mix64_g252    10.66  51.45%       72.6
+C_ha_pos32_mix64_g124    10.69  51.65%       61.6 * 
+C_ha_pos32_mix64_g60    10.88  51.15%       56.1
+
+--- C_head_aware_pos_mix_g512 ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+C_ha_pos8_mix32_g512    13.56  47.45%       68.2
+C_ha_pos8_mix64_g512    12.16  48.95%       85.9
+C_ha_pos8_mix128_g512    11.29  50.05%      121.3
+C_ha_pos16_mix32_g512    12.64  48.15%       71.1
+C_ha_pos16_mix64_g512    11.36  50.05%       88.8
+C_ha_pos16_mix128_g512    10.63  51.25%      124.2
+C_ha_pos32_mix32_g512    11.98  50.35%       76.9
+C_ha_pos32_mix64_g512    10.70  50.65%       94.6
+C_ha_pos32_mix128_g512    10.05  51.15%      130.0
+C_ha_pos64_mix32_g512    11.29  50.55%       88.5
+C_ha_pos64_mix64_g512    10.32  50.55%      106.2
+C_ha_pos64_mix128_g512     9.75  52.35%      141.5
+
+--- D_head_aware_pos_mix ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+D_ha_pos8_mix32         13.65  47.65%      112.2
+D_ha_pos8_mix64         12.06  49.85%      129.9
+D_ha_pos8_mix128        11.34  50.05%      165.3
+D_ha_pos16_mix32        12.69  48.05%      115.1
+D_ha_pos16_mix64        11.34  50.65%      132.8
+D_ha_pos16_mix128       10.60  50.85%      168.2
+D_ha_pos32_mix32        11.90  50.35%      120.9
+D_ha_pos32_mix64        10.71  51.35%      138.6
+D_ha_pos32_mix128       10.02  51.05%      174.0
+D_ha_pos64_mix32        11.28  50.65%      132.5
+D_ha_pos64_mix64        10.33  51.15%      150.2
+D_ha_pos64_mix128        9.70  51.85%      185.5
+
+--- E_head_aware_no_sink ---
+Name                      PPL      Acc    Eff.Ctx
+--------------------------------------------------
+E_ha_no_sink           151.69  24.42%      129.9
+
+======================================================================
+KEY COMPARISONS
+======================================================================
+
+1. Window-only vs StreamingLLM (Effect of Sink Tokens):
+   Window 512: PPL=13.47 vs Streaming 512: PPL=8.81 (+52.90%)
+   Window 256: PPL=21.09 vs Streaming 256: PPL=9.14 (+130.68%)
+   Window 128: PPL=26.28 vs Streaming 128: PPL=9.52 (+176.21%)
+
+2. Head-Aware (gathering=512) vs StreamingLLM:
+   C_ha_pos8_mix32_g512: PPL=13.56, Ctx=68
+      vs B_streaming_64: PPL=10.57, Ctx=64 (+28.34%, streaming better)
+   C_ha_pos16_mix32_g512: PPL=12.64, Ctx=71
+      vs B_streaming_64: PPL=10.57, Ctx=64 (+19.58%, streaming better)
+   C_ha_pos32_mix32_g512: PPL=11.98, Ctx=77
+      vs B_streaming_64: PPL=10.57, Ctx=64 (+13.38%, streaming better)
+
+3. Gathering Full vs Gathering=512 (Do gathering heads need full context?):
+   pos=8, mix=32:
+      g=512: PPL=13.56, Ctx=68
+      g=full: PPL=13.65, Ctx=112
+      PPL change: -0.62%, Context saved: 44
+   pos=8, mix=64:
+      g=512: PPL=12.16, Ctx=86
+      g=full: PPL=12.06, Ctx=130
+      PPL change: +0.88%, Context saved: 44
+   pos=8, mix=128:
+      g=512: PPL=11.29, Ctx=121
+      g=full: PPL=11.34, Ctx=165
+      PPL change: -0.44%, Context saved: 44
+   pos=16, mix=32:
+      g=512: PPL=12.64, Ctx=71
+      g=full: PPL=12.69, Ctx=115
+      PPL change: -0.41%, Context saved: 44
+
+4. Positional Window Sensitivity (gathering=512, mixed=64):
+   C_ha_pos8_mix64_g512: PPL=12.16, Ctx=86
+   C_ha_pos16_mix64_g512: PPL=11.36, Ctx=89
+   C_ha_pos32_mix64_g512: PPL=10.70, Ctx=95
+   C_ha_pos64_mix64_g512: PPL=10.32, Ctx=106
+
+5. Mixed Window Sensitivity (gathering=512, pos=16):
+   C_ha_pos16_mix32_g512: PPL=12.64, Ctx=71
+   C_ha_pos16_mix64_g512: PPL=11.36, Ctx=89
+   C_ha_pos16_mix128_g512: PPL=10.63, Ctx=124
+
+6. Effect of Sink Tokens (Head-Aware with vs without sink):
+   With sink (4):    PPL=11.34, Ctx=133
+   Without sink:     PPL=151.69, Ctx=130
+   PPL change without sink: +1237.10%
+
+Results saved to: results/ablation_1000tokens.json
+
+======================================================================
+ABLATION STUDY COMPLETE
+======================================================================
+root@autodl-container-ff5d489b4f-b6933d5f:~/LLM-Efficient-Reasoning# 

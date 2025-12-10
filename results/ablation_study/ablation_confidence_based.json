@@ -1,0 +1,1037 @@
+{
+  "config": {
+    "model": "EleutherAI/pythia-2.8b",
+    "max_tokens": 1000,
+    "classifications": "results/attention_analysis_pythia-2.8b/head_classifications.json"
+  },
+  "results": [
+    {
+      "perplexity": 13.470335006713867,
+      "accuracy": 0.47847847847847846,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 512.0,
+      "ttft": 0.45896138199896086,
+      "tpot": 0.08842515731758359,
+      "throughput": 11.22862283795767,
+      "total_time": 88.96905830899777,
+      "name": "A_window_512",
+      "config": {
+        "name": "A_window_512",
+        "group": "A_window_only",
+        "type": "uniform",
+        "sink_size": 0,
+        "window_size": 512
+      },
+      "group": "A_window_only"
+    },
+    {
+      "perplexity": 21.094482421875,
+      "accuracy": 0.4314314314314314,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 256.0,
+      "ttft": 0.08457156200165628,
+      "tpot": 0.08876772598288046,
+      "throughput": 11.232583141625224,
+      "total_time": 88.9376902360018,
+      "name": "A_window_256",
+      "config": {
+        "name": "A_window_256",
+        "group": "A_window_only",
+        "type": "uniform",
+        "sink_size": 0,
+        "window_size": 256
+      },
+      "group": "A_window_only"
+    },
+    {
+      "perplexity": 26.28227996826172,
+      "accuracy": 0.4094094094094094,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 128.0,
+      "ttft": 0.08451847899414133,
+      "tpot": 0.08853797877359712,
+      "throughput": 11.26176296417402,
+      "total_time": 88.70724798399897,
+      "name": "A_window_128",
+      "config": {
+        "name": "A_window_128",
+        "group": "A_window_only",
+        "type": "uniform",
+        "sink_size": 0,
+        "window_size": 128
+      },
+      "group": "A_window_only"
+    },
+    {
+      "perplexity": 38.72179412841797,
+      "accuracy": 0.36036036036036034,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 64.0,
+      "ttft": 0.0875048469970352,
+      "tpot": 0.08827007395987954,
+      "throughput": 11.295454743108516,
+      "total_time": 88.4426543879963,
+      "name": "A_window_64",
+      "config": {
+        "name": "A_window_64",
+        "group": "A_window_only",
+        "type": "uniform",
+        "sink_size": 0,
+        "window_size": 64
+      },
+      "group": "A_window_only"
+    },
+    {
+      "perplexity": 8.81002426147461,
+      "accuracy": 0.5245245245245245,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 512.0,
+      "ttft": 0.08481807199859759,
+      "tpot": 0.0886072923858446,
+      "throughput": 11.252239829679162,
+      "total_time": 88.7823237969933,
+      "name": "B_streaming_512",
+      "config": {
+        "name": "B_streaming_512",
+        "group": "B_streaming",
+        "type": "uniform",
+        "sink_size": 4,
+        "window_size": 508
+      },
+      "group": "B_streaming"
+    },
+    {
+      "perplexity": 9.144567489624023,
+      "accuracy": 0.5195195195195195,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 256.0,
+      "ttft": 0.08641893500316655,
+      "tpot": 0.08833452205613641,
+      "throughput": 11.28736335964735,
+      "total_time": 88.50605479499791,
+      "name": "B_streaming_256",
+      "config": {
+        "name": "B_streaming_256",
+        "group": "B_streaming",
+        "type": "uniform",
+        "sink_size": 4,
+        "window_size": 252
+      },
+      "group": "B_streaming"
+    },
+    {
+      "perplexity": 9.515253067016602,
+      "accuracy": 0.5205205205205206,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 128.0,
+      "ttft": 0.08453498200105969,
+      "tpot": 0.08862665542484048,
+      "throughput": 11.25066660275655,
+      "total_time": 88.79473859399877,
+      "name": "B_streaming_128",
+      "config": {
+        "name": "B_streaming_128",
+        "group": "B_streaming",
+        "type": "uniform",
+        "sink_size": 4,
+        "window_size": 124
+      },
+      "group": "B_streaming"
+    },
+    {
+      "perplexity": 10.569684982299805,
+      "accuracy": 0.5105105105105106,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 64.0,
+      "ttft": 0.10371172500163084,
+      "tpot": 0.08849867319027445,
+      "throughput": 11.264295450252368,
+      "total_time": 88.68730444899847,
+      "name": "B_streaming_64",
+      "config": {
+        "name": "B_streaming_64",
+        "group": "B_streaming",
+        "type": "uniform",
+        "sink_size": 4,
+        "window_size": 60
+      },
+      "group": "B_streaming"
+    },
+    {
+      "perplexity": 13.564753532409668,
+      "accuracy": 0.4744744744744745,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 68.234375,
+      "ttft": 0.08485238299908815,
+      "tpot": 0.08857343797096322,
+      "throughput": 11.257173867684548,
+      "total_time": 88.74341035699763,
+      "name": "C_ha_pos8_mix32_g512",
+      "config": {
+        "name": "C_ha_pos8_mix32_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 32,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 12.16495418548584,
+      "accuracy": 0.4894894894894895,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 85.921875,
+      "ttft": 0.08468059200095013,
+      "tpot": 0.088621966451847,
+      "throughput": 11.251081570525557,
+      "total_time": 88.79146362400206,
+      "name": "C_ha_pos8_mix64_g512",
+      "config": {
+        "name": "C_ha_pos8_mix64_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 64,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 11.291366577148438,
+      "accuracy": 0.5005005005005005,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 121.296875,
+      "ttft": 0.08477179199689999,
+      "tpot": 0.08868134864430116,
+      "throughput": 11.243623482950223,
+      "total_time": 88.85036051899806,
+      "name": "C_ha_pos8_mix128_g512",
+      "config": {
+        "name": "C_ha_pos8_mix128_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 128,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 12.639594078063965,
+      "accuracy": 0.48148148148148145,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 71.125,
+      "ttft": 0.08445141700212844,
+      "tpot": 0.08895783339893366,
+      "throughput": 11.20864387792047,
+      "total_time": 89.12764210199384,
+      "name": "C_ha_pos16_mix32_g512",
+      "config": {
+        "name": "C_ha_pos16_mix32_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 32,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 11.356060981750488,
+      "accuracy": 0.5005005005005005,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 88.8125,
+      "ttft": 0.08580307199736126,
+      "tpot": 0.08854164972067949,
+      "throughput": 11.261178855453826,
+      "total_time": 88.71184916099446,
+      "name": "C_ha_pos16_mix64_g512",
+      "config": {
+        "name": "C_ha_pos16_mix64_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 64,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 10.629424095153809,
+      "accuracy": 0.5125125125125125,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 124.1875,
+      "ttft": 0.08498371599853272,
+      "tpot": 0.0883491658968631,
+      "throughput": 11.285892902920777,
+      "total_time": 88.51758638799947,
+      "name": "C_ha_pos16_mix128_g512",
+      "config": {
+        "name": "C_ha_pos16_mix128_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 128,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 11.983969688415527,
+      "accuracy": 0.5035035035035035,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 76.90625,
+      "ttft": 0.08490757199615473,
+      "tpot": 0.08854573204902015,
+      "throughput": 11.260971064846274,
+      "total_time": 88.71348609700362,
+      "name": "C_ha_pos32_mix32_g512",
+      "config": {
+        "name": "C_ha_pos32_mix32_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 32,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 10.696296691894531,
+      "accuracy": 0.5065065065065065,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 94.59375,
+      "ttft": 0.08492291100264993,
+      "tpot": 0.08829138617916114,
+      "throughput": 11.293206492534274,
+      "total_time": 88.4602615440017,
+      "name": "C_ha_pos32_mix64_g512",
+      "config": {
+        "name": "C_ha_pos32_mix64_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 64,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 10.053213119506836,
+      "accuracy": 0.5115115115115115,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 129.96875,
+      "ttft": 0.08489624000503682,
+      "tpot": 0.08807549366520653,
+      "throughput": 11.320907998958306,
+      "total_time": 88.24380518699763,
+      "name": "C_ha_pos32_mix128_g512",
+      "config": {
+        "name": "C_ha_pos32_mix128_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 128,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 11.287498474121094,
+      "accuracy": 0.5055055055055055,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 88.46875,
+      "ttft": 0.08476695999706862,
+      "tpot": 0.08814910703603562,
+      "throughput": 11.311336772750739,
+      "total_time": 88.31847376400401,
+      "name": "C_ha_pos64_mix32_g512",
+      "config": {
+        "name": "C_ha_pos64_mix32_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 32,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 10.324233055114746,
+      "accuracy": 0.5055055055055055,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 106.15625,
+      "ttft": 0.08469901200442109,
+      "tpot": 0.08813812971236835,
+      "throughput": 11.312537631028292,
+      "total_time": 88.30909850500029,
+      "name": "C_ha_pos64_mix64_g512",
+      "config": {
+        "name": "C_ha_pos64_mix64_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 64,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 9.745172500610352,
+      "accuracy": 0.5235235235235235,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 141.53125,
+      "ttft": 0.08497528699808754,
+      "tpot": 0.08818725363527048,
+      "throughput": 11.3062859771657,
+      "total_time": 88.35792779499752,
+      "name": "C_ha_pos64_mix128_g512",
+      "config": {
+        "name": "C_ha_pos64_mix128_g512",
+        "group": "C_head_aware_pos_mix_g512",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 128,
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "C_head_aware_pos_mix_g512"
+    },
+    {
+      "perplexity": 13.649709701538086,
+      "accuracy": 0.47647647647647645,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 112.234375,
+      "ttft": 0.08506517500063637,
+      "tpot": 0.08371975809631384,
+      "throughput": 11.907380020858398,
+      "total_time": 83.8975491040037,
+      "name": "D_ha_pos8_mix32",
+      "config": {
+        "name": "D_ha_pos8_mix32",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 32,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 12.05849552154541,
+      "accuracy": 0.4984984984984985,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 129.921875,
+      "ttft": 0.0814415250060847,
+      "tpot": 0.08372379725758633,
+      "throughput": 11.90702648452806,
+      "total_time": 83.90004014000442,
+      "name": "D_ha_pos8_mix64",
+      "config": {
+        "name": "D_ha_pos8_mix64",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 64,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 11.341464042663574,
+      "accuracy": 0.5005005005005005,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 165.296875,
+      "ttft": 0.08053281100001186,
+      "tpot": 0.08365906412437764,
+      "throughput": 11.916781051041713,
+      "total_time": 83.8313631609999,
+      "name": "D_ha_pos8_mix128",
+      "config": {
+        "name": "D_ha_pos8_mix128",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 8,
+          "mixed": 128,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 12.691520690917969,
+      "accuracy": 0.4804804804804805,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 115.125,
+      "ttft": 0.08075652099796571,
+      "tpot": 0.0838634731201697,
+      "throughput": 11.887727432938684,
+      "total_time": 84.03624709900032,
+      "name": "D_ha_pos16_mix32",
+      "config": {
+        "name": "D_ha_pos16_mix32",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 32,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 11.344476699829102,
+      "accuracy": 0.5065065065065065,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 132.8125,
+      "ttft": 0.08054900300339796,
+      "tpot": 0.08368676046903166,
+      "throughput": 11.912561771129175,
+      "total_time": 83.86105517800024,
+      "name": "D_ha_pos16_mix64",
+      "config": {
+        "name": "D_ha_pos16_mix64",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 64,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 10.60238265991211,
+      "accuracy": 0.5085085085085085,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 168.1875,
+      "ttft": 0.08052516899624607,
+      "tpot": 0.08366168516838292,
+      "throughput": 11.916479121681233,
+      "total_time": 83.83348720700451,
+      "name": "D_ha_pos16_mix128",
+      "config": {
+        "name": "D_ha_pos16_mix128",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 16,
+          "mixed": 128,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 11.899450302124023,
+      "accuracy": 0.5035035035035035,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 120.90625,
+      "ttft": 0.08036458599963225,
+      "tpot": 0.08356921309219426,
+      "throughput": 11.929597102956134,
+      "total_time": 83.7413025249989,
+      "name": "D_ha_pos32_mix32",
+      "config": {
+        "name": "D_ha_pos32_mix32",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 32,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 10.71338176727295,
+      "accuracy": 0.5135135135135135,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 138.59375,
+      "ttft": 0.0805558749998454,
+      "tpot": 0.08360142458888388,
+      "throughput": 11.924750715997295,
+      "total_time": 83.77533617200243,
+      "name": "D_ha_pos32_mix64",
+      "config": {
+        "name": "D_ha_pos32_mix64",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 64,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 10.023548126220703,
+      "accuracy": 0.5105105105105106,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 173.96875,
+      "ttft": 0.08027721400139853,
+      "tpot": 0.08356427002006545,
+      "throughput": 11.930429593645789,
+      "total_time": 83.73545916000148,
+      "name": "D_ha_pos32_mix128",
+      "config": {
+        "name": "D_ha_pos32_mix128",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 32,
+          "mixed": 128,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 11.275182723999023,
+      "accuracy": 0.5065065065065065,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 132.46875,
+      "ttft": 0.08076724000420654,
+      "tpot": 0.0835406415531316,
+      "throughput": 11.933878403311343,
+      "total_time": 83.71126018200448,
+      "name": "D_ha_pos64_mix32",
+      "config": {
+        "name": "D_ha_pos64_mix32",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 32,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 10.330406188964844,
+      "accuracy": 0.5115115115115115,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 150.15625,
+      "ttft": 0.080406060005771,
+      "tpot": 0.08363854712333778,
+      "throughput": 11.919731435050966,
+      "total_time": 83.81061313700047,
+      "name": "D_ha_pos64_mix64",
+      "config": {
+        "name": "D_ha_pos64_mix64",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 64,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 9.697884559631348,
+      "accuracy": 0.5185185185185185,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 185.53125,
+      "ttft": 0.08049879100144608,
+      "tpot": 0.08390776275155441,
+      "throughput": 11.881526992976333,
+      "total_time": 84.08010187499895,
+      "name": "D_ha_pos64_mix128",
+      "config": {
+        "name": "D_ha_pos64_mix128",
+        "group": "D_head_aware_pos_mix",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 64,
+          "mixed": 128,
+          "gathering": -1
+        },
+        "sink_size": 4
+      },
+      "group": "D_head_aware_pos_mix"
+    },
+    {
+      "perplexity": 151.68670654296875,
+      "accuracy": 0.24424424424424424,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 129.921875,
+      "ttft": 0.0804322059993865,
+      "tpot": 0.08387844145387183,
+      "throughput": 11.885754183329665,
+      "total_time": 84.05019863200141,
+      "name": "E_ha_no_sink",
+      "config": {
+        "name": "E_ha_no_sink",
+        "group": "E_head_aware_no_sink",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "positional": 12,
+          "mixed": 68,
+          "gathering": -1
+        },
+        "sink_size": 0
+      },
+      "group": "E_head_aware_no_sink"
+    },
+    {
+      "perplexity": 11.739201545715332,
+      "accuracy": 0.4974974974974975,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 129.9609375,
+      "ttft": 0.08093589899362996,
+      "tpot": 0.08386940804312709,
+      "throughput": 11.886882226269469,
+      "total_time": 84.04222242500691,
+      "name": "F_ha_default",
+      "config": {
+        "name": "F_ha_default",
+        "group": "F_head_aware_default",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "sink_size": 4
+      },
+      "group": "F_head_aware_default"
+    },
+    {
+      "perplexity": 11.6454439163208,
+      "accuracy": 0.5025025025025025,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 85.9609375,
+      "ttft": 0.08756050399824744,
+      "tpot": 0.08798839862331027,
+      "throughput": 11.331731347219458,
+      "total_time": 88.15952032300265,
+      "name": "F2_ha_default_g512",
+      "config": {
+        "name": "F2_ha_default_g512",
+        "group": "F_head_aware_default",
+        "type": "head_aware",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "window_override": {
+          "gathering": 508
+        },
+        "sink_size": 4
+      },
+      "group": "F_head_aware_default"
+    },
+    {
+      "perplexity": 9.574077606201172,
+      "accuracy": 0.5185185185185185,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 128.28125,
+      "ttft": 0.08474063700123224,
+      "tpot": 0.08803607202691878,
+      "throughput": 11.326005795441908,
+      "total_time": 88.20408695199876,
+      "name": "G1_conf0.6_base128",
+      "config": {
+        "name": "G1_conf0.6_base128",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "confidence_threshold": 0.6,
+        "base_window": 128,
+        "high_conf_windows": {
+          "positional": 16,
+          "mixed": 64,
+          "gathering": 512
+        },
+        "sink_size": 4
+      },
+      "group": "G_confidence_based"
+    },
+    {
+      "perplexity": 10.86490535736084,
+      "accuracy": 0.5035035035035035,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 74.078125,
+      "ttft": 0.08500185200682608,
+      "tpot": 0.08839650643882535,
+      "throughput": 11.279905752570421,
+      "total_time": 88.56456976800109,
+      "name": "G2_conf0.5_base128",
+      "config": {
+        "name": "G2_conf0.5_base128",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "confidence_threshold": 0.5,
+        "base_window": 128,
+        "high_conf_windows": {
+          "positional": 16,
+          "mixed": 64,
+          "gathering": 512
+        },
+        "sink_size": 4
+      },
+      "group": "G_confidence_based"
+    },
+    {
+      "perplexity": 11.55501937866211,
+      "accuracy": 0.4974974974974975,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 52.5703125,
+      "ttft": 0.0853182850041776,
+      "tpot": 0.08850378101102208,
+      "throughput": 11.266132958906418,
+      "total_time": 88.67283953099832,
+      "name": "G3_conf0.4_base64",
+      "config": {
+        "name": "G3_conf0.4_base64",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "confidence_threshold": 0.4,
+        "base_window": 64,
+        "high_conf_windows": {
+          "positional": 8,
+          "mixed": 64,
+          "gathering": 256
+        },
+        "sink_size": 4
+      },
+      "group": "G_confidence_based"
+    },
+    {
+      "perplexity": 10.47424030303955,
+      "accuracy": 0.5065065065065065,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 66.140625,
+      "ttft": 0.0854364339975291,
+      "tpot": 0.0882389410440092,
+      "throughput": 11.299909343641236,
+      "total_time": 88.4077889140026,
+      "name": "G4_conf0.6_base64",
+      "config": {
+        "name": "G4_conf0.6_base64",
+        "group": "G_confidence_based",
+        "type": "confidence_based",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "confidence_threshold": 0.6,
+        "base_window": 64,
+        "high_conf_windows": {
+          "positional": 8,
+          "mixed": 64,
+          "gathering": 256
+        },
+        "sink_size": 4
+      },
+      "group": "G_confidence_based"
+    },
+    {
+      "perplexity": 10.539255142211914,
+      "accuracy": 0.5055055055055055,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 71.0,
+      "ttft": 0.08497672899829922,
+      "tpot": 0.08839156565131807,
+      "throughput": 11.280540036224592,
+      "total_time": 88.55958994799585,
+      "name": "H1_base64_g256",
+      "config": {
+        "name": "H1_base64_g256",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "base_window": 64,
+        "gathering_window": 256,
+        "gathering_confidence_threshold": 0.4,
+        "sink_size": 4
+      },
+      "group": "H_inverse"
+    },
+    {
+      "perplexity": 10.541865348815918,
+      "accuracy": 0.5135135135135135,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 84.625,
+      "ttft": 0.08518429000105243,
+      "tpot": 0.0883199604530361,
+      "throughput": 0.923880270862133,
+      "total_time": 1081.3089439260002,
+      "name": "H2_base64_g512",
+      "config": {
+        "name": "H2_base64_g512",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "base_window": 64,
+        "gathering_window": 512,
+        "gathering_confidence_threshold": 0.3,
+        "sink_size": 4
+      },
+      "group": "H_inverse"
+    },
+    {
+      "perplexity": 9.565224647521973,
+      "accuracy": 0.5205205205205206,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 134.0,
+      "ttft": 0.08567194299394032,
+      "tpot": 0.08860763340173237,
+      "throughput": 11.253022869499578,
+      "total_time": 88.77614589300356,
+      "name": "H3_base128_g256",
+      "config": {
+        "name": "H3_base128_g256",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "base_window": 128,
+        "gathering_window": 256,
+        "gathering_confidence_threshold": 0.4,
+        "sink_size": 4
+      },
+      "group": "H_inverse"
+    },
+    {
+      "perplexity": 9.590323448181152,
+      "accuracy": 0.5215215215215215,
+      "num_tokens": 999,
+      "final_cache_size": 999,
+      "effective_context": 146.25,
+      "ttft": 0.08494222699664533,
+      "tpot": 0.08856120163333556,
+      "throughput": 11.25895088078459,
+      "total_time": 88.72940388300049,
+      "name": "H4_base128_g512",
+      "config": {
+        "name": "H4_base128_g512",
+        "group": "H_inverse",
+        "type": "inverse",
+        "classifications_path": "results/attention_analysis_pythia-2.8b/head_classifications.json",
+        "base_window": 128,
+        "gathering_window": 512,
+        "gathering_confidence_threshold": 0.3,
+        "sink_size": 4
+      },
+      "group": "H_inverse"
+    }
+  ]
+}
