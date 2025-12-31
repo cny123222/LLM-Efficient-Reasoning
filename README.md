@@ -30,6 +30,31 @@ Cache 结构: [initial tokens (0:start_size)] + [recent tokens (seq_len-recent_s
 默认配置: 4 initial tokens + 508 recent tokens = 512 total
 ```
 
+### Speculative Decoding (投机解码)
+
+本项目还实现了 **Speculative Decoding** 推理加速方法，位于 `spec_decode/` 目录。
+
+**原理**: 使用小型 Draft 模型快速生成候选 tokens，然后由大型 Target 模型并行验证，从而减少 Target 模型的 forward 次数。
+
+| 方法 | 说明 | 加速比 | 适用场景 |
+|------|------|--------|----------|
+| Custom Spec Decode | 自定义实现的投机解码 | 1.8-2.1x | 学习研究、定制优化 |
+| HuggingFace Spec Decode | HF 内置 `assistant_model` | 2.9-3.0x | 生产环境推荐 |
+
+```python
+from spec_decode.core import SpeculativeGenerator
+
+generator = SpeculativeGenerator(
+    target_model=target_model,  # Pythia-2.8B
+    draft_model=draft_model,    # Pythia-70M
+    tokenizer=tokenizer,
+    K=5  # 每轮草稿 5 个 tokens
+)
+output = generator.generate("The future of AI is", max_new_tokens=100)
+```
+
+详细文档请参考 [spec_decode/README.md](spec_decode/README.md)。
+
 ## 项目结构
 
 ```
@@ -40,25 +65,37 @@ Cache 结构: [initial tokens (0:start_size)] + [recent tokens (seq_len-recent_s
 ├── docs/                        # 文档
 │   ├── lab-instruction.md       # 作业要求
 │   ├── KnormPress.pdf           # KnormPress 论文
-│   └── L2_COMPRESS_ANALYSIS.md  # 压缩效果分析
+│   ├── L2_COMPRESS_ANALYSIS.md  # 压缩效果分析
+│   └── SPEC_DECODE_OPTIMIZATION.md  # Speculative Decoding 优化分析 ⭐
 │
 ├── data/                        # 数据集
 │   └── pg19.parquet             # PG-19 长文本数据集
 │
-├── kvcompress/                  # 核心压缩库 ⭐
+├── kvcompress/                  # KV Cache 压缩库 ⭐
 │   ├── __init__.py              # 统一导出
 │   ├── methods/                 # 压缩方法
 │   │   ├── __init__.py          # 方法注册表
 │   │   ├── base.py              # 基类和接口
 │   │   ├── l2_compress.py       # KnormPress L2 压缩
 │   │   ├── fix_size_l2.py       # 固定大小 L2 压缩
-│   │   └── streaming_llm.py     # StreamingLLM 方法 ⭐
+│   │   └── streaming_llm.py     # StreamingLLM 方法
 │   ├── evaluate.py              # 统一评估模块
 │   ├── benchmark.py             # 统一基准测试模块
 │   └── utils.py                 # 工具函数
 │
+├── spec_decode/                 # Speculative Decoding 加速库 ⭐
+│   ├── core/                    # 核心实现
+│   │   ├── speculative_generator.py  # 主生成器类
+│   │   └── static_cache.py      # 静态 KV Cache
+│   ├── benchmark_detailed.py    # 详细性能测试
+│   ├── test_correctness.py      # 正确性验证
+│   └── README.md                # 详细文档
+│
+├── precision/                   # 精度评估
+│   └── precision_eval.py        # FP32/FP16/BF16 性能对比
+│
 ├── scripts/                     # 工具脚本
-│   ├── benchmark.py             # 统一基准测试入口 ⭐
+│   ├── benchmark.py             # 统一基准测试入口
 │   └── plot_compression_results.py  # 可视化绘图
 │
 ├── baseline_test.py             # 基线性能测试
@@ -223,13 +260,21 @@ python scripts/plot_compression_results.py
 
 ## 总结
 
-本项目实现了统一的 KV Cache 压缩库 `kvcompress`：
+本项目实现了完整的 LLM 推理加速方案：
+
+### KV Cache 压缩 (`kvcompress`)
 
 ✅ **多种压缩方法**: l2_compress, fix_size_l2, streaming_llm  
 ✅ **统一接口**: 所有方法使用相同的函数签名  
 ✅ **方法注册表**: 方便扩展新方法  
 ✅ **统一评估**: 支持 PPL, Accuracy, TTFT, TPOT  
-✅ **统一基准测试**: 单一脚本测试所有方法
+
+### Speculative Decoding (`spec_decode`)
+
+✅ **自定义实现**: 完整的投机解码算法，易于理解和修改  
+✅ **性能对比**: 与 HuggingFace 实现的详细 benchmark  
+✅ **正确性验证**: 确保输出与原模型一致  
+✅ **优化分析**: 包含进一步优化的研究方向
 
 ## 作者
 
