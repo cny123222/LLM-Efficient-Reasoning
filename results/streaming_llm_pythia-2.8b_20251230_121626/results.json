@@ -1,0 +1,405 @@
+{
+  "config": {
+    "model_id": "/mnt/disk1/models/pythia-2.8b",
+    "method": "streaming_llm",
+    "num_samples": 3,
+    "max_tokens": 2000,
+    "max_new_tokens": 500,
+    "skip_layers": [
+      0,
+      1
+    ],
+    "timestamp": "20251230_121626"
+  },
+  "raw_results": [
+    {
+      "ttft": 0.04509017616510391,
+      "tpot": 0.013876338381212097,
+      "throughput": 70.09905374314219,
+      "total_time": 28.516790074296296,
+      "perplexity": 8.631519317626953,
+      "accuracy": 0.5262631315657829,
+      "eval_tokens": 1999,
+      "final_cache_size": 1999,
+      "peak_vram_gb": 11.704463481903076,
+      "method": "baseline",
+      "config": {}
+    },
+    {
+      "ttft": 0.008519473485648632,
+      "tpot": 0.009188448876940512,
+      "throughput": 106.4501532301001,
+      "total_time": 18.778742344118655,
+      "perplexity": 24.372825622558594,
+      "accuracy": 0.4062031015507754,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 10.915225505828857,
+      "method": "recent_only_256",
+      "config": {
+        "window_size": 256
+      }
+    },
+    {
+      "ttft": 0.008287958800792694,
+      "tpot": 0.009900178754696617,
+      "throughput": 98.95048704123496,
+      "total_time": 20.20202284771949,
+      "perplexity": 18.841522216796875,
+      "accuracy": 0.44172086043021513,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.200381755828857,
+      "method": "recent_only_512",
+      "config": {
+        "window_size": 512
+      }
+    },
+    {
+      "ttft": 0.008533010259270668,
+      "tpot": 0.011060856901728236,
+      "throughput": 88.74710303191569,
+      "total_time": 22.524678910151124,
+      "perplexity": 12.18278694152832,
+      "accuracy": 0.4752376188094047,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 11.78316068649292,
+      "method": "recent_only_1024",
+      "config": {
+        "window_size": 1024
+      }
+    },
+    {
+      "ttft": 0.008327946998178959,
+      "tpot": 0.009587166722289644,
+      "throughput": 102.10579057298001,
+      "total_time": 19.577733924612403,
+      "perplexity": 9.139121055603027,
+      "accuracy": 0.5217608804402201,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 11.054574489593506,
+      "method": "streaming_256",
+      "config": {
+        "start_size": 4,
+        "recent_size": 252
+      }
+    },
+    {
+      "ttft": 0.008267441764473915,
+      "tpot": 0.01020802607623724,
+      "throughput": 96.03455475849161,
+      "total_time": 20.81542425043881,
+      "perplexity": 8.671198844909668,
+      "accuracy": 0.527263631815908,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.515658855438232,
+      "method": "streaming_512",
+      "config": {
+        "start_size": 4,
+        "recent_size": 508
+      }
+    },
+    {
+      "ttft": 0.008405894041061401,
+      "tpot": 0.012206626357277622,
+      "throughput": 26.769539135057943,
+      "total_time": 74.67442715074867,
+      "perplexity": 8.627408981323242,
+      "accuracy": 0.527263631815908,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 12.36909818649292,
+      "method": "streaming_1024",
+      "config": {
+        "start_size": 4,
+        "recent_size": 1020
+      }
+    },
+    {
+      "ttft": 0.007894118316471577,
+      "tpot": 0.013140912030686487,
+      "throughput": 11.101952514782871,
+      "total_time": 180.0584174124524,
+      "perplexity": 22.33501434326172,
+      "accuracy": 0.42921460730365185,
+      "eval_tokens": 1999,
+      "final_cache_size": 1999,
+      "peak_vram_gb": 11.704463481903076,
+      "method": "baseline",
+      "config": {}
+    },
+    {
+      "ttft": 0.016716647893190384,
+      "tpot": 0.015314582967431517,
+      "throughput": 11.049913820217371,
+      "total_time": 180.90638827811927,
+      "perplexity": 72.98584747314453,
+      "accuracy": 0.3036518259129565,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 10.915225505828857,
+      "method": "recent_only_256",
+      "config": {
+        "window_size": 256
+      }
+    },
+    {
+      "ttft": 0.016595258377492428,
+      "tpot": 0.014532854829032023,
+      "throughput": 11.127945318819258,
+      "total_time": 179.63783454429358,
+      "perplexity": 46.66569137573242,
+      "accuracy": 0.34367183591795897,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.198466777801514,
+      "method": "recent_only_512",
+      "config": {
+        "window_size": 512
+      }
+    },
+    {
+      "ttft": 0.008302501402795315,
+      "tpot": 0.015041440482940283,
+      "throughput": 18.297173819368187,
+      "total_time": 109.2518451064825,
+      "perplexity": 29.641393661499023,
+      "accuracy": 0.3981990995497749,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 11.78316068649292,
+      "method": "recent_only_1024",
+      "config": {
+        "window_size": 1024
+      }
+    },
+    {
+      "ttft": 0.016505676321685314,
+      "tpot": 0.009780500649574312,
+      "throughput": 100.04909520668508,
+      "total_time": 19.980190684087574,
+      "perplexity": 24.082637786865234,
+      "accuracy": 0.4197098549274637,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 11.053901195526123,
+      "method": "streaming_256",
+      "config": {
+        "start_size": 4,
+        "recent_size": 252
+      }
+    },
+    {
+      "ttft": 0.00852802861481905,
+      "tpot": 0.014417926361830952,
+      "throughput": 67.57894065175996,
+      "total_time": 29.580221008509398,
+      "perplexity": 23.171749114990234,
+      "accuracy": 0.4242121060530265,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.508046627044678,
+      "method": "streaming_512",
+      "config": {
+        "start_size": 4,
+        "recent_size": 508
+      }
+    },
+    {
+      "ttft": 0.008711379021406174,
+      "tpot": 0.013633391612467615,
+      "throughput": 71.67937448947788,
+      "total_time": 27.88807818479836,
+      "perplexity": 22.418834686279297,
+      "accuracy": 0.4272136068034017,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 12.36909818649292,
+      "method": "streaming_1024",
+      "config": {
+        "start_size": 4,
+        "recent_size": 1020
+      }
+    },
+    {
+      "ttft": 0.007943416014313698,
+      "tpot": 0.010929368908057461,
+      "throughput": 89.71654709521304,
+      "total_time": 22.28128550108522,
+      "perplexity": 14.136527061462402,
+      "accuracy": 0.5062531265632816,
+      "eval_tokens": 1999,
+      "final_cache_size": 1999,
+      "peak_vram_gb": 11.704463481903076,
+      "method": "baseline",
+      "config": {}
+    },
+    {
+      "ttft": 0.008333099074661732,
+      "tpot": 0.009168932100178094,
+      "throughput": 106.68080469818847,
+      "total_time": 18.738141370937228,
+      "perplexity": 63.28687286376953,
+      "accuracy": 0.3281640820410205,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 10.915225505828857,
+      "method": "recent_only_256",
+      "config": {
+        "window_size": 256
+      }
+    },
+    {
+      "ttft": 0.008511347696185112,
+      "tpot": 0.009881674477530343,
+      "throughput": 99.14698759441086,
+      "total_time": 20.16198422666639,
+      "perplexity": 39.82725524902344,
+      "accuracy": 0.37318659329664833,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.198466777801514,
+      "method": "recent_only_512",
+      "config": {
+        "window_size": 512
+      }
+    },
+    {
+      "ttft": 0.008642212487757206,
+      "tpot": 0.011047915109452812,
+      "throughput": 88.86896268568887,
+      "total_time": 22.49379242863506,
+      "perplexity": 23.77399253845215,
+      "accuracy": 0.44172086043021513,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 11.78316068649292,
+      "method": "recent_only_1024",
+      "config": {
+        "window_size": 1024
+      }
+    },
+    {
+      "ttft": 0.008488968946039677,
+      "tpot": 0.009553608513932239,
+      "throughput": 102.48081699514694,
+      "total_time": 19.50608961377293,
+      "perplexity": 16.688222885131836,
+      "accuracy": 0.4777388694347174,
+      "eval_tokens": 1999,
+      "final_cache_size": 256,
+      "peak_vram_gb": 11.054358959197998,
+      "method": "streaming_256",
+      "config": {
+        "start_size": 4,
+        "recent_size": 252
+      }
+    },
+    {
+      "ttft": 0.00835091806948185,
+      "tpot": 0.010209875946232417,
+      "throughput": 96.02786969461044,
+      "total_time": 20.8168733343482,
+      "perplexity": 16.22648811340332,
+      "accuracy": 0.4807403701850925,
+      "eval_tokens": 1999,
+      "final_cache_size": 512,
+      "peak_vram_gb": 11.51353406906128,
+      "method": "streaming_512",
+      "config": {
+        "start_size": 4,
+        "recent_size": 508
+      }
+    },
+    {
+      "ttft": 0.008561375550925732,
+      "tpot": 0.011588079945274719,
+      "throughput": 84.79280195835689,
+      "total_time": 23.57511432375759,
+      "perplexity": 16.189804077148438,
+      "accuracy": 0.4807403701850925,
+      "eval_tokens": 1999,
+      "final_cache_size": 1024,
+      "peak_vram_gb": 12.36909818649292,
+      "method": "streaming_1024",
+      "config": {
+        "start_size": 4,
+        "recent_size": 1020
+      }
+    }
+  ],
+  "aggregated_stats": {
+    "baseline": {
+      "ttft": 0.020309236831963062,
+      "tpot": 0.012648873106652017,
+      "throughput": 56.97251778437936,
+      "perplexity": 15.034353574117025,
+      "accuracy": 0.48724362181090547,
+      "peak_vram_gb": 11.704463481903076,
+      "cache_size": 1999.0
+    },
+    "recent_only_256": {
+      "ttft": 0.011189740151166916,
+      "tpot": 0.011223987981516708,
+      "throughput": 74.72695724950198,
+      "perplexity": 53.54851531982422,
+      "accuracy": 0.34600633650158413,
+      "peak_vram_gb": 10.915225505828857,
+      "cache_size": 256.0
+    },
+    "recent_only_512": {
+      "ttft": 0.011131521624823412,
+      "tpot": 0.011438236020419662,
+      "throughput": 69.74180665148836,
+      "perplexity": 35.111489613850914,
+      "accuracy": 0.3861930965482741,
+      "peak_vram_gb": 11.199105103810629,
+      "cache_size": 512.0
+    },
+    "recent_only_1024": {
+      "ttft": 0.008492574716607729,
+      "tpot": 0.01238340416470711,
+      "throughput": 65.30441317899091,
+      "perplexity": 21.866057713826496,
+      "accuracy": 0.4383858595964649,
+      "peak_vram_gb": 11.78316068649292,
+      "cache_size": 1024.0
+    },
+    "streaming_256": {
+      "ttft": 0.011107530755301317,
+      "tpot": 0.009640425295265398,
+      "throughput": 101.54523425827068,
+      "perplexity": 16.6366605758667,
+      "accuracy": 0.47306986826746705,
+      "peak_vram_gb": 11.054278214772543,
+      "cache_size": 256.0
+    },
+    "streaming_512": {
+      "ttft": 0.008382129482924938,
+      "tpot": 0.01161194279476687,
+      "throughput": 86.54712170162067,
+      "perplexity": 16.023145357767742,
+      "accuracy": 0.4774053693513423,
+      "peak_vram_gb": 11.512413183848063,
+      "cache_size": 512.0
+    },
+    "streaming_1024": {
+      "ttft": 0.00855954953779777,
+      "tpot": 0.012476032638339985,
+      "throughput": 61.080571860964234,
+      "perplexity": 15.745349248250326,
+      "accuracy": 0.4784058696014674,
+      "peak_vram_gb": 12.36909818649292,
+      "cache_size": 1024.0
+    }
+  },
+  "baseline_stats": {
+    "perplexity": 15.034353574117025,
+    "accuracy": 0.48724362181090547,
+    "throughput": 56.97251778437936,
+    "tpot": 0.012648873106652017
+  }
+}

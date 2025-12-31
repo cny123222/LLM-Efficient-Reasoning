@@ -17,6 +17,20 @@ Usage Examples:
     # Compare all methods
     python scripts/benchmark.py --compare_all
 
+    # Load model from local path (instead of HuggingFace)
+    python scripts/benchmark.py --method streaming_llm --model_id /mnt/disk1/models/pythia-2.8b
+
+    # Load model from HuggingFace (default)
+    python scripts/benchmark.py --method streaming_llm --model_id EleutherAI/pythia-2.8b
+
+Model Loading:
+    The --model_id argument accepts either:
+    - HuggingFace model ID (e.g., "EleutherAI/pythia-2.8b")
+    - Local directory path (e.g., "/mnt/disk1/models/pythia-2.8b")
+    
+    The script will first try to load from local cache, then download if needed.
+    For local paths, ensure the directory contains model files (config.json, pytorch_model.bin, etc.)
+
 Supported Methods:
     - l2_compress: KnormPress ratio-based compression
     - fix_size_l2: Fixed-size KV cache with L2-based eviction
@@ -28,8 +42,13 @@ import sys
 import argparse
 import torch
 import numpy as np
+import json
+from datetime import datetime
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -368,6 +387,151 @@ def build_methods_config(args) -> list:
     return methods
 
 
+def save_results_to_json(results_data: dict, output_dir: str):
+    """Save benchmark results to JSON file."""
+    json_path = os.path.join(output_dir, "results.json")
+    with open(json_path, 'w') as f:
+        json.dump(results_data, indent=2, fp=f)
+    print(f"\n✅ Results saved to: {json_path}")
+    return json_path
+
+
+def plot_benchmark_results(grouped_results: dict, output_dir: str, baseline_stats: dict = None):
+    """Generate comparison plots for benchmark results."""
+    
+    methods = list(grouped_results.keys())
+    if not methods:
+        print("No results to plot.")
+        return
+    
+    # Prepare data
+    data = {
+        'throughput': [],
+        'tpot': [],
+        'ttft': [],
+        'ppl': [],
+        'vram': [],
+        'cache': []
+    }
+    
+    for method in methods:
+        results = grouped_results[method]
+        data['throughput'].append(np.mean([r['throughput'] for r in results]))
+        data['tpot'].append(np.mean([r['tpot'] for r in results]) * 1000)  # Convert to ms
+        data['ttft'].append(np.mean([r['ttft'] for r in results]) * 1000)  # Convert to ms
+        data['ppl'].append(np.mean([r['perplexity'] for r in results]))
+        data['vram'].append(np.mean([r.get('peak_vram_gb', 0) for r in results]))
+        data['cache'].append(np.mean([r['final_cache_size'] for r in results]))
+    
+    # Create figure with 2 rows, 3 columns
+    fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+    fig.suptitle('KV Cache Compression Benchmark Results', fontsize=16, fontweight='bold')
+    
+    # Color mapping
+    colors = []
+    for method in methods:
+        if method == 'baseline':
+            colors.append('#808080')  # Gray
+        elif 'streaming' in method:
+            colors.append('#2ecc71')  # Green
+        elif 'recent_only' in method:
+            colors.append('#e74c3c')  # Red
+        else:
+            colors.append('#3498db')  # Blue
+    
+    # Plot 1: Throughput (Higher is better)
+    ax = axes[0, 0]
+    bars = ax.bar(range(len(methods)), data['throughput'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('Throughput\n(Higher is Better)', fontweight='bold')
+    ax.set_ylabel('Tokens / Second')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 2: TPOT (Lower is better)
+    ax = axes[0, 1]
+    bars = ax.bar(range(len(methods)), data['tpot'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('TPOT / Latency\n(Lower is Better)', fontweight='bold')
+    ax.set_ylabel('Milliseconds')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 3: TTFT (Lower is better)
+    ax = axes[0, 2]
+    bars = ax.bar(range(len(methods)), data['ttft'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('TTFT / Prefill\n(Lower is Better)', fontweight='bold')
+    ax.set_ylabel('Milliseconds')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 4: Perplexity (Lower is better)
+    ax = axes[1, 0]
+    bars = ax.bar(range(len(methods)), data['ppl'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('Perplexity / Quality\n(Lower is Better)', fontweight='bold')
+    ax.set_ylabel('PPL Score')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    # Dynamic Y-axis for better visibility
+    if len(data['ppl']) > 0:
+        min_ppl, max_ppl = min(data['ppl']), max(data['ppl'])
+        ax.set_ylim(min_ppl * 0.95, max_ppl * 1.05)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 5: Peak VRAM Usage (Lower is better)
+    ax = axes[1, 1]
+    bars = ax.bar(range(len(methods)), data['vram'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('Peak VRAM Usage\n(Lower is Better)', fontweight='bold')
+    ax.set_ylabel('Memory (GB)')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.2f} GB', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 6: Cache Size
+    ax = axes[1, 2]
+    bars = ax.bar(range(len(methods)), data['cache'], color=colors, alpha=0.8, edgecolor='black')
+    ax.set_title('KV Cache Size', fontweight='bold')
+    ax.set_ylabel('Tokens')
+    ax.set_xticks(range(len(methods)))
+    ax.set_xticklabels(methods, rotation=45, ha='right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{int(height)}', ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    
+    # Save figure
+    plot_path = os.path.join(output_dir, "benchmark_comparison.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    print(f"✅ Comparison plot saved to: {plot_path}")
+    plt.close()
+    
+    return plot_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Unified Benchmark for KV Cache Compression",
@@ -385,6 +549,22 @@ Examples:
 
   # Compare all methods
   python scripts/benchmark.py --compare_all
+
+  # Load model from local path
+  python scripts/benchmark.py --method streaming_llm --model_id /mnt/disk1/models/pythia-2.8b
+
+  # Load model from HuggingFace (default)
+  python scripts/benchmark.py --method streaming_llm --model_id EleutherAI/pythia-2.8b
+
+Model Loading:
+  The --model_id argument accepts either:
+  - HuggingFace model ID: "EleutherAI/pythia-2.8b"
+  - Local directory path: "/mnt/disk1/models/pythia-2.8b"
+  
+  For local paths, ensure the directory contains:
+  - config.json
+  - pytorch_model.bin (or model.safetensors)
+  - tokenizer files (tokenizer.json, vocab.json, etc.)
         """
     )
     
@@ -392,7 +572,7 @@ Examples:
     # EleutherAI/pythia-6.9b
     # EleutherAI/pythia-70m-deduped
     parser.add_argument("--model_id", type=str, default="EleutherAI/pythia-2.8b",
-                       help="Model ID from HuggingFace")
+                       help="Model ID from HuggingFace or local directory path (e.g., '/mnt/disk1/models/pythia-2.8b')")
     parser.add_argument("--num_samples", type=int, default=2,
                        help="Number of PG-19 samples to test")
     parser.add_argument("--max_tokens", type=int, default=2000,
@@ -458,6 +638,14 @@ Examples:
     print(f"  Max new tokens: {args.max_new_tokens}")
     print(f"  Warmup iterations: {args.num_warmup}")
     
+    # Create results directory with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    method_name = args.method or 'compare_all'
+    model_short_name = os.path.basename(args.model_id.rstrip('/'))
+    results_dir = os.path.join(project_root, "results", f"{method_name}_{model_short_name}_{timestamp}")
+    os.makedirs(results_dir, exist_ok=True)
+    print(f"  Results directory: {results_dir}")
+    
     # args.model_id = "EleutherAI/pythia-6.9b"
     # Load model
     model, tokenizer, device = load_model_and_tokenizer(args.model_id)
@@ -515,8 +703,8 @@ Examples:
     
     # Print header
     print(f"\n{'Method':<25} {'TTFT(s)':>10} {'TPOT(s)':>10} "
-          f"{'Thruput':>10} {'PPL':>10} {'Acc':>10} {'Cache':>8}")
-    print("-"*90)
+          f"{'Thruput':>10} {'PPL':>10} {'Acc':>10} {'VRAM(GB)':>10} {'Cache':>8}")
+    print("-"*100)
     
     # Find baseline for comparison
     baseline_ppl = None
@@ -532,18 +720,31 @@ Examples:
         baseline_tpot = np.mean([r['tpot'] for r in baseline_results])
     
     # Print results
+    aggregated_stats = {}
     for method, results in grouped.items():
         avg_ttft = np.mean([r['ttft'] for r in results])
         avg_tpot = np.mean([r['tpot'] for r in results])
         avg_throughput = np.mean([r['throughput'] for r in results])
         avg_ppl = np.mean([r['perplexity'] for r in results])
         avg_acc = np.mean([r['accuracy'] for r in results])
+        avg_vram = np.mean([r.get('peak_vram_gb', 0) for r in results])
         avg_cache = np.mean([r['final_cache_size'] for r in results])
         
+        aggregated_stats[method] = {
+            'ttft': avg_ttft,
+            'tpot': avg_tpot,
+            'throughput': avg_throughput,
+            'perplexity': avg_ppl,
+            'accuracy': avg_acc,
+            'peak_vram_gb': avg_vram,
+            'cache_size': avg_cache
+        }
+        
         print(f"{method:<25} {avg_ttft:>10.4f} {avg_tpot:>10.4f} "
-              f"{avg_throughput:>10.2f} {avg_ppl:>10.2f} {avg_acc:>10.2%} {avg_cache:>8.0f}")
+              f"{avg_throughput:>10.2f} {avg_ppl:>10.2f} {avg_acc:>10.2%} "
+              f"{avg_vram:>10.2f} {avg_cache:>8.0f}")
     
-    print("="*90)
+    print("="*100)
     
     # Print comparison with baseline
     if baseline_ppl is not None and len(grouped) > 1:
@@ -566,7 +767,37 @@ Examples:
             
             print(f"  {method}: Throughput {throughput_imp:+.1f}%, TPOT {tpot_imp:+.1f}%, PPL {ppl_change:+.1f}%, Acc {acc_change:+.1f}%")
     
-    print("\nBenchmark completed!")
+    # Save results to JSON
+    results_data = {
+        "config": {
+            "model_id": args.model_id,
+            "method": args.method or 'compare_all',
+            "num_samples": args.num_samples,
+            "max_tokens": args.max_tokens,
+            "max_new_tokens": args.max_new_tokens,
+            "skip_layers": skip_layers,
+            "timestamp": timestamp
+        },
+        "raw_results": all_results,
+        "aggregated_stats": aggregated_stats,
+        "baseline_stats": {
+            "perplexity": baseline_ppl,
+            "accuracy": baseline_acc,
+            "throughput": baseline_throughput,
+            "tpot": baseline_tpot
+        } if baseline_ppl is not None else None
+    }
+    
+    save_results_to_json(results_data, results_dir)
+    
+    # Generate comparison plots
+    plot_benchmark_results(grouped, results_dir, 
+                          baseline_stats=results_data.get("baseline_stats"))
+    
+    print("\n" + "="*70)
+    print(f"✅ Benchmark completed!")
+    print(f"📁 Results saved to: {results_dir}")
+    print("="*70)
 
 
 if __name__ == "__main__":

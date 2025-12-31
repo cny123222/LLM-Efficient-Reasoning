@@ -177,6 +177,10 @@ def evaluate_with_compression(
     if compress_kwargs is None:
         compress_kwargs = {}
     
+    # Reset memory stats for VRAM measurement
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+    
     # Tokenize input
     input_ids = tokenizer.encode(text, return_tensors="pt")
     input_ids = input_ids[:, :max_tokens].to(device)
@@ -192,6 +196,7 @@ def evaluate_with_compression(
             "tpot": 0.0,
             "throughput": 0.0,
             "total_time": 0.0,
+            "peak_vram_gb": 0.0,
         }
     
     # Loss function for per-token NLL
@@ -309,6 +314,12 @@ def evaluate_with_compression(
             if final_cache_size == 0:
                 final_cache_size = kv_list[0][0].size(2)
     
+    # Measure peak VRAM usage
+    peak_memory_gb = 0.0
+    if device.type == "cuda":
+        peak_memory_bytes = torch.cuda.max_memory_allocated(device)
+        peak_memory_gb = peak_memory_bytes / (1024 ** 3)
+    
     return {
         "perplexity": perplexity,
         "accuracy": accuracy,
@@ -319,6 +330,7 @@ def evaluate_with_compression(
         "tpot": tpot,
         "throughput": throughput,
         "total_time": total_time,
+        "peak_vram_gb": peak_memory_gb,
     }
 
 
@@ -510,6 +522,7 @@ def evaluate_with_head_aware_mask(
             "tpot": 0.0,
             "throughput": 0.0,
             "total_time": 0.0,
+            "peak_vram_gb": 0.0,
         }
     
     # Loss function for per-token NLL
@@ -655,6 +668,12 @@ def evaluate_with_head_aware_mask(
     summary = mask_generator.get_summary()
     effective_context = summary.get('average_effective_context', 0.0)
     
+    # Measure peak VRAM usage
+    peak_memory_gb = 0.0
+    if device.type == "cuda":
+        peak_memory_bytes = torch.cuda.max_memory_allocated(device)
+        peak_memory_gb = peak_memory_bytes / (1024 ** 3)
+    
     return {
         "perplexity": perplexity,
         "accuracy": accuracy,
@@ -666,6 +685,7 @@ def evaluate_with_head_aware_mask(
         "tpot": tpot,
         "throughput": throughput,
         "total_time": total_time,
+        "peak_vram_gb": peak_memory_gb,
     }
 
 

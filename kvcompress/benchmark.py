@@ -75,6 +75,10 @@ def measure_generation_metrics(
     past_key_values = None
     ttft = None
     
+    # Reset memory stats for VRAM measurement
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+    
     total_start = time.perf_counter()
     
     with torch.inference_mode():
@@ -132,6 +136,12 @@ def measure_generation_metrics(
     tpot = (total_time - ttft) / max(num_generated - 1, 1)
     throughput = num_generated / total_time if total_time > 0 else 0
     
+    # Measure peak VRAM usage
+    peak_memory_gb = 0.0
+    if device.type == "cuda":
+        peak_memory_bytes = torch.cuda.max_memory_allocated(device)
+        peak_memory_gb = peak_memory_bytes / (1024 ** 3)
+    
     return {
         "ttft": ttft,
         "tpot": tpot,
@@ -139,6 +149,7 @@ def measure_generation_metrics(
         "total_time": total_time,
         "num_tokens": num_generated,
         "input_length": input_length,
+        "peak_vram_gb": peak_memory_gb,
     }
 
 
@@ -204,6 +215,8 @@ def benchmark(
         "accuracy": metrics["accuracy"],
         "eval_tokens": metrics["num_tokens"],
         "final_cache_size": metrics["final_cache_size"],
+        # VRAM metrics
+        "peak_vram_gb": metrics.get("peak_vram_gb", 0.0),
     }
     
     return result
