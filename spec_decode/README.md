@@ -99,11 +99,17 @@ spec_decode/
 │   ├── streaming_speculative_generator.py   # StreamingLLM 集成 ⭐
 │   │   ├── StreamingSpeculativeGenerator    # 基础流式版本
 │   │   └── StreamingSpeculativeGeneratorV2  # 优化版本 (主动驱逐)
+│   ├── tree_speculative_generator.py        # Tree-based 投机解码 ⭐ NEW
+│   │   ├── TreeSpeculativeGenerator         # 树状多分支版本
+│   │   ├── TreeSpeculativeGeneratorV2       # 带剪枝优化版本
+│   │   └── TreeStreamingSpeculativeGenerator # 树状 + StreamingLLM
+│   ├── token_tree.py                        # Token Tree 数据结构 ⭐ NEW
 │   ├── static_cache.py                      # 静态 KV Cache 实现
 │   └── utils.py                             # 工具函数
 ├── benchmark_custom_vs_hf.py                # 性能对比 benchmark
 ├── benchmark_detailed.py                    # 详细性能分析
 ├── benchmark_enhanced.py                    # 增强版 benchmark (阶段时间分解) ⭐
+├── benchmark_tree_vs_linear.py              # Tree vs Linear 对比 ⭐ NEW
 ├── benchmark_int8.py                        # INT8 量化 benchmark ⭐
 ├── benchmark_streaming.py                   # StreamingLLM benchmark ⭐
 ├── benchmark_combined.py                    # 综合 benchmark (全部配置) ⭐
@@ -225,6 +231,55 @@ print(f"当前 cache 长度: {stats['current_cache_len']}")
 - 内存恒定 (不随序列长度增长)
 - 保持 attention sink 保证质量
 
+### 使用 Tree-based 版本 (SpecInfer 风格) ⭐ NEW
+
+`TreeSpeculativeGenerator` 实现树状多分支投机解码，通过 Tree Attention 并行验证多个候选路径：
+
+```python
+from spec_decode.core import TreeSpeculativeGenerator, TreeSpeculativeGeneratorV2
+
+# 基础 Tree 版本
+generator = TreeSpeculativeGenerator(
+    target_model=target_model,
+    draft_model=draft_model,
+    tokenizer=tokenizer,
+    tree_depth=3,        # 树的深度 (类似 K)
+    branch_factor=2,     # 每层分支数 (top-k)
+    max_tree_nodes=32,   # 最大树节点数
+    device="cuda"
+)
+
+output = generator.generate(prompt, max_new_tokens=100)
+stats = generator.get_stats()
+print(f"平均路径长度: {stats['avg_accepted_path_length']:.2f}")
+print(f"树节点生成数: {stats['total_tree_nodes']}")
+
+# 带剪枝的 V2 版本 (推荐，性能更好)
+generator_v2 = TreeSpeculativeGeneratorV2(
+    target_model=target_model,
+    draft_model=draft_model,
+    tokenizer=tokenizer,
+    tree_depth=3,
+    branch_factor=3,
+    probability_threshold=0.05,  # 剪枝阈值
+    device="cuda"
+)
+```
+
+**Tree-based 优势**:
+- 更高的接受概率 (多路径候选)
+- 更好的 GPU 利用率 (Tree Attention 并行验证)
+- V2 剪枝版本可达 **2.00x** 加速
+
+**Tree vs Linear 性能对比** (Pythia-2.8B + Pythia-70M):
+
+| 方法 | 吞吐量 (t/s) | 加速比 | 接受率 |
+|------|-------------|--------|--------|
+| Baseline | 60.8 | 1.00x | - |
+| Linear K=3 | 97.5 | 1.60x | 85.2% |
+| Tree D=3 B=2 | 100.3 | 1.65x | 23.4% |
+| **Tree V2 D=3 B=3** | **122.0** | **2.00x** | 36.3% |
+
 ### 运行 Benchmark
 
 ```bash
@@ -284,6 +339,13 @@ python benchmark_combined.py \
     --num-samples 3 \
     --max-new-tokens 100 \
     --max-cache-len 256
+
+# Tree vs Linear 对比 benchmark ⭐ NEW
+python benchmark_tree_vs_linear.py \
+    --target-model /mnt/disk1/models/pythia-2.8b \
+    --draft-model /mnt/disk1/models/pythia-70m \
+    --max-new-tokens 100 \
+    --save
 ```
 
 ### 运行正确性测试
@@ -391,6 +453,7 @@ for token in accepted_tokens:
 | 阶段时间分解 Benchmark | ✅ 已完成 | 性能分析工具 |
 | INT8 量化 | ✅ 已完成 | 内存 -88%, 加速比 2.0x |
 | StreamingLLM 集成 | ✅ 已完成 | 支持无限长度生成 |
+| **Tree-based Drafting** | ✅ 已完成 | **2.00x 加速** (V2 版本) |
 
 ## 综合优化测试结果
 
@@ -414,8 +477,9 @@ for token in accepted_tokens:
 
 1. **自适应 K 选择**: 根据接受率动态调整 K 值
 2. **Draft 模型优化**: 减少 Draft 阶段的重复 prefill
-3. **Tree-based Drafting**: 多路径草稿并行验证
+3. ~~**Tree-based Drafting**: 多路径草稿并行验证~~ ✅ 已完成 (2.00x 加速)
 4. **INT4 量化**: 进一步压缩内存占用
+5. **Medusa 风格多头**: 使用多个 draft head 并行预测
 
 ## 参考文献
 
