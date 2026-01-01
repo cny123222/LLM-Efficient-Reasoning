@@ -11,13 +11,16 @@ papers/
 ├── README.md                           # 本文件（复现指南）
 ├── speculative_decoding_paper_draft.md # 论文草稿
 ├── reproduction_commands.sh            # 一键复现脚本
+├── benchmark_all_spec_decode.py        # 综合 Spec Decode 方法对比脚本
 └── figures/
     ├── paper_fig6_long_seq.png         # 长序列内存对比图
-    └── paper_fig7_comprehensive.png    # 全面性能对比图（主图）
+    ├── paper_fig7_comprehensive.png    # 全面性能对比图（主图）
+    └── spec_decode_benchmark_*.png     # 综合对比图
 
-项目根目录保留的结果文件：
+结果文件 (在 results/ 目录):
 ├── benchmark_comprehensive_results.json  # 全面 benchmark 数据
-└── benchmark_long_seq_results.json       # 长序列测试数据
+├── benchmark_long_seq_results.json       # 长序列测试数据
+└── spec_decode_benchmark_*.json          # 综合对比数据
 ```
 
 ---
@@ -37,6 +40,53 @@ papers/
 | **T/Round** | 每轮 tokens | 每个推测解码轮次平均生成的 tokens 数 |
 | **Mem MB** | 内存增长 | 推理过程中 GPU 显存增长量 |
 | **Compress** | 压缩次数 | StreamingLLM KV cache 压缩触发次数 |
+
+---
+
+## 🚀 快速复现 - 综合 Spec Decode 对比
+
+**最简单的方式运行所有方法对比：**
+
+```bash
+cd /mnt/disk1/ljm/LLM-Efficient-Reasoning
+
+# 快速测试 (100 tokens, ~3分钟)
+./papers/reproduction_commands.sh quick
+
+# 完整测试 (500 tokens, ~10分钟)
+./papers/reproduction_commands.sh full
+
+# 或直接运行 Python 脚本
+python papers/benchmark_all_spec_decode.py \
+    --target-model /mnt/disk1/models/pythia-2.8b \
+    --draft-model /mnt/disk1/models/pythia-70m \
+    --max-new-tokens 500 \
+    --num-runs 2 \
+    --output-json results/spec_decode_all.json \
+    --output-plot papers/figures/spec_decode_all.png
+```
+
+**测试的方法包括：**
+- Baseline (纯自回归)
+- HuggingFace Assisted Generation
+- Linear Speculative Decoding (K=4,5,6,7,8)
+- Tree-based V1/V2 Speculative Decoding
+- StreamingLLM + Speculative Decoding
+- Tree + Streaming 组合
+
+**最新测试结果 (500 tokens, Pythia-2.8B + Pythia-70M)：**
+
+| 方法 | 吞吐量 | 加速比 | 说明 |
+|------|--------|--------|------|
+| **HF Assisted** | 229.5 t/s | **2.47x** | HuggingFace 内置实现 |
+| Linear K=8 | 180.5 t/s | 1.94x | 我们的实现 (最佳 K) |
+| Linear K=7 | 176.6 t/s | 1.90x | |
+| Streaming K=6 cache=1024 | 171.3 t/s | 1.84x | StreamingLLM 版本 |
+| Linear K=6 | 169.6 t/s | 1.82x | |
+| Streaming K=5 cache=1024 | 161.4 t/s | 1.74x | |
+| Streaming K=5 cache=256 | 138.1 t/s | 1.48x | 内存节省版 |
+| TreeV2 D=5 B=2 | 126.4 t/s | 1.36x | Tree-based 实现 |
+| **Baseline (AR)** | 93.0 t/s | 1.00x | 纯自回归 |
 
 ---
 
@@ -171,6 +221,13 @@ pip install torch transformers accelerate matplotlib numpy tqdm
 2. **Acceptance Rate**：Accept% 上限为 100%，T/Round > K 表示有 bonus tokens
 
 3. **结果复现**：由于 GPU 状态，结果可能有 ±5% 波动
+
+4. **强制长序列生成**：所有 benchmark 都禁用 EOS token (`eos_token_id = 999999`)，确保生成指定数量的 tokens。这对于公平比较非常重要，因为短序列（< 100 tokens）的性能会显著高于长序列。
+
+5. **Baseline 定义**：
+   - Baseline = 纯自回归生成（不使用任何 draft model）
+   - 500 tokens 时 Baseline 约 80-85 t/s
+   - 加速比 = Spec Decode 吞吐量 / Baseline 吞吐量
 
 ---
 
