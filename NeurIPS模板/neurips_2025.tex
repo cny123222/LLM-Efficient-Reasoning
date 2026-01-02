@@ -71,9 +71,9 @@
 
 
 \author{%
-  Nuoyan Chen$^\dagger$ \quad
-  Jiamin Liu$^\dagger$ \quad
-  Zhaocheng Li$^\dagger$\thanks{$^\dagger$ Equal contribution.} \\
+  Nuoyan Chen$^*$ \quad
+  Jiamin Liu$^*$ \quad
+  Zhaocheng Li$^*$\thanks{$^*$ Equal contribution.} \\
   School of Computer Science\\
   Shanghai Jiao Tong University\\
   \texttt{\{cny123222, logic-1.0, lzc050419\}@sjtu.edu.cn}
@@ -87,7 +87,7 @@
 
 
 \begin{abstract}
-Autoregressive generation in large language models (LLMs) suffers from inherent sequential bottlenecks that severely underutilize modern GPU parallelism. Speculative decoding accelerates inference by using a smaller draft model to propose candidate tokens, which are then verified in parallel by the target model. However, existing linear approaches explore only a single token sequence per iteration, leading to substantial computational waste when early predictions fail. We propose \textbf{DynaTree}, a tree-based speculative decoding framework that generates multiple candidate paths through top-$k$ branching at each depth level and verifies them simultaneously via tree attention mechanisms. To control the exponential growth of tree size while maintaining high acceptance rates, we introduce an adaptive pruning strategy based on probability thresholds and node budgets. Experiments on Pythia-2.8B demonstrate that DynaTree achieves \textbf{1.62$\times$ speedup} over standard autoregressive decoding with optimal configuration ($D{=}8$, $B{=}3$, $\tau{=}0.03$), outperforming both HuggingFace assisted generation (1.36$\times$) and linear speculative decoding (1.11$\times$). We provide comprehensive analysis of the depth-breadth-threshold trade-offs and demonstrate consistent improvements across varying generation lengths.
+Autoregressive generation in large language models (LLMs) suffers from inherent sequential bottlenecks that severely underutilize modern GPU parallelism. Speculative decoding accelerates inference by using a smaller draft model to propose candidate tokens for parallel verification by the target model. However, existing linear approaches explore only a single token sequence per iteration, leading to substantial computational waste when early predictions fail. We propose \textbf{DynaTree}, a tree-based speculative decoding framework that generates multiple candidate paths through top-$k$ branching at each tree level and verifies them simultaneously via specialized tree attention mechanisms. To manage the exponential growth of tree size, we introduce an adaptive pruning strategy that dynamically eliminates low-probability branches based on learned probability thresholds. Experiments on Pythia models demonstrate that DynaTree achieves 1.62$\times$ speedup over standard autoregressive decoding, substantially outperforming both existing assisted generation methods (1.36$\times$) and linear speculative decoding baselines (1.11$\times$). Comprehensive analysis reveals critical trade-offs between tree depth, branching factor, and pruning aggressiveness, with consistent improvements observed across varying generation lengths.
 \end{abstract}
 
 
