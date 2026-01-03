@@ -138,8 +138,8 @@ DynaTree generalizes linear speculative decoding from a single draft chain to a 
 
 \begin{figure}[t]
   \centering
-  \fbox{\rule[-.5cm]{0cm}{3.0cm}\rule[-.5cm]{0.95\linewidth}{0cm}}
-  \caption{\textbf{Architecture overview (placeholder).} DynaTree iteration pipeline: draft-tree construction (with pruning), BFS flattening, tree-attention verification in one target forward pass, and commit/cache update for the longest valid path.}
+  \includegraphics[width=\linewidth]{../figures/dynatree-v7.png}
+  \caption{\textbf{Architecture overview of DynaTree.} Each iteration drafts a candidate token tree with a small \emph{draft model}, prunes unlikely branches under a probability threshold and node budget, serializes the remaining nodes and constructs a \emph{tree causal attention mask}, then verifies all candidates in parallel with a single forward pass of the \emph{target model}. A longest valid path (tokens matching the target model's greedy top-1 predictions) is committed, and the context and KV cache are updated for the next iteration.}
   \label{fig:arch}
 \end{figure}
 
