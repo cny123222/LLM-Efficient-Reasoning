@@ -68,6 +68,12 @@
 \SetKwInput{KwIn}{Input}
 \SetKwInput{KwOut}{Output}
 \SetKwComment{Comment}{$\triangleright$\ }{}
+\SetKwProg{Fn}{Function}{:}{end}
+\SetKwFunction{FDraft}{DRAFTTREE}
+\SetKwFunction{FVerify}{VERIFYTREE}
+\SetKwFunction{FSelect}{SELECTCOMMIT}
+\SetKwFunction{FUpdate}{UPDATECACHE}
+\SetKwFunction{FFlatten}{FLATTENMASK}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
 \title{DynaTree: Dynamic Tree-based Speculative Decoding with Adaptive Pruning for Efficient LLM Inference}
@@ -167,52 +173,76 @@ This rule corresponds exactly to the implementation in `TreeSpeculativeGenerator
 \begin{algorithm}[t]
 \caption{\textbf{DynaTree: one iteration (greedy-consistent).}}
 \label{fig:algo}
-\KwIn{Prefix tokens \(x_{1:t}\); target KV cache \(\mathcal{K}_T\); last target logits on the prefix \(\mathbf{s}_{\text{last}}\);
+\KwIn{Prefix tokens \(x_{1:t}\); target KV cache \(\mathcal{K}_T\); prefix next-token logits \(\mathbf{s}_{\text{last}}\);
 tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \(N_{\max}\).}
 \KwOut{Committed tokens \(y_{t+1:t+L}\) and updated target cache \(\mathcal{K}_T\).}
 
 \BlankLine
-\Comment*[l]{Record prefix cache length for later rollback}
-\(\ell \leftarrow \textsc{SeqLen}(\mathcal{K}_T)\).\;
+\Comment*[l]{Main procedure (function-wrapped, SpecInfer-style)}
+\(\ell \leftarrow \textsc{SeqLen}(\mathcal{K}_T)\)\;
+\(\mathcal{T} \leftarrow \FDraft(x_{1:t}, D, B, \tau, N_{\max})\)\;
+\((\mathbf{z}_{1:n}, \mathbf{A}) \leftarrow \FFlatten(\mathcal{T}, \ell)\)\;
+\(\hat{\mathbf{y}} \leftarrow \FVerify(\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T)\)\;
+\(y_{t+1:t+L} \leftarrow \FSelect(\mathcal{T}, \hat{\mathbf{y}}, \mathbf{s}_{\text{last}})\)\;
+\(\mathcal{K}_T \leftarrow \FUpdate(\mathcal{K}_T, y_{t+1:t+L}, \ell)\)\;
+\Return \(y_{t+1:t+L}\)\;
 
 \BlankLine
-\Comment*[l]{(A) Draft a token tree with pruning using the draft model \(M_D\)}
-\(\mathcal{T} \leftarrow \emptyset\).\;
-Run \(M_D\) on \(x_{1:t}\) to obtain next-token logits; let \(u_0\) be the \(\top 1\) token.\;
-Add \(u_0\) as the root of \(\mathcal{T}\); set active leaves \(\mathcal{A}\leftarrow\{u_0\}\).\;
-\For(\Comment*[f]{level-by-level expansion}){\(d=1\) \KwTo \(D\)}{
-  \If(\Comment*[f]{stop if budget reached or nothing to expand}){\(|\mathcal{T}|\ge N_{\max}\) \textbf{or} \(|\mathcal{A}|=0\)}{\textbf{break}}
-  \(\mathcal{A}'\leftarrow \emptyset\).\;
-  \ForEach{\(u\in\mathcal{A}\)}{
-    \If(\Comment*[f]{V2 pruning: skip expanding low-probability branches}){\(\bar{\ell}_u < \log\tau\)}{\textbf{continue}}
-    Do a cached one-token forward pass of \(M_D\) from node \(u\) and take \(\top B\) candidates.\;
-    Add up to \(B\) children (stop if \(|\mathcal{T}|=N_{\max}\)); add created children to \(\mathcal{A}'\).\;
+\Fn{\FDraft(\(x_{1:t}, D, B, \tau, N_{\max}\))}{
+  \Comment*[l]{Draft a token tree with V2 pruning (matches \texttt{TreeSpeculativeGeneratorV2})}
+  Run \(M_D\) on \(x_{1:t}\); add the \(\top 1\) token as root \(u_0\)\;
+  \(\mathcal{A}\leftarrow\{u_0\}\)\;
+  \For{\(d\leftarrow 1\) \KwTo \(D\)}{
+    \If{\(|\mathcal{A}|=0\) \textbf{or} \(|\mathcal{T}|\ge N_{\max}\)}{\textbf{break}}
+    \(\mathcal{A}'\leftarrow\emptyset\)\;
+    \ForEach{\(u\in\mathcal{A}\)}{
+      \If{\(\bar{\ell}_u < \log\tau\)}{\textbf{continue}} \Comment*[f]{skip expanding low-prob branches}
+      Do one cached step of \(M_D\) from \(u\); take \(\top B\) next-token candidates\;
+      Add up to \(B\) children (stop if \(|\mathcal{T}|=N_{\max}\)); add children to \(\mathcal{A}'\)\;
+    }
+    \(\mathcal{A}\leftarrow\mathcal{A}'\)\;
   }
-  \(\mathcal{A}\leftarrow \mathcal{A}'\).\;
+  \Return \(\mathcal{T}\)\;
 }
 
 \BlankLine
-\Comment*[l]{(B) Verify all remaining nodes in one target forward pass with tree attention}
-Serialize nodes of \(\mathcal{T}\) in BFS order into tokens \(\mathbf{z}_{1:n}\).\;
-Build the tree causal mask \(\mathbf{A}\) (prefix + ancestors only).\;
-Run \(M_T(\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T)\) to obtain logits \(\mathbf{s}_{1:n}\) and greedy predictions \(\hat{y}(u)=\arg\max \mathbf{s}_{\text{pos}(u)}\).\;
-
-\BlankLine
-\Comment*[l]{(C) Select the longest greedy-consistent path and commit (+ bonus token)}
-\(\hat{y}_{t+1}\leftarrow \arg\max \mathbf{s}_{\text{last}}\).\;
-Find the longest root-to-leaf path \(P\) such that the root token equals \(\hat{y}_{t+1}\) and each child token matches its parent's greedy prediction \(\hat{y}(\text{parent})\).\;
-\eIf(\Comment*[f]{if even the root mismatches}){\(P=\emptyset\)}{
-  \(y_{t+1:t+L}\leftarrow [\hat{y}_{t+1}]\).\;
-}{
-  \(y_{t+1:t+L}\leftarrow\) tokens on \(P\).\;
-  Append one \emph{bonus} token equal to the target greedy prediction after the last matched node.\;
+\Fn{\FFlatten(\(\mathcal{T}, \ell\))}{
+  \Comment*[l]{BFS serialization + tree causal mask}
+  \(\mathbf{z}_{1:n} \leftarrow \textsc{BFSFlatten}(\mathcal{T})\)\;
+  \(\mathbf{A} \leftarrow \textsc{TreeMask}(\mathcal{T}, \text{prefix\_len}=\ell)\)\;
+  \Return \((\mathbf{z}_{1:n}, \mathbf{A})\)\;
 }
 
 \BlankLine
-\Comment*[l]{Update cache by rollback + rebuild on committed tokens}
-\(\mathcal{K}_T \leftarrow \textsc{Crop}(\mathcal{K}_T,\ell)\).\;
-Run \(M_T\) on \(y_{t+1:t+L}\) with cache \(\mathcal{K}_T\) to rebuild \(\mathcal{K}_T\).\;
-\Return \(y_{t+1:t+L}\).\;
+\Fn{\FVerify(\(\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T\))}{
+  \Comment*[l]{Single target forward pass with tree attention}
+  \(\mathbf{s}_{1:n} \leftarrow M_T(\mathbf{z}_{1:n}; \mathbf{A}, \mathcal{K}_T)\)\;
+  \(\hat{\mathbf{y}} \leftarrow \arg\max \mathbf{s}_{1:n}\)\;
+  \Return \(\hat{\mathbf{y}}\)\;
+}
+
+\BlankLine
+\Fn{\FSelect(\(\mathcal{T}, \hat{\mathbf{y}}, \mathbf{s}_{\text{last}}\))}{
+  \Comment*[l]{Longest greedy-consistent path (matches \texttt{\_select\_best\_path})}
+  \(first \leftarrow \arg\max \mathbf{s}_{\text{last}}\)\;
+  Find the longest path \(P\) starting at the root such that:
+  root token \(=\) \(first\), and for each edge \((u\!\rightarrow\!v)\), token\((v)=\hat{\mathbf{y}}[\text{pos}(u)]\)\;
+  \eIf{\(P=\emptyset\)}{
+    \Return \([first]\)\;
+  }{
+    \(y \leftarrow\) tokens on \(P\)\;
+    Append one bonus token \(=\hat{\mathbf{y}}[\text{pos}(\text{last}(P))]\)\;
+    \Return \(y\)\;
+  }
+}
+
+\BlankLine
+\Fn{\FUpdate(\(\mathcal{K}_T, y_{t+1:t+L}, \ell\))}{
+  \Comment*[l]{Rollback-and-rebuild cache (matches \texttt{\_update\_tree\_cache})}
+  \(\mathcal{K}_T \leftarrow \textsc{Crop}(\mathcal{K}_T,\ell)\)\;
+  \(\mathcal{K}_T \leftarrow M_T(y_{t+1:t+L}; \mathcal{K}_T)\)\;
+  \Return \(\mathcal{K}_T\)\;
+}
 \end{algorithm}
 
 \subsection{Tree Attention for Parallel Verification}
