@@ -10,18 +10,23 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import pandas as pd
 
-# Use serif font for academic papers
+# Academic paper style settings
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif']
 plt.rcParams['mathtext.fontset'] = 'dejavuserif'
+plt.rcParams['axes.edgecolor'] = '#999999'
+plt.rcParams['axes.linewidth'] = 0.8
+plt.rcParams['axes.labelcolor'] = '#333333'
+plt.rcParams['xtick.color'] = '#333333'
+plt.rcParams['ytick.color'] = '#333333'
 plt.rcParams['font.size'] = 9
 
-# Muted academic color palette
+# Academic color palette - matching other figures
 COLORS = {
-    'main': '#5B7C99',      # muted blue
-    'highlight': '#C85A54',  # muted red
-    'secondary': '#7B8D9E',  # gray-blue
-    'tertiary': '#8FA09B',   # gray-green
+    'main': '#4A708B',       # steel blue
+    'highlight': '#D97757',  # terra cotta
+    'secondary': '#6495B8',  # light steel blue
+    'tertiary': '#8BACC6',   # sky blue
 }
 
 # Load data
@@ -38,8 +43,8 @@ print(f"  Branches: {sorted(df['branch'].unique())}")
 print(f"  Thresholds: {sorted(df['threshold'].unique())}")
 print(f"  Lengths: {sorted(df['tokens'].unique())}")
 
-# Create figure with 2x3 grid
-fig = plt.figure(figsize=(15, 10))
+# Create figure with 2x3 grid - compact for academic paper
+fig = plt.figure(figsize=(12, 8))
 gs = GridSpec(2, 3, figure=fig, hspace=0.35, wspace=0.3)
 
 # =============================================================================
@@ -50,13 +55,13 @@ subset = df[(df['branch'] == 3) & (df['threshold'] == 0.03) & (df['tokens'] == 5
 subset_sorted = subset.sort_values('depth')
 
 ax1.plot(subset_sorted['depth'], subset_sorted['speedup'], 
-         marker='o', linewidth=2, markersize=8, color=COLORS['main'])
+         marker='o', linewidth=1.8, markersize=6, color=COLORS['main'], alpha=0.85)
 ax1.set_xlabel('Tree Depth $D$')
 ax1.set_ylabel('Speedup')
-ax1.set_title('(a) Speedup vs Depth')
-ax1.grid(True, linestyle='--', alpha=0.3)
+ax1.set_title('(a) Speedup vs Depth', fontsize=10)
+ax1.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
 ax1.set_xticks(sorted(df['depth'].unique()))
-ax1.axhline(y=1.0, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+ax1.axhline(y=1.0, color='#666666', linestyle='--', linewidth=0.8, alpha=0.5)
 
 # Highlight optimal
 if len(subset_sorted) > 0:
@@ -73,13 +78,13 @@ subset = df[(df['depth'] == 8) & (df['threshold'] == 0.03) & (df['tokens'] == 50
 subset_sorted = subset.sort_values('branch')
 
 ax2.plot(subset_sorted['branch'], subset_sorted['speedup'], 
-         marker='s', linewidth=2, markersize=8, color=COLORS['secondary'])
+         marker='s', linewidth=1.8, markersize=6, color=COLORS['secondary'], alpha=0.85)
 ax2.set_xlabel('Branching Factor $B$')
 ax2.set_ylabel('Speedup')
-ax2.set_title('(b) Speedup vs Branching Factor')
-ax2.grid(True, linestyle='--', alpha=0.3)
+ax2.set_title('(b) Speedup vs Branching Factor', fontsize=10)
+ax2.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
 ax2.set_xticks(sorted(df['branch'].unique()))
-ax2.axhline(y=1.0, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+ax2.axhline(y=1.0, color='#666666', linestyle='--', linewidth=0.8, alpha=0.5)
 
 # Highlight optimal
 if len(subset_sorted) > 0:
@@ -96,13 +101,13 @@ subset = df[(df['depth'] == 8) & (df['branch'] == 3) & (df['tokens'] == 500)]
 subset_sorted = subset.sort_values('threshold')
 
 ax3.plot(subset_sorted['threshold'], subset_sorted['speedup'], 
-         marker='^', linewidth=2, markersize=8, color=COLORS['tertiary'])
+         marker='^', linewidth=1.8, markersize=6, color=COLORS['tertiary'], alpha=0.85)
 ax3.set_xlabel('Pruning Threshold $\\tau$')
 ax3.set_ylabel('Speedup')
-ax3.set_title('(c) Speedup vs Threshold')
-ax3.grid(True, linestyle='--', alpha=0.3)
+ax3.set_title('(c) Speedup vs Threshold', fontsize=10)
+ax3.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
 ax3.set_xscale('log')
-ax3.axhline(y=1.0, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+ax3.axhline(y=1.0, color='#666666', linestyle='--', linewidth=0.8, alpha=0.5)
 
 # Highlight optimal
 if len(subset_sorted) > 0:
@@ -119,12 +124,12 @@ best_per_length = df.loc[df.groupby('tokens')['speedup'].idxmax()]
 best_per_length_sorted = best_per_length.sort_values('tokens')
 
 ax4.plot(best_per_length_sorted['tokens'], best_per_length_sorted['speedup'], 
-         marker='D', linewidth=2, markersize=8, color=COLORS['main'])
+         marker='D', linewidth=1.8, markersize=6, color=COLORS['main'], alpha=0.85)
 ax4.set_xlabel('Generation Length (tokens)')
 ax4.set_ylabel('Speedup')
-ax4.set_title('(d) Speedup vs Generation Length')
-ax4.grid(True, linestyle='--', alpha=0.3)
-ax4.axhline(y=1.0, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+ax4.set_title('(d) Speedup vs Generation Length', fontsize=10)
+ax4.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
+ax4.axhline(y=1.0, color='#666666', linestyle='--', linewidth=0.8, alpha=0.5)
 
 # Add configuration annotations
 for _, row in best_per_length_sorted.iterrows():
@@ -140,10 +145,10 @@ ax5 = fig.add_subplot(gs[1, 1])
 subset = df[(df['threshold'] == 0.03) & (df['tokens'] == 500)]
 pivot = subset.pivot_table(values='avg_path_length', index='depth', columns='branch', aggfunc='mean')
 
-im = ax5.imshow(pivot.values, cmap='YlOrRd', aspect='auto', origin='lower')
+im = ax5.imshow(pivot.values, cmap='YlOrRd', aspect='auto', origin='lower', alpha=0.9)
 ax5.set_xlabel('Branching Factor $B$')
 ax5.set_ylabel('Tree Depth $D$')
-ax5.set_title('(e) Avg Path Length (D × B)')
+ax5.set_title('(e) Avg Path Length (D × B)', fontsize=10)
 ax5.set_xticks(range(len(pivot.columns)))
 ax5.set_xticklabels(pivot.columns)
 ax5.set_yticks(range(len(pivot.index)))
@@ -184,8 +189,8 @@ for element in ['whiskers', 'fliers', 'means', 'medians', 'caps']:
 
 ax6.set_xlabel('Pruning Threshold $\\tau$')
 ax6.set_ylabel('Acceptance Rate')
-ax6.set_title('(f) Acceptance Rate vs Threshold')
-ax6.grid(True, linestyle='--', alpha=0.3, axis='y')
+ax6.set_title('(f) Acceptance Rate vs Threshold', fontsize=10)
+ax6.grid(True, linestyle=':', alpha=0.3, linewidth=0.5, axis='y')
 
 # Save figure
 output_png = 'figures/param_sweep.png'

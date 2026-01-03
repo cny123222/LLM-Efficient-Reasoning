@@ -367,7 +367,7 @@ tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{../figures/param_sweep.pdf}
+  \includegraphics[width=0.75\linewidth]{../figures/param_sweep.pdf}
   \caption{\textbf{Comprehensive parameter sweep analysis across 450 configurations.} (a)~Speedup vs.\ tree depth $D$ (fixing $B=3$, $\tau=0.03$, 500 tokens): deeper trees improve speedup up to $D=8$, after which verification overhead dominates. (b)~Speedup vs.\ branching factor $B$ (fixing $D=8$, $\tau=0.03$, 500 tokens): $B=3$ achieves the best balance between exploration and cost. (c)~Speedup vs.\ pruning threshold $\tau$ (fixing $D=8$, $B=3$, 500 tokens, log scale): $\tau=0.03$ is optimal, balancing aggressive and loose pruning. (d)~Best speedup across generation lengths with corresponding optimal $(D,B,\tau)$ configurations: speedup peaks at 500 tokens and remains strong at other lengths. (e)~Average path length heatmap over $(D,B)$ (fixing $\tau=0.03$, 500 tokens): larger trees enable longer committed paths. (f)~Acceptance rate distribution vs.\ pruning threshold (fixing $D=8$, $B=3$, 500 tokens): tighter pruning slightly reduces acceptance but improves overall throughput. Stars mark optimal configurations in each subplot.}
   \label{fig:param-sweep}
 \end{figure}
