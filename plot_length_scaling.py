@@ -6,12 +6,15 @@ Plot performance across different generation lengths
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Set academic style
+# Academic paper style settings
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif']
 plt.rcParams['mathtext.fontset'] = 'dejavuserif'
-plt.rcParams['axes.edgecolor'] = '#cccccc'
+plt.rcParams['axes.edgecolor'] = '#999999'
 plt.rcParams['axes.linewidth'] = 0.8
+plt.rcParams['axes.labelcolor'] = '#333333'
+plt.rcParams['xtick.color'] = '#333333'
+plt.rcParams['ytick.color'] = '#333333'
 plt.rcParams['font.size'] = 10
 
 # Data from length_scaling_extracted.json and main results table
@@ -38,53 +41,45 @@ linear_speedup_ratio = 133.1 / 119.4  # ≈ 1.11
 hf_throughput = [b * hf_speedup_ratio for b in baseline_throughput]
 linear_throughput = [b * linear_speedup_ratio for b in baseline_throughput]
 
-# Create figure
-fig, ax = plt.subplots(figsize=(8, 5))
+# Create figure - academic paper style with reduced width
+fig, ax = plt.subplots(figsize=(7, 4))
 
-# Color palette (muted academic colors)
+# Academic color palette - matching main_results figure
 colors = {
-    'AR': '#5B7C99',          # Blue-grey (baseline)
-    'HF': '#7B8D9E',          # Light blue-grey
-    'Linear': '#8FA09B',      # Green-grey
-    'DynaTree': '#C85A54'     # Muted red (highlight)
+    'AR': '#4A708B',          # Steel blue (baseline)
+    'HF': '#6495B8',          # Light steel blue
+    'Linear': '#8BACC6',      # Sky blue
+    'DynaTree': '#D97757'     # Terra cotta (highlight)
 }
 
-# Plot lines with markers
+# Plot lines with markers - academic style
 ax.plot(lengths, baseline_throughput, 
-        marker='o', linewidth=2, markersize=7,
-        color=colors['AR'], label='AR (target-only)', linestyle='-')
+        marker='o', linewidth=1.8, markersize=6,
+        color=colors['AR'], label='AR (target-only)', linestyle='-', alpha=0.85)
 
 ax.plot(lengths, hf_throughput, 
-        marker='s', linewidth=2, markersize=7,
+        marker='s', linewidth=1.8, markersize=6,
         color=colors['HF'], label='HF Assisted (est.)', linestyle='--', alpha=0.7)
 
 ax.plot(lengths, linear_throughput, 
-        marker='^', linewidth=2, markersize=7,
+        marker='^', linewidth=1.8, markersize=6,
         color=colors['Linear'], label='Linear Spec. (K=6, est.)', linestyle='--', alpha=0.7)
 
 ax.plot(lengths, dynatree_throughput, 
-        marker='D', linewidth=2.5, markersize=8,
-        color=colors['DynaTree'], label='DynaTree (Ours)', linestyle='-')
+        marker='D', linewidth=2.2, markersize=7,
+        color=colors['DynaTree'], label='DynaTree (Ours)', linestyle='-', alpha=0.95)
 
 # Formatting
-ax.set_xlabel('Generation Length (tokens)', fontsize=12, fontweight='normal')
-ax.set_ylabel('Throughput (tokens/sec)', fontsize=12, fontweight='normal')
+ax.set_xlabel('Generation Length (tokens)', fontsize=11, fontweight='normal')
+ax.set_ylabel('Throughput (tokens/sec)', fontsize=11, fontweight='normal')
 ax.set_xscale('log')
 ax.set_xticks(lengths)
 ax.set_xticklabels(['100', '200', '300', '500', '1000'])
-ax.grid(True, linestyle=':', alpha=0.4, linewidth=0.5)
-ax.legend(loc='best', frameon=True, framealpha=0.95, edgecolor='#cccccc')
+ax.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
+ax.legend(loc='lower right', frameon=True, framealpha=0.95, edgecolor='#999999', fontsize=9)
 
 # Set y-axis range
 ax.set_ylim(95, 235)
-
-# Add note about estimated data
-ax.text(0.98, 0.02, 
-        'Note: HF Assisted and Linear throughputs estimated from 500-token measurements\nusing fixed speedup ratios.',
-        transform=ax.transAxes,
-        fontsize=8, style='italic', color='#666666',
-        verticalalignment='bottom', horizontalalignment='right',
-        bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='#cccccc', alpha=0.8))
 
 plt.tight_layout()
 
