@@ -307,7 +307,7 @@ Figure~\ref{fig:length-scaling} and Table~\ref{tab:length-scaling} examine how D
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.85\linewidth]{../figures/length_scaling.pdf}
+  \includegraphics[width=0.7\linewidth]{../figures/length_scaling.pdf}
   \caption{\textbf{Throughput across different generation lengths.} DynaTree consistently outperforms all baselines across generation lengths from 100 to 1000 tokens. Performance improves from 1.43\(\times\) speedup at 100 tokens to a peak of 1.79\(\times\) at 500 tokens, then plateaus at 1.71\(\times\) for 1000 tokens. The autoregressive baseline (AR) shows stable throughput across lengths, while DynaTree's advantage grows with length until verification overhead balances exploration gains. HuggingFace Assisted and Linear Speculative Decoding throughputs are estimated from their observed speedup ratios at 500 tokens (1.36\(\times\) and 1.11\(\times\) respectively), applied to baseline performance at each length.}
   \label{fig:length-scaling}
 \end{figure}
