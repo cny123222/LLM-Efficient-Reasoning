@@ -20,8 +20,9 @@ speedup = [1.00, 1.36, 1.11, 1.11, 1.62]           # relative to AR
 # Set up the figure - only 2 subplots now
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-# Unified color palette - professional academic style
-colors = ['#4A90E2', '#7B68EE', '#50C878', '#FFA500', '#E74C3C']  # last one is red for ours
+# Unified color palette - muted academic style
+# Using a softer, more professional color scheme
+colors = ['#5B7C99', '#7B8D9E', '#8FA09B', '#A9B5A8', '#C85A54']  # muted blues/grays, last one is muted red for ours
 
 # --- Subplot 1: Throughput ---
 ax1 = axes[0]
