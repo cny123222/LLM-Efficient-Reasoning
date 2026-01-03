@@ -242,6 +242,24 @@ StreamingLLM + speculative (cache=1024) & 132.9 & 1.11 & -- \\
 
 Figure~\ref{fig:main-results} visualizes these results. Although tree-based drafting exhibits lower per-token acceptance rates than linear chains, DynaTree's multi-path exploration substantially increases the probability of finding a long valid prefix in each verification step. Combined with adaptive pruning to control the verification budget, this design achieves the best overall throughput among all evaluated methods.
 
+\paragraph{Verification efficiency analysis.}
+Table~\ref{tab:verification-efficiency} provides a detailed breakdown of verification efficiency metrics for the optimal configurations. DynaTree (D=8, B=3, \(\tau\)=0.03) commits an average of 6.94 tokens per iteration---69\% more than linear speculative decoding (4.10 tokens/iter)---despite having a lower per-token acceptance rate (38\% vs.\ 68\%). This demonstrates that tree-based drafting's multi-path exploration enables longer committed sequences per verification round, offsetting the reduced per-token acceptance and ultimately yielding higher end-to-end throughput.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Verification efficiency comparison.} We report tokens committed per iteration, per-token acceptance rate, and average path length for linear and tree-based methods at their optimal configurations on 500-token generation. Despite lower per-token acceptance, DynaTree's multi-path exploration commits substantially more tokens per verification step.}
+\label{tab:verification-efficiency}
+\begin{tabular}{lccc}
+\toprule
+Method & Tokens/Iter & Accept. Rate & Avg Path Length \\
+\midrule
+Linear speculative (K=6) & 4.10 & 0.68 & 4.10 \\
+HuggingFace assisted & -- & -- & -- \\
+\textbf{DynaTree (D=8,B=3,\(\tau\)=0.03)} & \textbf{6.94} & 0.38 & \textbf{6.94} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{../figures/main_results_bars.pdf}
