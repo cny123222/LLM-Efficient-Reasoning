@@ -216,7 +216,7 @@ We compare DynaTree against four baselines representing different levels of spec
 \begin{itemize}
   \item \textbf{Autoregressive (AR):} Standard greedy decoding with the target model, serving as the performance baseline.
   \item \textbf{HuggingFace Assisted Generation:} The built-in speculative decoding implementation in the HuggingFace Transformers library, which uses the draft model to propose candidate tokens for verification.
-  \item \textbf{Linear Speculative Decoding:} A linear-chain variant of speculative decoding where the draft model proposes a sequence of \(K\) tokens that are verified in parallel by the target model~\cite{spec_decode}.
+  \item \textbf{Linear Speculative Decoding:} A linear-chain variant of speculative decoding where the draft model proposes a sequence of \(K\) tokens that are verified in parallel by the target model~\cite{leviathan2023fast}.
   \item \textbf{StreamingLLM + Speculative:} A combination of speculative decoding with StreamingLLM's attention sink mechanism for efficient long-context generation~\cite{streamingllm}.
 \end{itemize}
 
@@ -294,6 +294,9 @@ Length & Optimal \((D,B,\tau)\) & Baseline (t/s) & DynaTree (t/s) & Speedup & Ac
 \section{Conclusion}
 We introduced DynaTree, a tree-based speculative decoding framework that drafts multiple candidate continuations and verifies them in parallel using tree attention, while controlling verification cost via probability-threshold pruning and an explicit node budget. Across Pythia models, DynaTree improves decoding throughput over autoregressive decoding and consistently outperforms strong speculative decoding baselines. Our results suggest that multi-branch exploration, coupled with lightweight pruning, is an effective way to better utilize target-model verification compute under strict budget constraints. A key direction for future work is improving robustness across diverse prompts and long-context settings, and reducing overhead via kernel-level optimizations and hardware-aware tree construction.
 
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
 \appendix
 \section{Hyperparameter Sweep Details}
 \label{app:sweep}
@@ -361,8 +364,5 @@ tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \
   \caption{\textbf{Comprehensive parameter sweep analysis across 450 configurations.} (a)~Speedup vs.\ tree depth $D$ (fixing $B=3$, $\tau=0.03$, 500 tokens): deeper trees improve speedup up to $D=8$, after which verification overhead dominates. (b)~Speedup vs.\ branching factor $B$ (fixing $D=8$, $\tau=0.03$, 500 tokens): $B=3$ achieves the best balance between exploration and cost. (c)~Speedup vs.\ pruning threshold $\tau$ (fixing $D=8$, $B=3$, 500 tokens, log scale): $\tau=0.03$ is optimal, balancing aggressive and loose pruning. (d)~Best speedup across generation lengths with corresponding optimal $(D,B,\tau)$ configurations: speedup peaks at 500 tokens and remains strong at other lengths. (e)~Average path length heatmap over $(D,B)$ (fixing $\tau=0.03$, 500 tokens): larger trees enable longer committed paths. (f)~Acceptance rate distribution vs.\ pruning threshold (fixing $D=8$, $B=3$, 500 tokens): tighter pruning slightly reduces acceptance but improves overall throughput. Stars mark optimal configurations in each subplot.}
   \label{fig:param-sweep}
 \end{figure}
-
-\bibliographystyle{unsrtnat}
-\bibliography{references}
 
 \end{document}
