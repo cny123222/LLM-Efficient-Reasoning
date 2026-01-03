@@ -60,25 +60,14 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
-\usepackage{listings}       % pseudocode / code blocks (portable)
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e} % algorithm-style pseudocode
 
-% Pseudocode style (portable alternative to algorithm2e/algorithmicx)
-\lstdefinestyle{pseudocode}{
-  basicstyle=\ttfamily\footnotesize,
-  numbers=left,
-  numberstyle=\scriptsize,
-  numbersep=6pt,
-  xleftmargin=1.5em,
-  frame=single,
-  framerule=0.4pt,
-  rulecolor=\color{black},
-  columns=fullflexible,
-  keepspaces=true,
-  showstringspaces=false,
-  breaklines=true,
-  keywordstyle=\bfseries,
-  commentstyle=\itshape\color{gray!60},
-}
+% Make algorithm2e look closer to common ML papers (SpecInfer/NeurIPS style)
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInput{KwIn}{Input}
+\SetKwInput{KwOut}{Output}
+\SetKwComment{Comment}{$\triangleright$\ }{}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
 \title{DynaTree: Dynamic Tree-based Speculative Decoding with Adaptive Pruning for Efficient LLM Inference}
@@ -175,60 +164,56 @@ To avoid wasting draft computation on unlikely branches, DynaTree prunes any lea
 \]
 This rule corresponds exactly to the implementation in `TreeSpeculativeGeneratorV2`, where \(\bar{\ell}_u\) is accumulated along the path and compared against \(\log\tau\).
 
-\begin{figure}[t]
-  \centering
-  \begin{minipage}{0.95\linewidth}
-\begin{lstlisting}[style=pseudocode]
-# Algorithm 1: One DynaTree iteration (greedy-consistent)
-# Input : prefix x[1:t], target cache K_T, last_target_logits,
-#         depth D, branch factor B, threshold tau, node budget Nmax
-# Output: committed tokens (len L) and updated K_T
+\begin{algorithm}[t]
+\caption{\textbf{DynaTree: one iteration (greedy-consistent).}}
+\label{fig:algo}
+\KwIn{Prefix tokens \(x_{1:t}\); target KV cache \(\mathcal{K}_T\); last target logits on the prefix \(\mathbf{s}_{\text{last}}\);
+tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \(N_{\max}\).}
+\KwOut{Committed tokens \(y_{t+1:t+L}\) and updated target cache \(\mathcal{K}_T\).}
 
-orig_len <- seq_len(K_T)
+\BlankLine
+\Comment*[l]{Record prefix cache length for later rollback}
+\(\ell \leftarrow \textsc{SeqLen}(\mathcal{K}_T)\).\;
 
-# (A) Draft a token tree with pruning (draft model M_D)
-T <- init_tree()
-root <- top1( M_D(x[1:t]) )          # first draft token
-add_root(T, root)
-active <- {(root, cache_after_prefix)}
-for depth = 1..D:
-    if active is empty or |T| >= Nmax: break
-    new_active <- {}
-    for (u, cache_u) in active:
-        if cum_logp(u) < log(tau): continue      # prune this branch (V2)
-        logits, cache_next <- M_D(token(u), past=cache_u)
-        cand_tokens <- topB(logits, B)
-        for v in cand_tokens:
-            if |T| >= Nmax: break
-            child <- add_child(T, u, v)
-            new_active add (child, cache_next)
-    active <- new_active
+\BlankLine
+\Comment*[l]{(A) Draft a token tree with pruning using the draft model \(M_D\)}
+\(\mathcal{T} \leftarrow \emptyset\).\;
+Run \(M_D\) on \(x_{1:t}\) to obtain next-token logits; let \(u_0\) be the \(\top 1\) token.\;
+Add \(u_0\) as the root of \(\mathcal{T}\); set active leaves \(\mathcal{A}\leftarrow\{u_0\}\).\;
+\For(\Comment*[f]{level-by-level expansion}){\(d=1\) \KwTo \(D\)}{
+  \If(\Comment*[f]{stop if budget reached or nothing to expand}){\(|\mathcal{T}|\ge N_{\max}\) \textbf{or} \(|\mathcal{A}|=0\)}{\textbf{break}}
+  \(\mathcal{A}'\leftarrow \emptyset\).\;
+  \ForEach{\(u\in\mathcal{A}\)}{
+    \If(\Comment*[f]{V2 pruning: skip expanding low-probability branches}){\(\bar{\ell}_u < \log\tau\)}{\textbf{continue}}
+    Do a cached one-token forward pass of \(M_D\) from node \(u\) and take \(\top B\) candidates.\;
+    Add up to \(B\) children (stop if \(|\mathcal{T}|=N_{\max}\)); add created children to \(\mathcal{A}'\).\;
+  }
+  \(\mathcal{A}\leftarrow \mathcal{A}'\).\;
+}
 
-# (B) Verify all remaining nodes in one target forward pass (target model M_T)
-tokens <- BFS_flatten(T)                          # length n
-mask   <- tree_causal_mask(T, prefix_len=seq_len(K_T))
-logits_T, verify_cache <- M_T(tokens, mask, past=K_T)
-preds <- argmax_vocab(logits_T)                   # greedy top-1 per node
+\BlankLine
+\Comment*[l]{(B) Verify all remaining nodes in one target forward pass with tree attention}
+Serialize nodes of \(\mathcal{T}\) in BFS order into tokens \(\mathbf{z}_{1:n}\).\;
+Build the tree causal mask \(\mathbf{A}\) (prefix + ancestors only).\;
+Run \(M_T(\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T)\) to obtain logits \(\mathbf{s}_{1:n}\) and greedy predictions \(\hat{y}(u)=\arg\max \mathbf{s}_{\text{pos}(u)}\).\;
 
-# (C) Longest greedy-consistent path + bonus token
-first <- argmax_vocab(last_target_logits)         # prefix greedy next token
-path  <- longest_match_path(T, preds, first)      # as in DFS in code
-if path is empty:
-    accepted <- [first]
-else:
-    accepted <- tokens_on(path)
-    bonus <- preds[pos(last_node(path))]
-    accepted append bonus
+\BlankLine
+\Comment*[l]{(C) Select the longest greedy-consistent path and commit (+ bonus token)}
+\(\hat{y}_{t+1}\leftarrow \arg\max \mathbf{s}_{\text{last}}\).\;
+Find the longest root-to-leaf path \(P\) such that the root token equals \(\hat{y}_{t+1}\) and each child token matches its parent's greedy prediction \(\hat{y}(\text{parent})\).\;
+\eIf(\Comment*[f]{if even the root mismatches}){\(P=\emptyset\)}{
+  \(y_{t+1:t+L}\leftarrow [\hat{y}_{t+1}]\).\;
+}{
+  \(y_{t+1:t+L}\leftarrow\) tokens on \(P\).\;
+  Append one \emph{bonus} token equal to the target greedy prediction after the last matched node.\;
+}
 
-# Update cache and return
-K_T <- crop(K_T, orig_len)
-K_T, last_target_logits <- M_T(accepted, past=K_T)
-return accepted
-\end{lstlisting}
-  \end{minipage}
-  \caption{\textbf{DynaTree iteration pseudocode.} Portable pseudocode formatting (algorithm packages unavailable in this environment). Each round drafts and prunes a token tree with the draft model, verifies all remaining nodes in parallel with the target model under a tree causal mask, selects the longest greedy-consistent path (plus a bonus token), and rebuilds the target KV cache for the committed tokens.}
-  \label{fig:algo}
-\end{figure}
+\BlankLine
+\Comment*[l]{Update cache by rollback + rebuild on committed tokens}
+\(\mathcal{K}_T \leftarrow \textsc{Crop}(\mathcal{K}_T,\ell)\).\;
+Run \(M_T\) on \(y_{t+1:t+L}\) with cache \(\mathcal{K}_T\) to rebuild \(\mathcal{K}_T\).\;
+\Return \(y_{t+1:t+L}\).\;
+\end{algorithm}
 
 \subsection{Tree Attention for Parallel Verification}
 To verify all drafted tokens in one target-model forward pass, we \emph{flatten} the tree in breadth-first order (BFS), producing a sequence \(z_{1:n}\) where each token corresponds to one node and all ancestors appear earlier than descendants. We then construct a boolean attention mask \(\mathbf{A} \in \{0,1\}^{n \times (t+n)}\) such that each drafted token attends to: (i) all prefix tokens \(x_{1:t}\), and (ii) only its ancestors (including itself) in the flattened tree:
