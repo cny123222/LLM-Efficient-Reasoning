@@ -315,42 +315,47 @@ We perform a grid search over tree depth $D \in \{3,4,5,6,7,8\}$, branching fact
 tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \(N_{\max}\).
 \Ensure Committed tokens \(y_{t+1:t+L}\) and updated \(\mathcal{K}_T\).
 
-\State \(\ell \gets \Call{SeqLen}{\mathcal{K}_T}\)
+\State \(\ell \gets \Call{SeqLen}{\mathcal{K}_T}\) \Comment{record prefix cache length}
 \State \(\mathcal{T} \gets \Call{DraftTree}{x_{1:t}, D, B, \tau, N_{\max}}\)
-\State \((\mathbf{z}_{1:n}, \mathbf{A}) \gets \Call{FlattenMask}{\mathcal{T}, \ell}\)
-\State \(\hat{\mathbf{y}} \gets \Call{VerifyTree}{\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T}\)
+\State \(\mathbf{z}_{1:n} \gets \Call{BFSFlatten}{\mathcal{T}}\); \(\mathbf{A} \gets \Call{TreeMask}{\mathcal{T}, \ell}\) \Comment{prefix + ancestors only}
+\State \(\mathbf{s}_{1:n} \gets M_T(\mathbf{z}_{1:n}; \mathbf{A}, \mathcal{K}_T)\); \(\hat{\mathbf{y}} \gets \arg\max \mathbf{s}_{1:n}\)
 \State \(y_{t+1:t+L} \gets \Call{SelectCommit}{\mathcal{T}, \hat{\mathbf{y}}, \mathbf{s}_{\text{last}}}\)
-\State \(\mathcal{K}_T \gets \Call{UpdateCache}{\mathcal{K}_T, y_{t+1:t+L}, \ell}\)
+\State \(\mathcal{K}_T \gets \Call{Crop}{\mathcal{K}_T,\ell}\); \(\mathcal{K}_T \gets M_T(y_{t+1:t+L}; \mathcal{K}_T)\) \Comment{rollback + rebuild}
 \State \Return \(y_{t+1:t+L}\)
 
 \Statex
 \Function{\textproc{DraftTree}}{$x_{1:t}, D, B, \tau, N_{\max}$}
-  \Comment{Draft model expands \(\top B\) per node to depth \(D\), prunes leaves with \(\bar{\ell}_u<\log\tau\), and enforces budget \(N_{\max}\).}
-  \State \Return pruned token tree \(\mathcal{T}\)
-\EndFunction
-
-\Statex
-\Function{\textproc{FlattenMask}}{$\mathcal{T}, \ell$}
-  \Comment{Serialize \(\mathcal{T}\) in BFS order and build the tree causal mask (prefix + ancestors only).}
-  \State \Return \((\mathbf{z}_{1:n}, \mathbf{A})\)
-\EndFunction
-
-\Statex
-\Function{\textproc{VerifyTree}}{$\mathbf{z}_{1:n}, \mathbf{A}, \mathcal{K}_T$}
-  \Comment{One target forward pass under \(\mathbf{A}\); return per-node greedy \(\top 1\) predictions \(\hat{\mathbf{y}}\).}
-  \State \Return \(\hat{\mathbf{y}}\)
+  \Comment{Draft a candidate token tree with probability-threshold pruning and a node budget.}
+  \State Run \(M_D\) on \(x_{1:t}\); let \(u_0\) be the \(\top 1\) token; initialize \(\mathcal{T}\) with root \(u_0\)
+  \State \(\mathcal{A} \gets \{u_0\}\) \Comment{active leaves}
+  \For{$d=1$ \textbf{to} $D$}
+    \If{$|\mathcal{A}|=0$ \textbf{or} $|\mathcal{T}|\ge N_{\max}$} \State \textbf{break} \EndIf
+    \State \(\mathcal{A}' \gets \emptyset\)
+    \ForAll{$u \in \mathcal{A}$}
+      \If{$\bar{\ell}_u < \log \tau$} \State \textbf{continue} \EndIf \Comment{prune low-probability branches}
+      \State Do one cached step of \(M_D\) from \(u\); take \(\top B\) next-token candidates
+      \ForAll{candidates \(v\)}
+        \If{$|\mathcal{T}|\ge N_{\max}$} \State \textbf{break} \EndIf
+        \State Add child \(v\) to \(\mathcal{T}\); add \(v\) to \(\mathcal{A}'\)
+      \EndFor
+    \EndFor
+    \State \(\mathcal{A} \gets \mathcal{A}'\)
+  \EndFor
+  \State \Return \(\mathcal{T}\)
 \EndFunction
 
 \Statex
 \Function{\textproc{SelectCommit}}{$\mathcal{T}, \hat{\mathbf{y}}, \mathbf{s}_{\text{last}}$}
-  \Comment{Longest greedy-consistent path; if root mismatches, commit only the prefix greedy token; otherwise add a bonus token.}
-  \State \Return committed tokens \(y_{t+1:t+L}\)
-\EndFunction
-
-\Statex
-\Function{\textproc{UpdateCache}}{$\mathcal{K}_T, y_{t+1:t+L}, \ell$}
-  \Comment{Rollback cache to length \(\ell\) then rebuild on committed tokens (crop \(\rightarrow\) forward).}
-  \State \Return updated cache \(\mathcal{K}_T\)
+  \Comment{Select the longest greedy-consistent path (plus one bonus token).}
+  \State \(first \gets \arg\max \mathbf{s}_{\text{last}}\)
+  \State Find the longest path \(P\) where root token \(=\) \(first\), and for each edge \((u\!\rightarrow\!v)\), token\((v)=\hat{\mathbf{y}}[\text{pos}(u)]\)
+  \If{$P=\emptyset$}
+    \State \Return \([first]\)
+  \Else
+    \State \(y \gets\) tokens on \(P\)
+    \State Append one bonus token \(\hat{\mathbf{y}}[\text{pos}(\text{last}(P))]\)
+    \State \Return \(y\)
+  \EndIf
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
