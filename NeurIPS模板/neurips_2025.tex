@@ -285,6 +285,13 @@ Linear speculative & K=6 & 133.1 & 1.11 \\
   \end{tabular}
 \end{table}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{../figures/ablation_bars.pdf}
+  \caption{\textbf{Ablation study visualization.} Progressive improvement in (a)~throughput and (b)~speedup as components are added. Adding tree structure (D=4, B=3, \(\tau\)=0.01) provides a 32.7\% throughput gain over linear speculative decoding. Further optimizing depth and pruning (D=8, B=3, \(\tau\)=0.03) yields an additional 25.4\% improvement, reaching 221.4~tokens/s (1.79\(\times\) speedup). Annotations show relative improvements between stages.}
+  \label{fig:ablation}
+\end{figure}
+
 \subsection{Hyperparameter Sensitivity}
 To understand the impact of design choices, we perform a comprehensive grid search over tree depth \(D \in \{3,4,5,6,7,8\}\), branching factor \(B \in \{2,3,4\}\), and pruning threshold \(\tau \in \{0.01,0.02,0.03,0.05,0.1\}\) across generation lengths ranging from 100 to 1000 tokens, totaling 450 configurations. Figure~\ref{fig:tree-config} illustrates the throughput trends across these parameters for 500-token generation. Key findings include: (i)~\emph{Depth} exhibits diminishing returns beyond D=8, as verification overhead grows faster than the expected path length (Figure~\ref{fig:tree-config}b); (ii)~\emph{Branching factor} B=3 provides the best throughput-exploration trade-off, with B=4 introducing too much verification cost (Figure~\ref{fig:tree-config}a); (iii)~\emph{Pruning threshold} \(\tau=0.03\) is optimal, balancing aggressive pruning (which may discard valid paths) and loose thresholds (which waste computation on unlikely branches) (Figure~\ref{fig:tree-config}c). These results confirm that adaptive probability-threshold pruning is essential to maintain an effective tree size within the verification budget. Additional detailed visualizations across all generation lengths are provided in Appendix~\ref{app:sweep} (Figure~\ref{fig:param-sweep}).
 
