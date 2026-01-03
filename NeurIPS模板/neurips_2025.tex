@@ -173,13 +173,6 @@ To verify all drafted tokens in one target-model forward pass, we \emph{flatten}
 \]
 This mask ensures the conditional distribution computed at each node matches the distribution of sequential decoding along its unique root-to-node path, while enabling parallel verification across different branches~\cite{specinfer,opt_tree}.
 
-\begin{figure}[t]
-  \centering
-  \fbox{\rule[-.5cm]{0cm}{3.0cm}\rule[-.5cm]{0.95\linewidth}{0cm}}
-  \caption{\textbf{Tree attention mask (placeholder).} Example tree, BFS flattening, and the induced causal mask where each node attends only to the prefix and its ancestors.}
-  \label{fig:tree-attn}
-\end{figure}
-
 \subsection{Greedy Path Selection and Cache Update}
 \paragraph{Verification signals.}
 Let \(\hat{y}_{t+1} = \arg\max p_T(\cdot \mid x_{1:t})\) be the target model's greedy next token from the prefix (available from the prefix logits). For each tree node \(u\) with flattened position \(i\), the target forward pass outputs logits \(\mathbf{s}_i\), whose argmax \(\hat{y}(u)=\arg\max \mathbf{s}_i\) corresponds to the greedy \emph{next-token} prediction after consuming the path to \(u\).
@@ -226,21 +219,21 @@ We compare against:
 and (iv) \textbf{StreamingLLM + speculative decoding} for long-context cache compression~\cite{streamingllm}.
 
 \subsection{Main Results}
-Table~\ref{tab:main-results} summarizes end-to-end throughput on 500-token generation. DynaTree (Tree V2) achieves the best speedup (1.62\(\times\)) and outperforms both HuggingFace assisted generation (1.36\(\times\)) and linear speculative decoding (1.11\(\times\)). We additionally report the draft-token acceptance rate when available.
+Table~\ref{tab:main-results} summarizes end-to-end throughput on 500-token generation. \textbf{DynaTree (ours)} achieves the best speedup (1.62\(\times\)) and outperforms both HuggingFace assisted generation (1.36\(\times\)) and linear speculative decoding (1.11\(\times\)). We additionally report the draft-token acceptance rate when available.
 
 \begin{table}[t]
 \centering
 \caption{Main decoding throughput on Pythia (500-token generation). Higher is better.}
 \label{tab:main-results}
-\begin{tabular}{lcccc}
+\begin{tabular}{lccc}
 \toprule
-Method & Throughput (t/s) & Speedup & Accept. & Notes \\
+Method & Throughput (t/s) & Speedup & Accept. \\
 \midrule
-AR (target-only) & 119.4 & 1.00 & -- & Greedy decoding \\
-HuggingFace assisted & 161.9 & 1.36 & -- & \texttt{assistant\_model} \\
-Linear speculative (K=6) & 133.1 & 1.11 & 0.68 & Draft-chain verification \\
-StreamingLLM + speculative (cache=1024) & 132.9 & 1.11 & -- & Cache compression \\
-\textbf{DynaTree (Tree V2)} & \textbf{193.4} & \textbf{1.62} & 0.30 & \(D{=}8,B{=}3,\tau{=}0.03,N_{\max}{=}128\) \\
+AR (target-only) & 119.4 & 1.00 & -- \\
+HuggingFace assisted & 161.9 & 1.36 & -- \\
+Linear speculative (K=6) & 133.1 & 1.11 & 0.68 \\
+StreamingLLM + speculative (cache=1024) & 132.9 & 1.11 & -- \\
+\textbf{DynaTree (ours)} & \textbf{193.4} & \textbf{1.62} & 0.30 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -276,15 +269,15 @@ Linear speculative & K=6 & 133.1 & 1.11 \\
 We conduct an extensive sweep over tree depth \(D\), branching factor \(B\), and pruning threshold \(\tau\) across multiple generation lengths (100--1000 tokens), totaling 450 configurations. For clarity and space, we place the detailed sweep plots in Appendix~\ref{app:sweep} and summarize the key trend: increasing depth and branching improves exploration but can reduce throughput if verification cost grows faster than the expected committed length; probability-threshold pruning is essential to keep the effective tree size within budget.
 
 \subsection{Sequence Length Scaling}
-Table~\ref{tab:length-scaling} reports the best-performing Tree V2 configuration selected per generation length, together with baseline throughput and speedup. We observe that speedup increases from short to medium lengths as verification overhead is amortized, peaking around 500 tokens in our setting.
+Table~\ref{tab:length-scaling} reports the best-performing DynaTree configuration selected per generation length, together with baseline throughput and speedup. We observe that speedup increases from short to medium lengths as verification overhead is amortized, peaking around 500 tokens in our setting.
 
 \begin{table}[t]
 \centering
-\caption{Best Tree V2 performance across different generation lengths.}
+\caption{Best DynaTree performance across different generation lengths.}
 \label{tab:length-scaling}
 \begin{tabular}{lccccc}
 \toprule
-Length & Optimal \((D,B,\tau)\) & Baseline (t/s) & Tree V2 (t/s) & Speedup & Accept. \\
+Length & Optimal \((D,B,\tau)\) & Baseline (t/s) & DynaTree (t/s) & Speedup & Accept. \\
 \midrule
 100  & (7,3,0.03) & 105.3 & 150.7 & 1.43 & 0.31 \\
 200  & (7,3,0.03) & 125.5 & 193.2 & 1.54 & 0.36 \\
