@@ -4,7 +4,7 @@ This checklist is meant to be filled by you after we freeze the text. Items are 
 
 ### Figures (main paper)
 
-- **Figure: Architecture overview (`Fig.~\\ref{fig:arch}`)**
+- **Figure: Architecture overview (`Fig.~\\ref{fig:arch}`)**（详细画法见 `FIGURE_GUIDE_ARCH.md`）
   - **Where used**: Methodology (Overview of DynaTree).
   - **What to draw**: One decoding iteration as a pipeline:
     - Prefix + target KV cache
