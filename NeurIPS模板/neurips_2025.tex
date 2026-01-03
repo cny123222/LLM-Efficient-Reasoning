@@ -247,15 +247,15 @@ Table~\ref{tab:verification-efficiency} provides a detailed breakdown of verific
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Verification efficiency comparison.} We report tokens committed per iteration, per-token acceptance rate, and average path length for linear and tree-based methods at their optimal configurations on 500-token generation. Despite lower per-token acceptance, DynaTree's multi-path exploration commits substantially more tokens per verification step.}
+\caption{\textbf{Verification efficiency comparison.} We report drafting budget (K for linear, expected tree size for DynaTree), tokens committed per iteration, and per-token acceptance rate for linear and tree-based methods at their optimal configurations on 500-token generation. Despite lower per-token acceptance, DynaTree's multi-path exploration commits substantially more tokens per verification step, demonstrating the value of exploring multiple candidate paths in parallel.}
 \label{tab:verification-efficiency}
 \begin{tabular}{lccc}
 \toprule
-Method & Tokens/Iter & Accept. Rate & Avg Path Length \\
+Method & Draft Budget & Tokens/Iter & Accept. Rate \\
 \midrule
-Linear speculative (K=6) & 4.10 & 0.68 & 4.10 \\
+Linear speculative (K=6) & 6 & 4.10 & 0.68 \\
 HuggingFace assisted & -- & -- & -- \\
-\textbf{DynaTree (D=8,B=3,\(\tau\)=0.03)} & \textbf{6.94} & 0.38 & \textbf{6.94} \\
+\textbf{DynaTree (D=8,B=3,\(\tau\)=0.03)} & \textbf{\(\sim\)18} & \textbf{6.94} & 0.38 \\
 \bottomrule
 \end{tabular}
 \end{table}
