@@ -77,15 +77,17 @@
 
 ---
 
-#### 6. **消融实验的可视化** (Bar Chart)
-**内容**：将 Table 2 的消融实验转成柱状图
+#### 6. ✅ **消融实验的可视化** (已完成 - Bar Chart)
+**内容**：将消融实验表格转成柱状图
 ```
-Full DynaTree:        193.4 tok/s ████████████████
-w/o Pruning:         145.2 tok/s ████████████
-w/o Node Budget:     132.1 tok/s ██████████
-Fixed Tree (D=5,B=2): 156.8 tok/s █████████████
+Progressive Addition:
+Linear (K=6):            133.1 tok/s, 1.11× ████████████
++ Tree Structure:        176.6 tok/s, 1.43× ███████████████ (+32.7%)
++ Depth & Pruning Opt.:  221.4 tok/s, 1.79× ████████████████████ (+66.3%)
 ```
-- **作用**：更直观地展示每个组件的贡献
+- **作用**：更直观地展示渐进式组件添加的贡献
+- **状态**：已创建 `plot_ablation_bars.py`，生成 Figure 6，插入论文 Ablation Study 小节
+- **特点**：双子图（throughput + speedup），带改进百分比标注
 
 ---
 
