@@ -97,9 +97,9 @@ Autoregressive decoding in large language models (LLMs) is fundamentally sequent
 
 \section{Introduction}
 
-Large language models (LLMs) are typically deployed with autoregressive decoding, where each output token is generated after conditioning on all previously generated tokens. While transformer inference can exploit parallelism during the prefill stage, the decode stage remains inherently sequential and requires a full forward pass per token, leading to poor hardware utilization and high latency~\cite{transformer_inference,llm_bottleneck,speculative_intro}.
+Large language models (LLMs) are typically deployed with autoregressive decoding, where each output token is generated after conditioning on all previously generated tokens. While transformer inference can exploit parallelism during the prefill stage, the decode stage remains inherently sequential and requires a full forward pass per token, leading to poor hardware utilization and high latency~\cite{flashattention,vllm}.
 
-Speculative decoding alleviates this bottleneck by separating \emph{proposal} and \emph{verification}~\cite{leviathan2023fast}. A small draft model proposes several candidate tokens, and the target model verifies them in parallel; when the proposal matches the target distribution, multiple tokens can be committed per iteration. Importantly, with rejection sampling, speculative decoding preserves the exact output distribution of the target model~\cite{nvidia_speculative}.
+Speculative decoding alleviates this bottleneck by separating \emph{proposal} and \emph{verification}~\cite{leviathan2023fast}. A small draft model proposes several candidate tokens, and the target model verifies them in parallel; when the proposal matches the target distribution, multiple tokens can be committed per iteration. Importantly, with rejection sampling, speculative decoding preserves the exact output distribution of the target model~\cite{decoding_speculative}.
 
 In practice, most speculative decoding systems employ \emph{linear} drafting: the draft model proposes a single chain of $K$ tokens. This design is brittle under draft--target mismatch: a rejection at an early position forces all subsequent drafted tokens to be discarded, wasting both draft computation and target-model verification work, and constraining achievable speedups~\cite{decoding_speculative}.
 
@@ -112,11 +112,11 @@ The central challenge is controlling verification cost: naive tree expansion gro
 
 \subsection{Speculative Decoding}
 
-Speculative decoding accelerates autoregressive generation by decoupling \emph{proposal} and \emph{verification}: a lightweight draft model proposes multiple tokens, and the target model verifies these candidates in parallel while preserving the exact output distribution through rejection sampling~\cite{leviathan2023fast,nvidia_speculative}. Empirical and theoretical analyses highlight that achievable speedups depend critically on the acceptance behavior induced by the draft--target mismatch, and on the additional overhead introduced by drafting and verification~\cite{decoding_speculative,draft_tradeoff}. Despite strong progress, the dominant implementation remains \emph{linear} drafting, where a single speculative chain is proposed per iteration; when early tokens are rejected, downstream drafted tokens are discarded, causing substantial wasted computation and limiting utilization of parallel verification.
+Speculative decoding accelerates autoregressive generation by decoupling \emph{proposal} and \emph{verification}: a lightweight draft model proposes multiple tokens, and the target model verifies these candidates in parallel while preserving the exact output distribution through rejection sampling~\cite{leviathan2023fast,decoding_speculative}. Empirical and theoretical analyses highlight that achievable speedups depend critically on the acceptance behavior induced by the draft--target mismatch, and on the additional overhead introduced by drafting and verification~\cite{decoding_speculative,draft_tradeoff}. Recent systems-level studies further emphasize robustness challenges across heterogeneous request distributions and long-context inputs~\cite{spin,owl,judge_decoding}. Despite strong progress, the dominant implementation remains \emph{linear} drafting, where a single speculative chain is proposed per iteration; when early tokens are rejected, downstream drafted tokens are discarded, causing substantial wasted computation and limiting utilization of parallel verification.
 
 \subsection{Tree-Based and Parallel Decoding}
 
-To overcome the single-path limitation, recent work explores \emph{tree-based} speculative decoding, where multiple candidate continuations are drafted and verified in a single target-model forward pass using structured attention masks. SpecInfer~\cite{specinfer} instantiates this idea in an LLM serving setting by building a token tree and verifying it efficiently. OPT-Tree~\cite{opt_tree} further studies \emph{adaptive} tree construction, selecting tree shapes to maximize expected acceptance length under a fixed verification budget. In parallel, Medusa~\cite{medusa} pursues multi-token generation by augmenting a base model with multiple decoding heads and verifying the induced candidate tree; unlike draft--target speculative decoding, it requires model-specific fine-tuning. Our work follows the draft--target paradigm but focuses on practical tree construction and verification under strict budget constraints, emphasizing dynamic pruning as a lightweight mechanism to stabilize performance.
+To overcome the single-path limitation, recent work explores \emph{tree-based} speculative decoding, where multiple candidate continuations are drafted and verified in a single target-model forward pass using structured attention masks. SpecInfer~\cite{specinfer} instantiates this idea in an LLM serving setting by building a token tree and verifying it efficiently. OPT-Tree~\cite{opt_tree} further studies \emph{adaptive} tree construction, selecting tree shapes to maximize expected acceptance length under a fixed verification budget. Alternative verification strategies such as traversal-style verification have also been explored for speculative trees~\cite{traversal_verification}. In parallel, Medusa~\cite{medusa} pursues multi-token generation by augmenting a base model with multiple decoding heads and verifying the induced candidate tree; unlike draft--target speculative decoding, it requires model-specific fine-tuning. Our work follows the draft--target paradigm but focuses on practical tree construction and verification under strict budget constraints, emphasizing dynamic pruning as a lightweight mechanism to stabilize performance.
 
 \subsection{Dynamic Pruning Strategies}
 
@@ -239,7 +239,7 @@ We compare against:
 (i) \textbf{AR} greedy decoding with the target model;
 (ii) \textbf{HuggingFace assisted generation} (built-in speculative decoding using \texttt{assistant\_model});
 (iii) \textbf{linear speculative decoding} implemented with a draft chain of length \(K\);
-and (iv) \textbf{StreamingLLM + speculative decoding} for long-context cache compression.
+and (iv) \textbf{StreamingLLM + speculative decoding} for long-context cache compression~\cite{streamingllm}.
 
 \subsection{Main Results}
 Table~\ref{tab:main-results} summarizes end-to-end throughput on 500-token generation. DynaTree (Tree V2) achieves the best speedup (1.62\(\times\)) and outperforms both HuggingFace assisted generation (1.36\(\times\)) and linear speculative decoding (1.11\(\times\)). We additionally report the draft-token acceptance rate when available.
@@ -278,14 +278,14 @@ To isolate the contribution of tree structure and pruning/optimization, we use t
 \caption{Ablation study (progressive component addition) extracted from the sweep results.}
 \label{tab:ablation}
 \begin{tabular}{lccc}
-\toprule
+    \toprule
 Method & Configuration & Throughput (t/s) & Speedup \\
-\midrule
+    \midrule
 Linear speculative & K=6 & 133.1 & 1.11 \\
 + Tree structure & \(D{=}4,B{=}3,\tau{=}0.01\) & 176.6 & 1.43 \\
 \textbf{+ Depth \& pruning optimization} & \textbf{\(D{=}8,B{=}3,\tau{=}0.03\)} & \textbf{221.4} & \textbf{1.79} \\
-\bottomrule
-\end{tabular}
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 \subsection{Hyperparameter Sensitivity (Summary)}
