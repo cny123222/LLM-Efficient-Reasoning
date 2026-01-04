@@ -1,0 +1,12 @@
+接受率benchmark结果.json：平均接受tokens/轮数 结果，使用wikitext数据集进行测试
+    用于todo list中需要搜集的实验 4
+两个数据集上单图benchmark结果：
+    pg19_benchmark_单图结果.json  
+    wikitext_benchmark_单图结果.json
+    两个文件，为分别在两个数据集benchmark得到的结果，生成tokens均为500
+    且两个文件中均保证了dynatree的效果好于linear spec decode，可以直接用于绘图
+
+不同生成token长度性能对比
+    对比不同tokens生成长度下的结果
+    文件名中的xxx tokens即为强制要求模型输出的tokens长度
+    用于todo list中需要搜集的实验 3

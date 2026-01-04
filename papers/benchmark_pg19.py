@@ -232,58 +232,56 @@ class PG19Benchmark:
         self.baseline_throughput: Optional[float] = None
     
     def _load_pg19_prompts(self) -> List[str]:
-        """Load prompts from PG19 parquet dataset."""
+        """Load prompts from PG19 parquet dataset.
+        
+        Uses simple loading logic (same as tree_param_search_pg19.py):
+        - Directly read text from parquet
+        - Simple truncation to max_prompt_length
+        - No complex header skipping
+        """
         print(f"Loading PG19 dataset from {self.data_path}...")
+        print(f"  Target: {self.num_samples} prompts, {self.min_prompt_length}-{self.max_prompt_length} chars each")
         
         try:
-            import pyarrow.parquet as pq
+            import pandas as pd
             
-            # Load the parquet file
-            table = pq.read_table(self.data_path)
+            # Load parquet file using pandas (same as tree_param_search_pg19.py)
+            df = pd.read_parquet(self.data_path)
             
             prompts = []
             
-            # Iterate through the dataset and collect good prompts
-            for i in range(table.num_rows):
-                text = table['text'][i].as_py()
-                
-                if not text or len(text.strip()) < self.min_prompt_length:
+            # Simple iteration - same logic as tree_param_search_pg19.py
+            for idx, row in df.iterrows():
+                text = row.get('text', '')
+                if not text or len(text) < self.min_prompt_length:
                     continue
                 
-                # Extract a good portion from the beginning (skip potential headers)
-                # Find a good starting point after any initial metadata
+                # Clean up and truncate (simple logic)
                 text = text.strip()
+                if len(text) > self.max_prompt_length:
+                    text = text[:self.max_prompt_length]
                 
-                # Try to find a paragraph start (after 500 chars to skip headers)
-                start_idx = min(500, len(text) // 4)
-                remaining = text[start_idx:]
+                prompts.append(text)
                 
-                # Find next paragraph
-                para_idx = remaining.find('\n\n')
-                if para_idx > 0:
-                    remaining = remaining[para_idx:].strip()
-                
-                if len(remaining) < self.min_prompt_length:
-                    remaining = text  # Fallback to original
-                
-                # Truncate to max_prompt_length
-                prompt = remaining[:self.max_prompt_length].strip()
-                
-                if len(prompt) >= self.min_prompt_length:
-                    prompts.append(prompt)
-                    if len(prompts) >= self.num_samples:
-                        break
+                if len(prompts) >= self.num_samples:
+                    break
             
+            # If we don't have enough, duplicate
             if len(prompts) < self.num_samples:
                 print(f"Warning: Only found {len(prompts)} valid prompts, needed {self.num_samples}")
-                # Duplicate if needed
                 while len(prompts) < self.num_samples and len(prompts) > 0:
-                    prompts.append(prompts[len(prompts) % len(prompts)])
+                    prompts.append(prompts[len(prompts) % max(1, len(prompts))])
+            
+            # Print prompt statistics
+            if prompts:
+                lengths = [len(p) for p in prompts]
+                print(f"  Loaded {len(prompts)} prompts")
+                print(f"  Prompt lengths: min={min(lengths)}, max={max(lengths)}, avg={sum(lengths)/len(lengths):.0f} chars")
             
             return prompts[:self.num_samples]
             
         except ImportError:
-            print("Warning: pyarrow not installed, using fallback prompts")
+            print("Warning: pandas not installed, using fallback prompts")
             return self._get_fallback_prompts()
         except Exception as e:
             print(f"Warning: Failed to load PG19 dataset: {e}")
@@ -363,7 +361,11 @@ class PG19Benchmark:
     
     @torch.inference_mode()
     def benchmark_baseline(self) -> BenchmarkMetrics:
-        """Benchmark pure autoregressive generation."""
+        """Benchmark pure autoregressive generation.
+        
+        Uses HuggingFace's generate() method for consistent comparison
+        with tree_param_search_pg19.py.
+        """
         print("\n" + "="*60)
         print("Benchmarking: Baseline (Autoregressive)")
         print("="*60)
@@ -394,11 +396,11 @@ class PG19Benchmark:
             prompt_len = input_ids.shape[1]
             
             with self._memory_tracking():
-                # Measure TTFT (prefill)
+                # Measure TTFT (prefill only)
                 torch.cuda.synchronize()
                 start_prefill = time.perf_counter()
                 
-                outputs = self.target_model(
+                _ = self.target_model(
                     input_ids=input_ids,
                     use_cache=True,
                     return_dict=True
@@ -407,36 +409,26 @@ class PG19Benchmark:
                 torch.cuda.synchronize()
                 ttft = (time.perf_counter() - start_prefill) * 1000  # ms
                 
-                # Generate tokens
-                past_kv = outputs.past_key_values
-                next_token_logits = outputs.logits[:, -1, :]
-                generated_ids = [input_ids]
+                # Use HuggingFace's generate() for consistent throughput measurement
+                # (same as tree_param_search_pg19.py)
+                torch.cuda.synchronize()
+                start_gen = time.perf_counter()
+                
+                output_ids = self.target_model.generate(
+                    input_ids,
+                    max_new_tokens=self.max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                )
                 
                 torch.cuda.synchronize()
-                start_decode = time.perf_counter()
-                
-                for _ in range(self.max_new_tokens):
-                    next_token = next_token_logits.argmax(dim=-1, keepdim=True)
-                    generated_ids.append(next_token)
-                    
-                    outputs = self.target_model(
-                        input_ids=next_token,
-                        past_key_values=past_kv,
-                        use_cache=True,
-                        return_dict=True
-                    )
-                    past_kv = outputs.past_key_values
-                    next_token_logits = outputs.logits[:, -1, :]
-                
-                torch.cuda.synchronize()
-                decode_time = (time.perf_counter() - start_decode) * 1000  # ms
+                total_time = (time.perf_counter() - start_gen) * 1000  # ms
                 
                 peak_memory = torch.cuda.max_memory_allocated() / 1024 / 1024  # MB
             
-            total_time = ttft + decode_time
-            num_tokens = self.max_new_tokens
-            tpot = decode_time / num_tokens
+            num_tokens = output_ids.shape[1] - input_ids.shape[1]
             throughput = num_tokens / (total_time / 1000)
+            tpot = total_time / num_tokens if num_tokens > 0 else 0
             
             if not is_warmup:
                 all_ttft.append(ttft)

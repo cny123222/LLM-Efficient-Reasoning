@@ -1,6 +1,0 @@
-pg19_1000chars统一将prompts截断至1000
-    Tree V2 (D=7, B=2, t=0.05)  效果第2，huggingface最优
-
-pg19_500chars统一将prompts截断至500
-    Linear K=6 效果较好，hugging face第一
-    这个没有价值了，感觉可以不画，就画 pg19_1000chars的结果吧
