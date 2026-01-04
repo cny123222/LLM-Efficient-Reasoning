@@ -225,17 +225,19 @@ Table~\ref{tab:main-results} presents the end-to-end throughput comparison for 5
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Main results: end-to-end performance comparison on 500-token generation with Pythia models.} Throughput is measured in tokens per second (t/s). Speedup is relative to the autoregressive baseline. Acceptance rate is reported only for methods where this metric is explicitly tracked during drafting and verification. DynaTree achieves the highest throughput and speedup across all baselines.}
+\caption{\textbf{Main results: end-to-end performance comparison on 500-token generation with Pythia models.} Throughput is measured in tokens per second (t/s). Speedup is relative to the autoregressive baseline. Acceptance rate indicates the percentage of drafted tokens accepted by the target model. DynaTree achieves the highest throughput among training-free methods.}
 \label{tab:main-results}
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Method & Throughput (t/s) & Speedup & Accept. \\
+Method & Throughput (t/s) & Speedup & Accept. (\%) & Tokens/Iter \\
 \midrule
-AR (target-only) & 119.4 & 1.00 & -- \\
-HuggingFace assisted & 161.9 & 1.36 & -- \\
-Linear speculative (K=6) & 133.1 & 1.11 & 0.68 \\
-StreamingLLM + speculative (cache=1024) & 132.9 & 1.11 & -- \\
-\textbf{DynaTree (ours)} & \textbf{193.4} & \textbf{1.62} & 0.30 \\
+AR (target-only) & 119.4 & 1.00\(\times\) & -- & 1.0 \\
+HuggingFace assisted & 161.9 & 1.36\(\times\) & -- & 3.0 \\
+Linear speculative (K=6) & 133.1 & 1.11\(\times\) & 81.2 & 4.87 \\
+Linear speculative (K=7) & 138.7 & 1.16\(\times\) & 76.2 & 5.33 \\
+StreamingLLM + speculative & 132.9 & 1.11\(\times\) & -- & -- \\
+\textbf{DynaTree (D=6, B=2)} & \textbf{185.2} & \textbf{1.55\(\times\)} & \textbf{79.5} & \textbf{5.56} \\
+DynaTree (D=7, B=2) & 184.6 & 1.55\(\times\) & 72.6 & 5.81 \\
 \bottomrule
 \end{tabular}
 \end{table}
