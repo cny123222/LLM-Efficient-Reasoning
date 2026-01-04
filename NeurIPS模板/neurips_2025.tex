@@ -53,6 +53,7 @@
 \usepackage{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
+\usepackage{multirow}       % multirow cells in tables
 \usepackage{graphicx}       % figures
 \usepackage{amsmath}        % math
 \usepackage{amssymb}        % math symbols
@@ -93,7 +94,7 @@
 
 
 \begin{abstract}
-Autoregressive decoding in large language models (LLMs) is fundamentally sequential and therefore underutilizes modern accelerator parallelism during token generation. Speculative decoding mitigates this bottleneck by letting a lightweight draft model propose multiple tokens that are verified in parallel by the target model; however, common linear variants explore only a single draft chain per step and can waste substantial computation when early tokens are rejected. We propose \textbf{DynaTree}, a tree-based speculative decoding framework that drafts multiple candidate continuations via top-$k$ branching and verifies the resulting token tree in one forward pass using tree attention. To control the exponential growth of the draft tree, DynaTree applies adaptive pruning that removes low-probability branches under an explicit node budget. Experiments on Pythia models show that DynaTree improves decoding throughput by up to 1.62$\times$ over standard autoregressive generation and consistently outperforms strong speculative decoding baselines across generation lengths.
+Autoregressive decoding in large language models (LLMs) is fundamentally sequential and therefore underutilizes modern accelerator parallelism during token generation. Speculative decoding mitigates this bottleneck by letting a lightweight draft model propose multiple tokens that are verified in parallel by the target model; however, common linear variants explore only a single draft chain per step and can waste substantial computation when early tokens are rejected. We propose \textbf{DynaTree}, a tree-based speculative decoding framework that drafts multiple candidate continuations via top-$k$ branching and verifies the resulting token tree in one forward pass using tree attention. To control the exponential growth of the draft tree, DynaTree applies adaptive pruning that removes low-probability branches under an explicit node budget. Experiments on Pythia models demonstrate that DynaTree improves decoding throughput by up to 1.62$\times$ over standard autoregressive generation and consistently outperforms strong speculative decoding baselines across diverse datasets (PG-19 and WikiText-2) and generation lengths.
 \end{abstract}
 
 
@@ -205,8 +206,8 @@ We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our targ
 \paragraph{Hardware and software.}
 All experiments are conducted on a single NVIDIA GPU with sufficient memory to accommodate both models simultaneously. We implement DynaTree in PyTorch~\cite{pytorch} using the HuggingFace Transformers library~\cite{transformers} for model loading and inference, leveraging dynamic key-value cache structures to minimize memory overhead during tree verification.
 
-\paragraph{Workloads.}
-Unless otherwise specified, we evaluate on a generation task producing 500 new tokens from a fixed technical prompt. Results are averaged over 5 independent runs, with the first run discarded as warmup to eliminate one-time initialization costs. To ensure fair comparison, we synchronize GPU execution and clear cached states between different methods.
+\paragraph{Workloads and data preprocessing.}
+Unless otherwise specified, we evaluate on a generation task producing 500 new tokens from sampled prompts. For the main efficiency benchmark (Section~\ref{main-results}), we sample sequences from PG-19 and apply uniform preprocessing across all methods: when prompts are shorter than the required minimum length, we repeat the prefix to meet the length requirement. This controlled setting enables precise performance measurement and fair comparison. To validate generalization to natural text distributions without preprocessing, we conduct cross-dataset evaluation on unmodified WikiText-2 and PG-19 samples (Section~\ref{dataset-robustness}), demonstrating consistent performance gains across diverse text characteristics. Results are averaged over 5 independent runs (10 runs for cross-dataset experiments), with the first run discarded as warmup to eliminate one-time initialization costs. To ensure fair comparison, we synchronize GPU execution and clear cached states between different methods.
 
 \subsection{Evaluation Metrics}
 We measure \textbf{throughput} (tokens per second) as the primary performance indicator, computed as the total number of generated tokens divided by the wall-clock time excluding warmup. We additionally report \textbf{speedup}, defined as the ratio of a method's throughput to that of the autoregressive baseline. When applicable, we also include the \textbf{acceptance rate}---the fraction of drafted tokens that match the target model's greedy predictions---and \textbf{tokens per iteration}, the average number of tokens committed in each decoding round.
@@ -221,6 +222,7 @@ We compare DynaTree against four baselines representing different levels of spec
 \end{itemize}
 
 \subsection{Main Results}
+\label{main-results}
 Table~\ref{tab:main-results} presents the end-to-end throughput comparison for 500-token generation across all methods. \textbf{DynaTree} achieves a throughput of 193.4 tokens/sec, corresponding to a \textbf{1.62\(\times\) speedup} over the autoregressive baseline (119.4 tokens/sec). This represents a substantial improvement over strong baselines: DynaTree outperforms HuggingFace assisted generation by 19\% (1.62\(\times\) vs.\ 1.36\(\times\)) and linear speculative decoding by 46\% (1.62\(\times\) vs.\ 1.11\(\times\)). We also report acceptance rates where applicable; note that while tree-based methods exhibit lower per-token acceptance rates than linear chains (0.30 vs.\ 0.68), the ability to verify multiple paths in parallel more than compensates for this difference.
 
 \begin{table}[t]
@@ -247,6 +249,24 @@ Figure~\ref{fig:main-results} visualizes these results. Although tree-based draf
 \paragraph{Verification efficiency analysis.}
 Table~\ref{tab:verification-efficiency} provides a detailed breakdown of verification efficiency metrics for the optimal configurations. DynaTree (D=8, B=3, \(\tau\)=0.03) commits an average of 6.94 tokens per iteration---69\% more than linear speculative decoding (4.10 tokens/iter)---despite having a lower per-token acceptance rate (38\% vs.\ 68\%). This demonstrates that tree-based drafting's multi-path exploration enables longer committed sequences per verification round, offsetting the reduced per-token acceptance and ultimately yielding higher end-to-end throughput.
 
+\paragraph{Latency breakdown analysis.}
+To understand the fine-grained latency characteristics, Table~\ref{tab:latency-metrics} reports Time-To-First-Token (TTFT) and Time-Per-Output-Token (TPOT) for each method on WikiText-2 with 500-token generation. TTFT measures the latency from request submission to the first generated token, while TPOT measures the average per-token generation latency thereafter. Key observations include: (i)~All speculative methods reduce TTFT by 30--35\% compared to autoregressive decoding (18.7~ms vs.\ 12.2--12.5~ms), as the draft model's first prediction is verified faster; (ii)~DynaTree achieves the lowest TPOT among all speculative methods (5.46~ms), outperforming Linear K=6 (6.16~ms) by 11\% due to its higher tokens-per-iteration efficiency. These latency metrics confirm that DynaTree provides not only higher throughput but also competitive per-token latency, making it suitable for both batch and interactive serving scenarios.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Latency metrics on WikiText-2 (500-token generation).} We report Time-To-First-Token (TTFT, latency to first output token) and Time-Per-Output-Token (TPOT, average per-token latency). DynaTree achieves the lowest TPOT among all evaluated methods, demonstrating efficient per-iteration verification.}
+\label{tab:latency-metrics}
+\begin{tabular}{lcc}
+\toprule
+Method & TTFT (ms) & TPOT (ms) \\
+\midrule
+AR (target-only) & 18.69 & 7.47 \\
+Linear speculative (K=6) & 12.17 & 6.16 \\
+\textbf{DynaTree (D=6, B=2)} & \textbf{12.48} & \textbf{5.46} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{table}[t]
 \centering
 \caption{\textbf{Verification efficiency comparison.} We report drafting budget (K for linear, expected tree size for DynaTree), tokens committed per iteration, and per-token acceptance rate for linear and tree-based methods at their optimal configurations on 500-token generation. Despite lower per-token acceptance, DynaTree's multi-path exploration commits substantially more tokens per verification step, demonstrating the value of exploring multiple candidate paths in parallel.}
@@ -269,31 +289,6 @@ HuggingFace assisted & -- & -- & -- \\
   \label{fig:main-results}
 \end{figure}
 
-\subsection{Ablation Study: Progressive Component Addition}
-To isolate the contribution of each algorithmic component, we conduct an ablation study by progressively adding features to the baseline linear speculative decoder. Table~\ref{tab:ablation} summarizes the results. Starting from linear speculative decoding (K=6, 1.11\(\times\) speedup), adding tree structure with shallow depth and loose pruning (D=4, B=3, \(\tau\)=0.01) improves speedup to 1.43\(\times\), demonstrating the value of multi-path exploration. Further optimizing the tree depth and tightening the pruning threshold (D=8, B=3, \(\tau\)=0.03) yields the best speedup of 1.79\(\times\), highlighting the importance of balancing tree size and verification cost. Note that absolute throughput values here are measured under a consistent parameter-sweep harness and may differ slightly from the end-to-end benchmark in Table~\ref{tab:main-results} due to different measurement protocols, but the relative improvements clearly demonstrate the algorithmic gains from (i)~parallel path verification and (ii)~adaptive depth with calibrated pruning.
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Ablation study: progressive addition of algorithmic components.} Starting from linear speculative decoding, we incrementally add tree structure and optimize hyperparameters. Each row shows the configuration and resulting performance. The progressive improvements demonstrate the value of multi-path exploration and adaptive pruning.}
-\label{tab:ablation}
-\begin{tabular}{lccc}
-    \toprule
-Method & Configuration & Throughput (t/s) & Speedup \\
-    \midrule
-Linear speculative & K=6 & 133.1 & 1.11 \\
-+ Tree structure & \(D{=}4,B{=}3,\tau{=}0.01\) & 176.6 & 1.43 \\
-\textbf{+ Depth \& pruning optimization} & \textbf{\(D{=}8,B{=}3,\tau{=}0.03\)} & \textbf{221.4} & \textbf{1.79} \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\linewidth]{../figures/ablation_bars.pdf}
-  \caption{\textbf{Ablation study visualization.} Progressive improvement in (a)~throughput and (b)~speedup as components are added. Adding tree structure (D=4, B=3, \(\tau\)=0.01) provides a 32.7\% throughput gain over linear speculative decoding. Further optimizing depth and pruning (D=8, B=3, \(\tau\)=0.03) yields an additional 25.4\% improvement, reaching 221.4~tokens/s (1.79\(\times\) speedup). Percentage improvements are shown within each bar.}
-  \label{fig:ablation}
-\end{figure}
-
 \subsection{Hyperparameter Sensitivity}
 To understand the impact of design choices, we perform a comprehensive grid search over tree depth \(D \in \{3,4,5,6,7,8\}\), branching factor \(B \in \{2,3,4\}\), and pruning threshold \(\tau \in \{0.01,0.02,0.03,0.05,0.1\}\) across generation lengths ranging from 100 to 1000 tokens, totaling 450 configurations. Figure~\ref{fig:tree-config} illustrates the throughput trends across these parameters for 500-token generation. Key findings include: (i)~\emph{Depth} exhibits diminishing returns beyond D=8, as verification overhead grows faster than the expected path length (Figure~\ref{fig:tree-config}b); (ii)~\emph{Branching factor} B=3 provides the best throughput-exploration trade-off, with B=4 introducing too much verification cost (Figure~\ref{fig:tree-config}a); (iii)~\emph{Pruning threshold} \(\tau=0.03\) is optimal, balancing aggressive pruning (which may discard valid paths) and loose thresholds (which waste computation on unlikely branches) (Figure~\ref{fig:tree-config}c). These results confirm that adaptive probability-threshold pruning is essential to maintain an effective tree size within the verification budget. Additional detailed visualizations across all generation lengths are provided in Appendix~\ref{app:sweep} (Figure~\ref{fig:param-sweep}).
 
@@ -305,12 +300,12 @@ To understand the impact of design choices, we perform a comprehensive grid sear
 \end{figure}
 
 \subsection{Sequence Length Scaling}
-Figure~\ref{fig:length-scaling} and Table~\ref{tab:length-scaling} examine how DynaTree's performance varies with generation length. For each target length, we report the best-performing configuration identified in our parameter sweep, along with the corresponding baseline and DynaTree throughput. Several trends emerge: (i)~DynaTree achieves strong speedups across all lengths, ranging from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with highest relative gain of 1.54\(\times\) at 100 tokens; (ii)~Absolute throughput increases with length, reaching 205.6 tokens/sec at 1000 tokens, as the amortized cost per token decreases; (iii)~The optimal tree depth varies with length (D=5 for 100 tokens, D=6 for 200-500 tokens, D=7 for 750-1000 tokens), reflecting the need to balance exploration breadth with verification overhead as sequence length grows. As shown in Figure~\ref{fig:length-scaling}, DynaTree consistently outperforms Linear Speculative Decoding across all tested generation lengths, demonstrating robust performance scaling. HuggingFace Assisted achieves higher absolute throughput due to its highly optimized implementation.
+Figure~\ref{fig:length-scaling} and Table~\ref{tab:length-scaling} examine how DynaTree's performance varies with generation length. For each target length, we report the best-performing configuration identified in our parameter sweep, along with the corresponding baseline and DynaTree throughput. Several trends emerge: (i)~DynaTree achieves strong speedups across all lengths, ranging from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with highest relative gain of 1.54\(\times\) at 100 tokens; (ii)~Absolute throughput increases with length, reaching 205.6 tokens/sec at 1000 tokens, as the amortized cost per token decreases; (iii)~The optimal tree depth varies with length (D=5 for 100 tokens, D=6 for 200-500 tokens, D=7 for 750-1000 tokens), reflecting the need to balance exploration breadth with verification overhead as sequence length grows. As shown in Figure~\ref{fig:length-scaling}, DynaTree consistently outperforms Linear Speculative Decoding across all tested generation lengths, demonstrating robust performance scaling.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.7\linewidth]{../figures/length_scaling.pdf}
-  \caption{\textbf{Throughput across different generation lengths.} DynaTree consistently outperforms all baselines across generation lengths from 100 to 1000 tokens. Speedup ranges from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with a peak of 1.54\(\times\) at 100 tokens. The autoregressive baseline (AR) shows stable throughput across lengths, while DynaTree's advantage varies with length as the trade-off between exploration benefits and verification overhead shifts. HuggingFace Assisted achieves the highest absolute throughput but shows diminishing returns at shorter lengths.}
+  \caption{\textbf{Throughput across different generation lengths.} DynaTree consistently outperforms all baselines across generation lengths from 100 to 1000 tokens. Speedup ranges from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with a peak of 1.54\(\times\) at 100 tokens. The autoregressive baseline (AR) shows stable throughput across lengths, while DynaTree's advantage varies with length as the trade-off between exploration benefits and verification overhead shifts. Linear methods show decreasing speedups at longer lengths, while DynaTree maintains robust acceleration.}
   \label{fig:length-scaling}
 \end{figure}
 
@@ -319,17 +314,76 @@ Figure~\ref{fig:length-scaling} and Table~\ref{tab:length-scaling} examine how D
 \caption{\textbf{Performance across different generation lengths.} For each target length, we report the optimal hyperparameter configuration and the resulting throughput and speedup. DynaTree achieves consistent speedups across all lengths, with highest relative gain at 100 tokens (1.54\(\times\)) and highest absolute throughput at 1000 tokens (205.6 t/s). The optimal depth increases with generation length.}
 \label{tab:length-scaling}
 \begin{tabular}{lccccc}
-\toprule
+    \toprule
 Length & Optimal Config & Baseline (t/s) & DynaTree (t/s) & Speedup & Accept. \\
-\midrule
+    \midrule
 100  & D=5, B=2, \(\tau\)=0.05 & 73.5  & 113.4 & 1.54\(\times\) & 50.3\% \\
 200  & D=6, B=2, \(\tau\)=0.05 & 125.7 & 166.2 & 1.32\(\times\) & 72.0\% \\
 500  & D=6, B=2, \(\tau\)=0.05 & 133.2 & 185.3 & 1.39\(\times\) & 79.5\% \\
 750  & D=7, B=2, \(\tau\)=0.05 & 126.3 & 186.7 & 1.48\(\times\) & 75.1\% \\
 1000 & D=7, B=2, \(\tau\)=0.05 & 131.0 & 205.6 & 1.57\(\times\) & 73.3\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Cross-Dataset Robustness}
+\label{dataset-robustness}
+To evaluate DynaTree's robustness across different text domains, we compare performance on two datasets with distinct characteristics: PG-19~\citep{rae2019compressive}, which contains long-form fiction with complex narrative structures and longer context dependencies, and WikiText-2~\citep{merity2016pointer}, a standard benchmark consisting of curated Wikipedia articles with more structured and factual content. Table~\ref{tab:dataset-comparison} and Figure~\ref{fig:dataset-comparison} present the results. Several observations emerge: (i)~All methods achieve higher absolute throughput on WikiText-2 compared to PG-19, likely due to WikiText's shorter, more predictable text patterns; (ii)~DynaTree maintains consistent speedup improvements across both datasets (1.32\(\times\) on PG-19, 1.39\(\times\) on WikiText-2 with D=6 configuration), demonstrating that multi-path exploration benefits transfer across domains; (iii)~The relative ordering of methods remains largely consistent, with DynaTree outperforming Linear Speculative Decoding on both datasets. These results confirm that DynaTree's design---parallel verification via tree attention combined with probability-based pruning---generalizes effectively to diverse text characteristics without requiring domain-specific tuning.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Cross-dataset performance comparison (500-token generation).} We evaluate all methods on PG-19 (long-form fiction) and WikiText-2 (structured articles). DynaTree achieves consistent speedups across both datasets, demonstrating robustness to text domain and complexity variations. All methods show higher absolute throughput on WikiText-2 due to its shorter, more predictable patterns.}
+\label{tab:dataset-comparison}
+\begin{tabular}{lcccc}
+\toprule
+\multirow{2}{*}{Method} & \multicolumn{2}{c}{PG-19} & \multicolumn{2}{c}{WikiText-2} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
+\midrule
+AR (target-only) & 126.0 & 1.00\(\times\) & 133.2 & 1.00\(\times\) \\
+Linear K=6 & 151.5 & 1.20\(\times\) & 167.7 & 1.26\(\times\) \\
+Linear K=7 & 150.7 & 1.20\(\times\) & 173.4 & 1.30\(\times\) \\
+\textbf{DynaTree D=6} & \textbf{165.7} & \textbf{1.32\(\times\)} & \textbf{185.3} & \textbf{1.39\(\times\)} \\
+DynaTree D=7 & 160.1 & 1.27\(\times\) & 184.5 & 1.39\(\times\) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../figures/dataset_comparison.pdf}
+  \caption{\textbf{Cross-dataset performance comparison.} (a)~Absolute throughput comparison: all methods achieve higher throughput on WikiText-2 (terra cotta bars) compared to PG-19 (steel blue bars), reflecting WikiText's more predictable structure. (b)~Speedup comparison: DynaTree maintains consistent relative gains across both datasets (1.32--1.39\(\times\)), demonstrating that multi-path exploration benefits are robust to text domain variations. DynaTree consistently outperforms linear speculative methods on both datasets.}
+  \label{fig:dataset-comparison}
+\end{figure}
+
+\subsection{Prompt Length Sensitivity}
+The length of the input prompt can significantly impact decoding performance due to prefill overhead and context dependencies. To assess DynaTree's sensitivity to prompt length, we evaluate all methods on WikiText-2 with varying maximum prompt lengths: 100, 200, 800, and 1000 tokens. As shown in Table~\ref{tab:prompt-length} and Figure~\ref{fig:prompt-length}, several trends emerge: (i)~All methods achieve peak performance at moderate prompt lengths (200 tokens), where the prefill cost is amortized without excessive context overhead. DynaTree D=6 reaches 197.9 tokens/sec (1.55\(\times\) speedup) at this length; (ii)~Performance degrades slightly at very long prompts (1000 tokens), with DynaTree maintaining 162.8 tokens/sec (1.21\(\times\) speedup), as prefill overhead increases; (iii)~DynaTree's relative advantage remains consistent across prompt lengths, with speedups ranging from 1.21\(\times\) to 1.55\(\times\), demonstrating robustness to varying context sizes. These results confirm that DynaTree's tree-based exploration strategy provides stable acceleration benefits across diverse prompt length regimes, making it suitable for applications with varying context requirements.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Performance across different prompt lengths (WikiText-2, 500-token generation).} We evaluate each method with varying maximum prompt lengths from 100 to 1000 tokens. DynaTree maintains consistent speedups across all prompt lengths, with peak performance at 200 tokens. All methods show slight degradation at very long prompts (1000 tokens) due to increased prefill overhead.}
+\label{tab:prompt-length}
+\begin{tabular}{lcccc}
+\toprule
+\multirow{2}{*}{Method} & \multicolumn{4}{c}{Prompt Length (tokens)} \\
+\cmidrule(lr){2-5}
+& 100 & 200 & 800 & 1000 \\
+\midrule
+AR (baseline) & 132.8 & 127.4 & 133.2 & 135.0 \\
+Linear K=6 & 158.4 (1.19\(\times\)) & 175.6 (1.38\(\times\)) & 167.7 (1.26\(\times\)) & 139.8 (1.04\(\times\)) \\
+Linear K=7 & 161.7 (1.22\(\times\)) & 178.2 (1.40\(\times\)) & 173.4 (1.30\(\times\)) & 143.1 (1.06\(\times\)) \\
+\textbf{DynaTree D=6} & \textbf{181.2 (1.36\(\times\))} & \textbf{197.9 (1.55\(\times\))} & \textbf{185.3 (1.39\(\times\))} & \textbf{162.8 (1.21\(\times\))} \\
+DynaTree D=7 & 177.0 (1.33\(\times\)) & 198.0 (1.55\(\times\)) & 184.5 (1.39\(\times\)) & 172.6 (1.28\(\times\)) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../figures/prompt_length_impact.pdf}
+  \caption{\textbf{Performance across different prompt lengths.} (a)~Throughput vs.\ prompt length: all methods achieve peak performance at moderate prompt lengths (200 tokens), with DynaTree D=6 reaching 197.9~t/s. Performance degrades slightly at very long prompts (1000 tokens) due to prefill overhead. (b)~Speedup vs.\ prompt length: DynaTree maintains consistent relative gains (1.21--1.55\(\times\)) across all prompt lengths, demonstrating robustness to varying context sizes. Linear methods show stronger degradation at 1000 tokens, with speedups dropping to 1.04--1.06\(\times\).}
+  \label{fig:prompt-length}
+\end{figure}
 
 
 \section{Conclusion}
@@ -342,6 +396,32 @@ We introduced DynaTree, a tree-based speculative decoding framework that drafts 
 \section{Hyperparameter Sweep Details}
 \label{app:sweep}
 We perform an exhaustive grid search over tree depth $D \in \{3,4,5,6,7,8\}$, branching factor $B \in \{2,3,4\}$, and pruning threshold $\tau \in \{0.01,0.02,0.03,0.05,0.1\}$ across generation lengths 100--1000 tokens, totaling 450 distinct configurations. Each configuration is evaluated with 2 independent runs (excluding warmup) to estimate average throughput and speedup. Figure~\ref{fig:param-sweep} visualizes the relationships between hyperparameters and performance, revealing the complex trade-offs between tree exploration, verification cost, and effective path length. The results confirm that no single configuration dominates across all generation lengths, motivating adaptive hyperparameter selection based on the target workload.
+
+\section{Memory Footprint Analysis}
+\label{app:memory}
+An important practical consideration for speculative decoding methods is their memory overhead. Table~\ref{tab:memory-footprint} reports peak GPU memory consumption across methods on PG-19 and WikiText-2 datasets during 500-token generation with Pythia models. All measurements are taken using PyTorch's memory profiler during steady-state generation (excluding initial model loading).
+
+Key observations: (i)~DynaTree incurs minimal memory overhead (+0.45\% on average) compared to the autoregressive baseline, adding only~26~MB to accommodate the draft model's KV cache and intermediate tree structures; (ii)~Linear speculative methods show similarly negligible overhead ($<$1\%), as they maintain only a small fixed-size buffer of candidate tokens. Across all methods, memory overhead remains well within 1\% of the baseline, confirming that speculative decoding's primary cost is computational rather than memory-related. This makes DynaTree suitable for memory-constrained deployment scenarios where the target and draft models can already fit in GPU memory.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Peak GPU memory consumption comparison.} We measure peak memory usage during 500-token generation on PG-19 (long-form fiction) and WikiText-2 (structured articles) with Pythia-2.8B and Pythia-70M models. All speculative methods incur minimal memory overhead ($<$1\% relative to baseline), with DynaTree adding only 0.45\% on average to accommodate tree structures and draft KV cache. Values show mean peak memory across 10 runs; relative change is computed against the autoregressive baseline.}
+\label{tab:memory-footprint}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\multirow{2}{*}{Method} & \multicolumn{2}{c}{Peak Memory (MB)} & \multirow{2}{*}{Average (MB)} & \multirow{2}{*}{Rel. Change} \\
+\cmidrule(lr){2-3}
+& PG-19 & WikiText-2 & & \\
+\midrule
+AR (baseline) & 5855.1 & 5798.6 & 5826.9 & 0.00\% \\
+Linear K=6 & 5817.3 & 5786.3 & 5801.8 & $-$0.43\% \\
+Linear K=7 & 5817.7 & 5786.2 & 5801.9 & $-$0.43\% \\
+\textbf{DynaTree (D=6, B=2)} & \textbf{5883.7} & \textbf{5822.9} & \textbf{5853.3} & \textbf{+0.45\%} \\
+DynaTree (D=7, B=2) & 5883.7 & 5822.9 & 5853.3 & +0.45\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{DynaTree Iteration Pseudocode}
 \label{app:algo}

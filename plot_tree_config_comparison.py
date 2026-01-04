@@ -22,7 +22,7 @@ plt.rcParams['font.size'] = 10
 
 # Load data
 print("📊 Loading parameter sweep data...")
-with open('results/tree_param_search_20251231_140952.json', 'r') as f:
+with open('results/tree_param_search_wikitext_20260103_155215.json', 'r') as f:
     data = json.load(f)
 
 results = data['results']
@@ -54,7 +54,7 @@ ax1 = axes[0]
 # Fix τ=0.03, tokens=500, vary D and B
 subset = df[(df['threshold'] == 0.03) & (df['tokens'] == 500)]
 
-depths_to_plot = [4, 5, 6, 7, 8]
+depths_to_plot = [4, 5, 6, 7]  # Only these depths have data
 for depth in depths_to_plot:
     depth_data = subset[subset['depth'] == depth].sort_values('branch')
     if len(depth_data) > 0:
@@ -68,9 +68,9 @@ for depth in depths_to_plot:
 ax1.set_xlabel('Branching Factor (B)', fontsize=11)
 ax1.set_ylabel('Throughput (tokens/sec)', fontsize=11)
 ax1.set_title('(a) Impact of Branch Factor', fontsize=11, pad=10)
-ax1.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
+ax1.grid(True, linestyle=':', alpha=0.5, linewidth=0.5)
 ax1.legend(loc='best', frameon=True, framealpha=0.95, edgecolor='#999999', fontsize=9)
-ax1.set_xticks([2, 3, 4])
+ax1.set_xticks([2, 3])  # Only 2 and 3 have data
 
 # =============================================================================
 # (b) Throughput vs Tree Depth for different Branch Factors
@@ -78,8 +78,8 @@ ax1.set_xticks([2, 3, 4])
 ax2 = axes[1]
 
 # Fix τ=0.03, tokens=500, vary D and B
-branches_to_plot = [2, 3, 4]
-branch_colors = {2: '#4A708B', 3: '#D97757', 4: '#8BACC6'}
+branches_to_plot = [2, 3]  # Only these branches have data
+branch_colors = {2: '#4A708B', 3: '#D97757'}
 
 for branch in branches_to_plot:
     branch_data = subset[subset['branch'] == branch].sort_values('depth')
@@ -94,9 +94,9 @@ for branch in branches_to_plot:
 ax2.set_xlabel('Tree Depth (D)', fontsize=11)
 ax2.set_ylabel('Throughput (tokens/sec)', fontsize=11)
 ax2.set_title('(b) Impact of Tree Depth', fontsize=11, pad=10)
-ax2.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
+ax2.grid(True, linestyle=':', alpha=0.5, linewidth=0.5)
 ax2.legend(loc='best', frameon=True, framealpha=0.95, edgecolor='#999999', fontsize=9)
-ax2.set_xticks([3, 4, 5, 6, 7, 8])
+ax2.set_xticks([4, 5, 6, 7])  # Only these depths have data
 
 # =============================================================================
 # (c) Throughput vs Pruning Threshold for different Depths
@@ -106,6 +106,7 @@ ax3 = axes[2]
 # Fix B=3, tokens=500, vary D and τ
 subset_b3 = df[(df['branch'] == 3) & (df['tokens'] == 500)]
 
+# depths_to_plot already defined above as [4, 5, 6, 7]
 for depth in depths_to_plot:
     depth_data = subset_b3[subset_b3['depth'] == depth].sort_values('threshold')
     if len(depth_data) > 0:
@@ -119,7 +120,7 @@ for depth in depths_to_plot:
 ax3.set_xlabel('Pruning Threshold (τ)', fontsize=11)
 ax3.set_ylabel('Throughput (tokens/sec)', fontsize=11)
 ax3.set_title('(c) Impact of Pruning Threshold', fontsize=11, pad=10)
-ax3.grid(True, linestyle=':', alpha=0.3, linewidth=0.5)
+ax3.grid(True, linestyle=':', alpha=0.5, linewidth=0.5)
 ax3.legend(loc='best', frameon=True, framealpha=0.95, edgecolor='#999999', fontsize=9)
 ax3.set_xscale('log')
 
