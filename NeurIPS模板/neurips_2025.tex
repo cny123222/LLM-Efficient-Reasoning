@@ -348,78 +348,8 @@ Fixed Tree (\(D_0=5,B=2\)) & 188.6\(\pm\)16.7 & 1.39\(\times\) & 0.0\% \\
 \end{tabular}
 \end{table}
 
-\subsection{Hyperparameter Sensitivity}
-To understand the impact of design choices, we perform a comprehensive grid search over tree depth \(D \in \{3,4,5,6,7,8\}\), branching factor \(B \in \{2,3,4\}\), and pruning threshold \(\tau \in \{0.01,0.02,0.03,0.05,0.1\}\) across generation lengths ranging from 100 to 1000 tokens, totaling 450 configurations. Figure~\ref{fig:tree-config} illustrates the throughput trends across these parameters for 500-token generation. Key findings include: (i)~\emph{Depth} exhibits diminishing returns beyond D=8, as verification overhead grows faster than the expected path length (Figure~\ref{fig:tree-config}b); (ii)~\emph{Branching factor} B=3 provides the best throughput-exploration trade-off, with B=4 introducing too much verification cost (Figure~\ref{fig:tree-config}a); (iii)~\emph{Pruning threshold} \(\tau=0.03\) is optimal, balancing aggressive pruning (which may discard valid paths) and loose thresholds (which waste computation on unlikely branches) (Figure~\ref{fig:tree-config}c). These results confirm that adaptive probability-threshold pruning is essential to maintain an effective tree size within the verification budget. Additional detailed visualizations across all generation lengths are provided in Appendix~\ref{app:sweep} (Figure~\ref{fig:param-sweep}).
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{../figures/tree_config_comparison.pdf}
-  \caption{\textbf{Impact of tree configuration on throughput (500-token generation).} (a)~Branch factor impact for different depths (fixed \(\tau=0.03\)): B=3 achieves optimal throughput across all depths, with deeper trees benefiting more from branching. (b)~Depth impact for different branch factors (fixed \(\tau=0.03\)): throughput increases with depth up to D=8, after which verification overhead dominates. (c)~Pruning threshold impact for different depths (fixed B=3): \(\tau=0.03\) balances exploration and cost across all depths. The optimal configuration (D=8, B=3, \(\tau=0.03\), highlighted in terra cotta) achieves 221.4~tokens/s.}
-  \label{fig:tree-config}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.65\linewidth]{../figures/tree_config_heatmap.pdf}
-  \caption{\textbf{Tree configuration heatmap (500-token generation, \(\tau\)=0.05).} Heatmap visualization of throughput across depth and branch factor combinations. Each cell shows the achieved throughput (tokens/s). The optimal configuration (D=7, B=2, highlighted with dashed border) achieves 172.3~tokens/s. Darker colors indicate higher throughput. The heatmap clearly shows that (i)~deeper trees (D=6,7) consistently outperform shallow trees, and (ii)~branch factor B=2 provides better throughput than B=3 across all depths, suggesting that wider exploration incurs verification overhead that outweighs the benefit of additional paths at this threshold setting.}
-  \label{fig:heatmap}
-\end{figure}
-
-\subsection{Sequence Length Scaling}
-Figure~\ref{fig:length-scaling} and Table~\ref{tab:length-scaling} examine how DynaTree's performance varies with generation length. For each target length, we report the best-performing configuration identified in our parameter sweep, along with the corresponding baseline and DynaTree throughput. Several trends emerge: (i)~DynaTree achieves strong speedups across all lengths, ranging from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with highest relative gain of 1.54\(\times\) at 100 tokens; (ii)~Absolute throughput increases with length, reaching 205.6 tokens/sec at 1000 tokens, as the amortized cost per token decreases; (iii)~The optimal tree depth varies with length (D=5 for 100 tokens, D=6 for 200-500 tokens, D=7 for 750-1000 tokens), reflecting the need to balance exploration breadth with verification overhead as sequence length grows. As shown in Figure~\ref{fig:length-scaling}, DynaTree consistently outperforms Linear Speculative Decoding across all tested generation lengths, demonstrating robust performance scaling.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.7\linewidth]{../figures/length_scaling.pdf}
-  \caption{\textbf{Throughput across different generation lengths.} DynaTree consistently outperforms all baselines across generation lengths from 100 to 1000 tokens. Speedup ranges from 1.32\(\times\) at 200 tokens to 1.57\(\times\) at 1000 tokens, with a peak of 1.54\(\times\) at 100 tokens. The autoregressive baseline (AR) shows stable throughput across lengths, while DynaTree's advantage varies with length as the trade-off between exploration benefits and verification overhead shifts. Linear methods show decreasing speedups at longer lengths, while DynaTree maintains robust acceleration.}
-  \label{fig:length-scaling}
-\end{figure}
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Performance across different generation lengths.} For each target length, we report the optimal hyperparameter configuration and the resulting throughput and speedup. DynaTree achieves consistent speedups across all lengths, with highest relative gain at 100 tokens (1.54\(\times\)) and highest absolute throughput at 1000 tokens (205.6 t/s). The optimal depth increases with generation length.}
-\label{tab:length-scaling}
-\begin{tabular}{lccccc}
-    \toprule
-Length & Optimal Config & Baseline (t/s) & DynaTree (t/s) & Speedup & Accept. \\
-    \midrule
-100  & D=5, B=2, \(\tau\)=0.05 & 73.5  & 113.4 & 1.54\(\times\) & 50.3\% \\
-200  & D=6, B=2, \(\tau\)=0.05 & 125.7 & 166.2 & 1.32\(\times\) & 72.0\% \\
-500  & D=6, B=2, \(\tau\)=0.05 & 133.2 & 185.3 & 1.39\(\times\) & 79.5\% \\
-750  & D=7, B=2, \(\tau\)=0.05 & 126.3 & 186.7 & 1.48\(\times\) & 75.1\% \\
-1000 & D=7, B=2, \(\tau\)=0.05 & 131.0 & 205.6 & 1.57\(\times\) & 73.3\% \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Prompt Length Sensitivity}
-The length of the input prompt can significantly impact decoding performance due to prefill overhead and context dependencies. To assess DynaTree's sensitivity to prompt length, we evaluate all methods on WikiText-2 with varying maximum prompt lengths: 100, 200, 800, and 1000 tokens. As shown in Table~\ref{tab:prompt-length} and Figure~\ref{fig:prompt-length}, several trends emerge: (i)~All methods achieve peak performance at moderate prompt lengths (200 tokens), where the prefill cost is amortized without excessive context overhead. DynaTree D=6 reaches 197.9 tokens/sec (1.55\(\times\) speedup) at this length; (ii)~Performance degrades slightly at very long prompts (1000 tokens), with DynaTree maintaining 162.8 tokens/sec (1.21\(\times\) speedup), as prefill overhead increases; (iii)~DynaTree's relative advantage remains consistent across prompt lengths, with speedups ranging from 1.21\(\times\) to 1.55\(\times\), demonstrating robustness to varying context sizes. These results confirm that DynaTree's tree-based exploration strategy provides stable acceleration benefits across diverse prompt length regimes, making it suitable for applications with varying context requirements.
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Performance across different prompt lengths (WikiText-2, 500-token generation).} We evaluate each method with varying maximum prompt lengths from 100 to 1000 tokens. DynaTree maintains consistent speedups across all prompt lengths, with peak performance at 200 tokens. All methods show slight degradation at very long prompts (1000 tokens) due to increased prefill overhead.}
-\label{tab:prompt-length}
-\begin{tabular}{lcccc}
-\toprule
-\multirow{2}{*}{Method} & \multicolumn{4}{c}{Prompt Length (tokens)} \\
-\cmidrule(lr){2-5}
-& 100 & 200 & 800 & 1000 \\
-\midrule
-AR (baseline) & 132.8 & 127.4 & 133.2 & 135.0 \\
-Linear K=6 & 158.4 (1.19\(\times\)) & 175.6 (1.38\(\times\)) & 167.7 (1.26\(\times\)) & 139.8 (1.04\(\times\)) \\
-Linear K=7 & 161.7 (1.22\(\times\)) & 178.2 (1.40\(\times\)) & 173.4 (1.30\(\times\)) & 143.1 (1.06\(\times\)) \\
-\textbf{DynaTree D=6} & \textbf{181.2 (1.36\(\times\))} & \textbf{197.9 (1.55\(\times\))} & \textbf{185.3 (1.39\(\times\))} & \textbf{162.8 (1.21\(\times\))} \\
-DynaTree D=7 & 177.0 (1.33\(\times\)) & 198.0 (1.55\(\times\)) & 184.5 (1.39\(\times\)) & 172.6 (1.28\(\times\)) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{../figures/prompt_length_impact.pdf}
-  \caption{\textbf{Performance across different prompt lengths.} (a)~Throughput vs.\ prompt length: all methods achieve peak performance at moderate prompt lengths (200 tokens), with DynaTree D=6 reaching 197.9~t/s. Performance degrades slightly at very long prompts (1000 tokens) due to prefill overhead. (b)~Speedup vs.\ prompt length: DynaTree maintains consistent relative gains (1.21--1.55\(\times\)) across all prompt lengths, demonstrating robustness to varying context sizes. Linear methods show stronger degradation at 1000 tokens, with speedups dropping to 1.04--1.06\(\times\).}
-  \label{fig:prompt-length}
-\end{figure}
+\paragraph{Additional analyses.}
+We place supplementary sensitivity analyses (sequence-length scaling and parameter sensitivity) in Appendix~\ref{app:additional-analyses}.
 
 
 \section{Conclusion}
@@ -439,9 +369,54 @@ For PG-19, we use the same model pair and greedy decoding, with a maximum prompt
 For the static-tree baseline, we use depth \(D=5\), branching factor \(B=2\), and a node budget \(N_{\max}=256\).
 \paragraph{DynaTree.}
 Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\).
-\section{Hyperparameter Sweep Details}
-\label{app:sweep}
-We perform an exhaustive grid search over tree depth $D \in \{3,4,5,6,7,8\}$, branching factor $B \in \{2,3,4\}$, and pruning threshold $\tau \in \{0.01,0.02,0.03,0.05,0.1\}$ across generation lengths 100--1000 tokens, totaling 450 distinct configurations. Each configuration is evaluated with 2 independent runs (excluding warmup) to estimate average throughput and speedup. Figure~\ref{fig:param-sweep} visualizes the relationships between hyperparameters and performance, revealing the complex trade-offs between tree exploration, verification cost, and effective path length. The results confirm that no single configuration dominates across all generation lengths, motivating adaptive hyperparameter selection based on the target workload.
+
+\section{Additional Experimental Analyses}
+\label{app:additional-analyses}
+\paragraph{Speedup computation.}
+Some auxiliary result files include a placeholder \texttt{speedup} field; throughout this appendix we report speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
+
+\subsection{Sequence Length Scaling}
+We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, a fixed tree configuration, and DynaTree. Table~\ref{tab:appendix-scalability} reports throughput and speedup for each \(T\).
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Sequence length scaling on WikiText-2.} Results are computed from \texttt{results/adaptive/scalablity/paper\_benchmark\_scalability.json}. Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is relative to AR at the same \(T\).}
+\label{tab:appendix-scalability}
+\small
+\begin{tabular}{ccccccc}
+\toprule
+\(T\) & AR (t/s) & Fixed Tree (t/s) & Speedup & DynaTree (t/s) & Speedup & Accept. \\
+\midrule
+100  & 81.6\(\pm\)17.2 & 109.6\(\pm\)27.4 & 1.34\(\times\) & 110.0\(\pm\)36.8 & 1.35\(\times\) & 39.2\% \\
+200  & 121.3\(\pm\)21.7 & 140.9\(\pm\)27.0 & 1.16\(\times\) & 135.6\(\pm\)35.9 & 1.12\(\times\) & 49.0\% \\
+300  & 132.1\(\pm\)2.1  & 157.6\(\pm\)26.0 & 1.19\(\times\) & 159.7\(\pm\)32.4 & 1.21\(\times\) & 62.6\% \\
+500  & 133.4\(\pm\)0.9  & 165.3\(\pm\)32.1 & 1.24\(\times\) & 178.1\(\pm\)42.1 & 1.33\(\times\) & 77.3\% \\
+750  & 127.2\(\pm\)14.4 & 183.7\(\pm\)12.9 & 1.44\(\times\) & 190.7\(\pm\)36.6 & 1.50\(\times\) & 86.1\% \\
+1000 & 135.7\(\pm\)0.7  & 192.2\(\pm\)13.6 & 1.42\(\times\) & 210.0\(\pm\)27.0 & 1.55\(\times\) & 92.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Parameter Sensitivity}
+We study the sensitivity of DynaTree to confidence thresholds \((\tau_h,\tau_\ell)\) and branch bounds \((B_{\min},B_{\max})\) on WikiText-2 at \(T=500\). Table~\ref{tab:appendix-sensitivity} reports representative configurations with the highest throughput in \texttt{results/adaptive/sensitivity/paper\_benchmark\_sensitivity.json}.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Parameter sensitivity on WikiText-2 (\(T=500\)).} Results are computed from \texttt{results/adaptive/sensitivity/paper\_benchmark\_sensitivity.json}. Speedup is relative to AR under the same setting.}
+\label{tab:appendix-sensitivity}
+\small
+\begin{tabular}{lccc}
+\toprule
+Setting & Throughput (t/s) & Speedup & Accept. \\
+\midrule
+AR & 99.2\(\pm\)22.3 & 1.00\(\times\) & 0.0\% \\
+\((\tau_h,\tau_\ell)=(0.9,0.4),\ (B_{\min},B_{\max})=(1,4)\) & 180.5\(\pm\)29.6 & 1.82\(\times\) & 81.1\% \\
+\((\tau_h,\tau_\ell)=(0.8,0.3),\ (B_{\min},B_{\max})=(1,3)\) & 179.0\(\pm\)27.3 & 1.80\(\times\) & 79.7\% \\
+\((\tau_h,\tau_\ell)=(0.8,0.3),\ (B_{\min},B_{\max})=(1,2)\) & 178.3\(\pm\)29.2 & 1.80\(\times\) & 78.6\% \\
+\((\tau_h,\tau_\ell)=(0.8,0.3),\ (B_{\min},B_{\max})=(1,4)\) & 174.8\(\pm\)31.3 & 1.76\(\times\) & 77.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Memory Footprint Analysis}
 \label{app:memory}
@@ -522,12 +497,5 @@ branch bounds \(B_{\min}\le B_{\mathrm{mid}}\le B_{\max}\); confidence threshold
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\linewidth]{../figures/param_sweep.pdf}
-  \caption{\textbf{Comprehensive parameter sweep analysis across 450 configurations.} (a)~Speedup vs.\ tree depth $D$ (fixing $B=3$, $\tau=0.03$, 500 tokens): deeper trees improve speedup up to $D=8$, after which verification overhead dominates. (b)~Speedup vs.\ branching factor $B$ (fixing $D=8$, $\tau=0.03$, 500 tokens): $B=3$ achieves the best balance between exploration and cost. (c)~Speedup vs.\ pruning threshold $\tau$ (fixing $D=8$, $B=3$, 500 tokens, log scale): $\tau=0.03$ is optimal, balancing aggressive and loose pruning. (d)~Best speedup across generation lengths with corresponding optimal $(D,B,\tau)$ configurations: speedup peaks at 500 tokens and remains strong at other lengths. (e)~Average path length heatmap over $(D,B)$ (fixing $\tau=0.03$, 500 tokens): larger trees enable longer committed paths. (f)~Acceptance rate distribution vs.\ pruning threshold (fixing $D=8$, $B=3$, 500 tokens): tighter pruning slightly reduces acceptance but improves overall throughput. Stars mark optimal configurations in each subplot.}
-  \label{fig:param-sweep}
-\end{figure}
 
 \end{document}
