@@ -338,14 +338,14 @@ We provide a progressive ablation on WikiText-2 under the same \(T=1500\) settin
 \label{tab:ablation}
 \small
 \begin{tabular}{lccc}
-\toprule
+    \toprule
 Variant & Throughput (t/s) & Speedup & \(\Delta\) vs Fixed \\
-\midrule
+    \midrule
 Fixed Tree (\(D_0=5,B=2\)) & 188.6\(\pm\)16.7 & 1.39\(\times\) & 0.0\% \\
 + Dynamic Breadth \& Depth & 213.7\(\pm\)26.0 & 1.58\(\times\) & +13.3\% \\
 \textbf{+ History Adaptation} & \textbf{218.1\(\pm\)21.6} & \textbf{1.61\(\times\)} & \textbf{+15.6\%} \\
-\bottomrule
-\end{tabular}
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 \subsection{Sequence Length Scaling}
@@ -361,20 +361,21 @@ We evaluate how throughput varies with generation length \(T\) on WikiText-2, co
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Sequence length scaling on WikiText-2.} Results are computed from the experiment logs released with this work. Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is relative to AR at the same \(T\).}
+\caption{\textbf{Sequence length scaling on WikiText-2.} Results are computed from the experiment logs released with this work. Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is relative to AR at the same \(T\). Acceptance is reported as a percentage.}
 \label{tab:length-scaling}
-\small
+\setlength{\tabcolsep}{3pt}
+\scriptsize
 \begin{tabular}{ccccccc}
 \toprule
-\(T\) & AR (t/s) & Linear (t/s) & Fixed Tree (t/s) & DynaTree (t/s) & Speedup & Accept. \\
+\(T\) & AR (t/s) & Linear (t/s) & Fixed Tree (t/s) & DynaTree (t/s) & Speedup & Accept. (L/T/D, \%) \\
 \midrule
-100  & 128.8\(\pm\)1.5 & 94.0\(\pm\)27.6 & 112.5\(\pm\)29.6 & 114.3\(\pm\)34.2 & 0.89\(\times\) & 40.3\% \\
-200  & 131.5\(\pm\)1.1 & 119.4\(\pm\)26.4 & 140.1\(\pm\)28.0 & 143.0\(\pm\)34.6 & 1.09\(\times\) & 53.3\% \\
-300  & 131.8\(\pm\)0.6 & 136.8\(\pm\)24.7 & 158.2\(\pm\)26.7 & 163.8\(\pm\)31.4 & 1.24\(\times\) & 65.6\% \\
-500  & 127.2\(\pm\)10.0 & 152.3\(\pm\)23.1 & 177.9\(\pm\)21.9 & 188.2\(\pm\)32.4 & 1.48\(\times\) & 79.8\% \\
-750  & 132.9\(\pm\)0.9 & 161.3\(\pm\)22.9 & 185.6\(\pm\)13.9 & 202.8\(\pm\)29.8 & 1.53\(\times\) & 88.7\% \\
-1000 & 132.9\(\pm\)0.9 & 167.7\(\pm\)21.4 & 190.9\(\pm\)13.6 & 211.9\(\pm\)26.9 & 1.59\(\times\) & 94.7\% \\
-1500 & 132.2\(\pm\)0.6 & 172.6\(\pm\)17.9 & 172.3\(\pm\)35.5 & 178.0\(\pm\)44.3 & 1.35\(\times\) & 102.2\% \\
+100  & 128.8\(\pm\)1.5 & 94.0\(\pm\)27.6 & 112.5\(\pm\)29.6 & 114.3\(\pm\)34.2 & 0.89\(\times\) & 54.9/43.1/40.3 \\
+200  & 131.5\(\pm\)1.1 & 119.4\(\pm\)26.4 & 140.1\(\pm\)28.0 & 143.0\(\pm\)34.6 & 1.09\(\times\) & 68.3/56.4/53.3 \\
+300  & 131.8\(\pm\)0.6 & 136.8\(\pm\)24.7 & 158.2\(\pm\)26.7 & 163.8\(\pm\)31.4 & 1.24\(\times\) & 77.2/64.8/65.6 \\
+500  & 127.2\(\pm\)10.0 & 152.3\(\pm\)23.1 & 177.9\(\pm\)21.9 & 188.2\(\pm\)32.4 & 1.48\(\times\) & 85.5/73.8/79.8 \\
+750  & 132.9\(\pm\)0.9 & 161.3\(\pm\)22.9 & 185.6\(\pm\)13.9 & 202.8\(\pm\)29.8 & 1.53\(\times\) & 90.3/77.7/88.7 \\
+1000 & 132.9\(\pm\)0.9 & 167.7\(\pm\)21.4 & 190.9\(\pm\)13.6 & 211.9\(\pm\)26.9 & 1.59\(\times\) & 93.5/80.8/94.7 \\
+1500 & 132.2\(\pm\)0.6 & 172.6\(\pm\)17.9 & 172.3\(\pm\)35.5 & 178.0\(\pm\)44.3 & 1.35\(\times\) & 97.7/82.6/102.2 \\
 \bottomrule
 \end{tabular}
 \end{table}
