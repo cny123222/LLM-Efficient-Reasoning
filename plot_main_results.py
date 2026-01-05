@@ -42,6 +42,9 @@ plot_order = ["Baseline (AR)", "Linear Spec (K=5)", "Fixed Tree (D=5, B=2)", "Ph
 throughput = [by_method[m]["throughput_tps"] for m in plot_order]  # tokens/sec
 speedup = [by_method[m]["speedup"] for m in plot_order]  # relative to AR
 
+# Rename display label for the last bar to match paper terminology
+methods[-1] = "DynaTree"
+
 # Set up the figure - academic paper style with reduced width
 fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
