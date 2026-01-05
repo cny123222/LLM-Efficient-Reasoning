@@ -260,7 +260,7 @@ We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our targ
 All experiments are conducted on a single NVIDIA GPU with sufficient memory to accommodate both models simultaneously. We implement DynaTree in PyTorch~\cite{pytorch} using the HuggingFace Transformers library~\cite{transformers} for model loading and inference, leveraging dynamic key-value cache structures to minimize memory overhead during tree verification.
 
 \paragraph{Workloads and data preprocessing.}
-Our primary benchmark uses WikiText-2~\citep{merity2016pointer}. For each sampled prompt, we generate \(T\) new tokens using greedy decoding, where \(T=1000\) for the main results (Section~\ref{main-results}). We truncate prompts to a maximum length \(L_{\max}\) to control prefill cost, and use a fixed \(L_{\max}=800\) throughout WikiText-2 experiments. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup; we report the mean and standard deviation over the remaining runs. To ensure fair comparison, we synchronize GPU execution and reset cached states between methods. We additionally report cross-dataset results on PG-19~\citep{rae2019compressive} (Section~\ref{dataset-robustness}) to validate robustness beyond Wikipedia-style text; full experimental configurations are summarized in Appendix~\ref{app:exp-config}.
+Our primary benchmarks use WikiText-2~\citep{merity2016pointer} and PG-19~\citep{rae2019compressive}. For each sampled prompt, we generate \(T\) new tokens using greedy decoding, where \(T=1500\) for the main results (Section~\ref{main-results}). We truncate prompts to a maximum length \(L_{\max}\) to control prefill cost, using \(L_{\max}=800\) for WikiText-2 and \(L_{\max}=1000\) for PG-19. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup; we report the mean and standard deviation over the remaining runs. To ensure fair comparison, we synchronize GPU execution and reset cached states between methods. Full experimental configurations are summarized in Appendix~\ref{app:exp-config}.
 
 \subsection{Evaluation Metrics}
 We report \textbf{throughput} (tokens per second) as the primary metric, computed as \(T\) divided by the wall-clock decoding time (excluding warmup). We additionally report \textbf{speedup} relative to autoregressive decoding, i.e., \(\mathrm{speedup}=\mathrm{TPS}/\mathrm{TPS}_{\mathrm{AR}}\). To characterize verification efficiency, we measure the \textbf{acceptance rate} \(a\), defined as the fraction of drafted tokens that match the target model's greedy predictions under the corresponding conditioning contexts, and the average \textbf{tokens per iteration} \(\bar{L}\), i.e., the number of committed tokens per verification round. We also report \textbf{average path length} \(\bar{\ell}\) (the mean depth of the greedy-consistent committed path before the bonus token) to reflect how far each verification step progresses. For latency, we include \textbf{time-to-first-token} (TTFT) and \textbf{time-per-output-token} (TPOT), averaged over prompts.
@@ -276,21 +276,23 @@ We compare the proposed confidence-aware adaptive decoding against the following
 
 \subsection{Main Results}
 \label{main-results}
-Table~\ref{tab:main-results} reports the end-to-end performance on WikiText-2 for \(T=1000\) token generation. Compared with autoregressive decoding, linear speculative decoding improves throughput to 156.6~t/s (1.15\(\times\)) by verifying short draft chains. A fixed tree further increases throughput to 191.9~t/s (1.41\(\times\)) by exploring multiple candidates per verification step. \textbf{DynaTree} achieves the best throughput, reaching \textbf{198.7~t/s} (\textbf{1.46\(\times\)}), improving over linear speculative decoding and the static-tree baseline under identical greedy decoding.
+Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\) token generation. Across both datasets, DynaTree consistently outperforms autoregressive decoding and linear speculative decoding. On PG-19, DynaTree also improves over the fixed-tree baseline (192.1~t/s vs.\ 183.7~t/s), indicating that confidence-aware adaptation can provide additional benefit in long-form text.
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Main results on WikiText-2 (greedy decoding, \(T=1000\)).} Throughput is measured in tokens per second (t/s). Speedup is relative to autoregressive decoding. Accept.\ rate is the fraction of drafted tokens that match the target model's greedy predictions; Tokens/Iter reports the average number of tokens committed per verification round; Avg.\ Path Len is the mean committed path length (before the bonus token). We report mean\(\pm\)std over prompts (excluding warmup).}
+\caption{\textbf{Main results (\(T=1500\)).} Throughput (t/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup).}
 \label{tab:main-results}
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \toprule
-Method & Throughput (t/s) & Speedup & Accept. (\%) & Tokens/Iter & Avg.\ Path Len \\
+Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
 \midrule
-AR & 135.6\(\pm\)0.8 & 1.00\(\times\) & -- & 1.00 & -- \\
-Linear Spec (\(K=5\)) & 156.6\(\pm\)20.2 & 1.15\(\times\) & 93.5 & 4.61 & 4.67 \\
-Fixed Tree (\(D=5,B=2\)) & 191.9\(\pm\)14.0 & 1.41\(\times\) & 80.8 & 5.65 & 5.65 \\
-\textbf{DynaTree} & \textbf{198.7\(\pm\)42.2} & \textbf{1.46\(\times\)} & \textbf{94.7} & \textbf{6.49} & \textbf{6.63} \\
+AR & 135.2\(\pm\)0.6 & 1.00\(\times\) & 133.7\(\pm\)0.7 & 1.00\(\times\) \\
+Linear Spec (\(K=5\)) & 163.2\(\pm\)26.0 & 1.21\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
+Fixed Tree (\(D=5,B=2\)) & 188.6\(\pm\)16.7 & 1.39\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
+\textbf{DynaTree} & \textbf{218.1\(\pm\)21.6} & \textbf{1.61\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -298,21 +300,23 @@ Fixed Tree (\(D=5,B=2\)) & 191.9\(\pm\)14.0 & 1.41\(\times\) & 80.8 & 5.65 & 5.6
 Figure~\ref{fig:main-results} visualizes the throughput and speedup comparison. Although linear speculative decoding achieves high per-token acceptance, it discards the remainder of the drafted chain after an early mismatch. In contrast, tree-based methods can commit longer greedy-consistent prefixes per iteration by exploring multiple candidates in parallel. DynaTree's confidence-aware adaptation further improves this trade-off, yielding the best end-to-end throughput.
 
 \paragraph{Latency breakdown analysis.}
-To understand fine-grained latency characteristics, Table~\ref{tab:latency-metrics} reports Time-To-First-Token (TTFT) and Time-Per-Output-Token (TPOT) on WikiText-2 for \(T=1000\). Speculative decoding substantially reduces TTFT relative to autoregressive decoding. Moreover, DynaTree reduces TPOT to 5.30~ms while maintaining greedy consistency, consistent with its higher tokens-per-iteration progress.
+Table~\ref{tab:latency-metrics} reports TTFT and TPOT on both datasets for \(T=1500\). Across datasets, speculative decoding reduces TTFT relative to autoregressive decoding, and DynaTree achieves the lowest TPOT by committing longer prefixes per verification step.
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Latency metrics on WikiText-2 (\(T=1000\)).} We report TTFT (latency to first output token) and TPOT (average per-token latency). Values are mean\(\pm\)std over prompts (excluding warmup).}
+\caption{\textbf{Latency metrics (\(T=1500\)).} We report TTFT (latency to first output token) and TPOT (average per-token latency) on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup).}
 \label{tab:latency-metrics}
 \small
-\begin{tabular}{lcc}
+\begin{tabular}{lcccc}
 \toprule
-Method & TTFT (ms) & TPOT (ms) \\
+Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& TTFT (ms) & TPOT (ms) & TTFT (ms) & TPOT (ms) \\
 \midrule
-AR & 18.8\(\pm\)6.0 & 7.35\(\pm\)0.04 \\
-Linear Spec (\(K=5\)) & 14.7\(\pm\)5.7 & 6.48\(\pm\)0.88 \\
-Fixed Tree (\(D=5,B=2\)) & 12.6\(\pm\)2.7 & 5.23\(\pm\)0.37 \\
-\textbf{DynaTree} & 13.8\(\pm\)3.6 & \textbf{5.30\(\pm\)1.39} \\
+AR & 23.2\(\pm\)14.8 & 7.38\(\pm\)0.03 & 20.0\(\pm\)4.5 & 7.46\(\pm\)0.04 \\
+Linear Spec (\(K=5\)) & 15.7\(\pm\)4.8 & 6.28\(\pm\)1.06 & 10.5\(\pm\)1.9 & 6.71\(\pm\)1.42 \\
+Fixed Tree (\(D=5,B=2\)) & 14.9\(\pm\)3.9 & 5.34\(\pm\)0.51 & 10.4\(\pm\)0.4 & 5.54\(\pm\)0.75 \\
+\textbf{DynaTree} & 19.4\(\pm\)16.2 & \textbf{4.62\(\pm\)0.46} & 9.9\(\pm\)0.6 & \textbf{5.38\(\pm\)1.03} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -320,7 +324,7 @@ Fixed Tree (\(D=5,B=2\)) & 12.6\(\pm\)2.7 & 5.23\(\pm\)0.37 \\
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{../figures/main_results_bars.pdf}
-  \caption{\textbf{Throughput and speedup on WikiText-2 (\(T=1000\)).} Left: absolute throughput (tokens/s). Right: speedup relative to autoregressive decoding. DynaTree achieves the highest throughput (198.7~t/s, 1.46\(\times\)), improving over linear speculative decoding (156.6~t/s, 1.15\(\times\)) and the fixed-tree baseline (191.9~t/s, 1.41\(\times\)).}
+  \caption{\textbf{Throughput and speedup across datasets (\(T=1500\)).} Each method is shown with two bars (WikiText-2 vs.\ PG-19). DynaTree consistently improves over autoregressive and linear speculative decoding on both datasets.}
   \label{fig:main-results}
 \end{figure}
 
@@ -392,32 +396,7 @@ Length & Optimal Config & Baseline (t/s) & DynaTree (t/s) & Speedup & Accept. \\
 
 \subsection{Cross-Dataset Robustness}
 \label{dataset-robustness}
-To evaluate robustness across text domains, we compare performance on WikiText-2~\citep{merity2016pointer} (encyclopedic articles) and PG-19~\citep{rae2019compressive} (long-form fiction) using the same models and greedy decoding with \(T=1000\). Table~\ref{tab:dataset-comparison} and Figure~\ref{fig:dataset-comparison} summarize results. Across both datasets, tree-based speculation provides substantially higher throughput than linear chains by committing longer greedy-consistent prefixes per verification step. On PG-19, DynaTree remains competitive with the static-tree baseline while consistently outperforming linear speculative decoding, indicating that confidence-aware adaptation transfers beyond Wikipedia-style text.
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Cross-dataset performance comparison (\(T=1000\)).} We compare AR, linear speculative decoding, a fixed-tree baseline, and DynaTree on WikiText-2 and PG-19. Values are mean throughput (t/s) with speedup relative to AR; both datasets use the same model pair and greedy decoding.}
-\label{tab:dataset-comparison}
-\begin{tabular}{lcccc}
-\toprule
-\multirow{2}{*}{Method} & \multicolumn{2}{c}{PG-19} & \multicolumn{2}{c}{WikiText-2} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5}
-& Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
-\midrule
-AR & 131.4 & 1.00\(\times\) & 135.6 & 1.00\(\times\) \\
-Linear Spec (\(K=5\)) & 153.3 & 1.17\(\times\) & 156.6 & 1.15\(\times\) \\
-Fixed Tree (\(D=5,B=2\)) & \textbf{179.1} & \textbf{1.36\(\times\)} & 191.9 & 1.41\(\times\) \\
-DynaTree & 176.5 & 1.34\(\times\) & \textbf{198.7} & \textbf{1.46\(\times\)} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{../figures/dataset_comparison.pdf}
-  \caption{\textbf{Cross-dataset performance comparison (\(T=1000\)).} (a)~Throughput and (b)~speedup on PG-19 and WikiText-2 for AR, linear speculative decoding, a fixed-tree baseline, and DynaTree.}
-  \label{fig:dataset-comparison}
-\end{figure}
+We report cross-dataset robustness directly in the main benchmark (Table~\ref{tab:main-results} and Figure~\ref{fig:main-results}), where each method is evaluated on both WikiText-2 and PG-19 under the same greedy decoding protocol with \(T=1500\).
 
 \subsection{Prompt Length Sensitivity}
 The length of the input prompt can significantly impact decoding performance due to prefill overhead and context dependencies. To assess DynaTree's sensitivity to prompt length, we evaluate all methods on WikiText-2 with varying maximum prompt lengths: 100, 200, 800, and 1000 tokens. As shown in Table~\ref{tab:prompt-length} and Figure~\ref{fig:prompt-length}, several trends emerge: (i)~All methods achieve peak performance at moderate prompt lengths (200 tokens), where the prefill cost is amortized without excessive context overhead. DynaTree D=6 reaches 197.9 tokens/sec (1.55\(\times\) speedup) at this length; (ii)~Performance degrades slightly at very long prompts (1000 tokens), with DynaTree maintaining 162.8 tokens/sec (1.21\(\times\) speedup), as prefill overhead increases; (iii)~DynaTree's relative advantage remains consistent across prompt lengths, with speedups ranging from 1.21\(\times\) to 1.55\(\times\), demonstrating robustness to varying context sizes. These results confirm that DynaTree's tree-based exploration strategy provides stable acceleration benefits across diverse prompt length regimes, making it suitable for applications with varying context requirements.
