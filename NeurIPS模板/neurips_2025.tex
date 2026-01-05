@@ -121,6 +121,12 @@ In summary, our contributions are:
   \item Experiments demonstrate that DynaTree achieves 1.61$\times$ speedup with 94.7\% acceptance rate, outperforming fixed tree baselines by 16.3\% with robust cross-dataset performance.
 \end{itemize}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/decode-v1.png}
+  \caption{\textbf{Comparison of three decoding paradigms.} \textbf{Left:} Autoregressive (AR) decoding generates tokens sequentially, requiring one LLM forward pass per token. \textbf{Middle:} Linear speculative decoding drafts a single token chain; early rejection wastes all subsequent drafted tokens. \textbf{Right:} Tree-based speculative decoding (DynaTree) explores multiple paths in parallel, enabling recovery from draft errors and committing longer sequences per iteration. The multi-path exploration fundamentally addresses the brittleness of linear drafting while maintaining output correctness through structured tree attention verification.}
+  \label{fig:decode-comparison}
+\end{figure}
 
 \section{Related Work}
 
@@ -150,27 +156,61 @@ y_{i} \;=\; \arg\max_{v \in \mathcal{V}} p_T(v \mid x_{1:i-1}).
 Speculative decoding accelerates generation by proposing candidate tokens with \(M_D\) and verifying them with \(M_T\), while preserving the greedy output when the verification rule only commits tokens that match the target greedy predictions.
 
 \subsection{Overview of DynaTree}
-DynaTree generalizes linear speculative decoding from a single draft chain to a \emph{draft token tree}. In each iteration, DynaTree performs: (i) \textbf{tree drafting} with \(M_D\) by expanding top-\(B\) candidates up to depth \(D\); (ii) \textbf{parallel verification} of all drafted nodes using a tree attention mask in a single forward pass of \(M_T\); (iii) \textbf{path selection and commit} by greedily selecting the longest path consistent with the target model's greedy predictions; and (iv) \textbf{KV-cache update} for the committed tokens.
+DynaTree generalizes linear speculative decoding from a single draft chain to a \emph{draft token tree}. In each iteration, it first performs \emph{adaptive tree drafting} with \(M_D\), where the effective tree breadth and depth are determined on-the-fly from the draft distribution and the cumulative path probability. Concretely, for a draft node \(u\) with draft logits \(\mathbf{h}(u)\), we define the draft confidence \(c(u)=\max_{v\in\mathcal{V}}\mathrm{softmax}(\mathbf{h}(u))_v\) and use it to select a per-node branching factor \(B(u)\in\{B_{\min},B_{\mathrm{mid}},B_{\max}\}\). We further control expansion depth via the cumulative probability \(p(u)=\exp(\bar{\ell}_u)\), combining early stopping for low-probability branches with deeper expansion along high-probability paths. The resulting candidate tree is then \textbf{verified in parallel} in a single forward pass of \(M_T\) using tree attention, followed by \textbf{greedy path selection} and \textbf{KV-cache update} for committed tokens. Finally, DynaTree maintains a short window of recent acceptance statistics to adjust drafting thresholds for subsequent iterations.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{../figures/dynatree-v8.png}
-  \caption{\textbf{One iteration of DynaTree decoding.} The process consists of six main stages: (1)~\emph{Tree Generation:} The draft model expands a candidate tree with top-$B$ branching up to depth $D$. (2)~\emph{Adaptive Pruning:} Branches with cumulative probability below threshold $\tau$ or exceeding node budget $N_{\max}$ are pruned. (3)~\emph{Flattening \& Masking:} The pruned tree is serialized in breadth-first order, and a causal attention mask is constructed to ensure each node attends only to its ancestors. (4)~\emph{Parallel Verification:} The target model verifies all candidates in a single forward pass. (5)~\emph{Path Selection:} The longest path where drafted tokens match the target model's greedy predictions is identified. (6)~\emph{Cache Update:} The committed tokens are used to update the context and key-value cache for the next iteration. This design enables efficient multi-path exploration while maintaining correctness guarantees for greedy decoding.}
+  \includegraphics[width=\linewidth]{../figures/dynatree-v9.5.png}
+  \caption{\textbf{One iteration of DynaTree decoding.} The process consists of six main stages: (1)~\emph{Adaptive Tree Drafting:} The draft model expands a candidate tree with three adaptive mechanisms: confidence-aware branching adjusts the number of child nodes (1--3) per expansion based on draft model confidence; dynamic depth control implements early stopping for low cumulative probability branches and deep expansion for high-probability paths; adaptive pruning removes branches below probability threshold $\tau$ or exceeding node budget $N_{\max}$. (2)~\emph{Flattening \& Masking:} The pruned tree is serialized in breadth-first order, and a causal attention mask is constructed to ensure each node attends only to its ancestors. (3)~\emph{Parallel Verification:} The target model verifies all candidates in a single forward pass. (4)~\emph{Path Selection:} The longest path where drafted tokens match the target model's greedy predictions is identified. (5)~\emph{Cache Update:} The committed tokens are used to update the context and key-value cache for the next iteration. (6)~\emph{Historical Adjustment:} Acceptance rate from recent rounds feeds back to adjust confidence thresholds and base depth for the next iteration. This three-phase adaptive mechanism enables efficient multi-path exploration while maintaining correctness guarantees for greedy decoding.}
   \label{fig:arch}
 \end{figure}
 
-\subsection{Draft Tree Construction with Dynamic Pruning}
+\subsection{Adaptive Tree Drafting}
 We maintain a token tree \(\mathcal{T}=(\mathcal{N}, \mathcal{E})\) whose nodes \(u \in \mathcal{N}\) correspond to drafted tokens. Each node \(u\) is associated with: (i)~\emph{token} \(z_u \in \mathcal{V}\); (ii)~\emph{parent} \(\pi(u)\); (iii)~\emph{depth} \(d(u)\) from root; (iv)~\emph{draft log-probability} \(\ell_u = \log p_D(z_u \mid \text{prefix}(\pi(u)))\); and (v)~\emph{cumulative log-probability} \(\bar{\ell}_u = \sum_{v \in \text{path}(u)} \ell_v\), where \(\text{path}(u)\) denotes all nodes from root to \(u\) along the tree.
 
 \paragraph{Tree expansion.}
-Starting from the current prefix \(x_{1:t}\), we first sample the draft distribution \(p_D(\cdot \mid x_{1:t})\) to create the root node \(u_0\) with the top-1 token. We then iteratively expand the tree in breadth-first order: for each active leaf \(u\) with \(d(u) < D\), we select the top-\(B\) tokens under the conditional distribution \(p_D(\cdot \mid x_{1:t}, \text{path}(u))\) to form child nodes, reusing the draft model's key-value cache to compute each one-token forward pass efficiently. To prevent unbounded growth, we enforce a hard \textbf{node budget} \(N_{\max}\): expansion halts when the total node count \(|\mathcal{N}|\) reaches \(N_{\max}\).
-
-\paragraph{Adaptive probability-threshold pruning.}
-To reduce wasted computation on unlikely branches, DynaTree prunes any leaf \(u\) whose cumulative log-probability along its path falls below a threshold \(\log \tau\), where \(\tau \in (0,1)\):
+Starting from the current prefix \(x_{1:t}\), we construct \(\mathcal{T}\) in a breadth-first manner under a strict node budget \(N_{\max}\). For any expandable node \(u\), let \(q_D(\cdot \mid u)\) denote the draft distribution conditioned on the unique root-to-\(u\) prefix, and define the local confidence
 \[
-\bar{\ell}_u \;<\; \log \tau \quad \Longrightarrow \quad \text{prune } u.
+c(u)\;=\;\max_{v\in\mathcal{V}} q_D(v\mid u).
 \]
-Since \(\bar{\ell}_u\) accumulates the log-probabilities of all tokens along the root-to-\(u\) path, branches with low joint probability under the draft model are discarded before verification, focusing the target model's verification budget on more promising candidates.
+We select a \emph{per-node} branching factor via a confidence rule
+\[
+B(u)=
+\begin{cases}
+B_{\min}, & c(u)\ge \tau_h,\\
+B_{\mathrm{mid}}, & \tau_\ell \le c(u) < \tau_h,\\
+B_{\max}, & c(u)<\tau_\ell,
+\end{cases}
+\]
+where \(0<\tau_\ell<\tau_h<1\) are confidence thresholds and \(1\le B_{\min}\le B_{\mathrm{mid}}\le B_{\max}\) are integer branch bounds.
+and expand \(u\) by adding the \(B(u)\) highest-probability children under \(q_D(\cdot\mid u)\). To adapt depth, we use the cumulative path probability \(p(u)=\exp(\bar{\ell}_u)\): low-probability branches are terminated early, while high-probability paths may be expanded beyond a base depth. Concretely, a node at depth \(d(u)\) is eligible for expansion only if it satisfies the depth-gating rule (defined in the next paragraph) and \(|\mathcal{N}|<N_{\max}\). Implementation details for cache reuse during expansion are deferred to Appendix~\ref{app:algo}.
+
+\paragraph{Dynamic depth control.}
+Let \(D_0\) denote a base depth and \(D_{\max}\) a hard maximum depth. We gate expansion using two probability thresholds \(\rho_{\mathrm{stop}} < \rho_{\mathrm{deep}}\) on the cumulative path probability \(p(u)\). A node \(u\) at depth \(d(u)\) is expandable if and only if
+\[
+d(u) < D_{\max}
+\quad\wedge\quad
+p(u)\ge \rho_{\mathrm{stop}}
+\quad\wedge\quad
+\Bigl(d(u)<D_0 \;\;\vee\;\; p(u)\ge \rho_{\mathrm{deep}}\Bigr).
+\]
+We assume \(1\le D_0 < D_{\max}\) and \(0<\rho_{\mathrm{stop}}<\rho_{\mathrm{deep}}<1\).
+The first condition enforces a hard depth limit; the second implements \emph{early stopping} by terminating branches whose joint draft probability is too small; and the third allows \emph{deep expansion} beyond \(D_0\) only along sufficiently likely paths. In practice, \(\rho_{\mathrm{stop}}\) and \(\rho_{\mathrm{deep}}\) are tuned on a held-out set (Section~\ref{experiments}).
+
+\paragraph{Adaptive pruning under a node budget.}
+To reduce wasted verification on unlikely branches, we further prune any leaf \(u\) whose cumulative probability falls below a global threshold \(\tau\in(0,1)\):
+\[
+p(u) \;<\; \tau \quad \Longrightarrow \quad \text{prune } u.
+\]
+This rule focuses the target-model verification budget on paths that are jointly plausible under the draft model. Additionally, we enforce a strict node budget \(N_{\max}\) during construction; when \(|\mathcal{N}|=N_{\max}\), expansion stops and remaining frontier nodes are treated as leaves.
+
+\paragraph{Historical adjustment.}
+Finally, DynaTree adapts drafting thresholds online using recent verification outcomes. Let \(a_r\in[0,1]\) denote the per-iteration acceptance statistic at iteration \(r\) (i.e., the fraction of drafted tokens committed in that iteration), and let \(\bar{a}_t\) be the sliding-window mean over the last \(W\) iterations:
+\[
+\bar{a}_t \;=\; \frac{1}{W}\sum_{i=0}^{W-1} a_{t-i}.
+\]
+Here \(W\) is a fixed window size.
+When \(\bar{a}_t\) is high, we make drafting more aggressive (e.g., increasing \(D_0\) or lowering \(\tau_h\)); when \(\bar{a}_t\) is low, we become more conservative to avoid verification waste. We defer the exact update schedule to Appendix~\ref{app:algo}.
 
 % (Moved long pseudocode to the appendix to save space in the main paper.)
 We provide full pseudocode for one DynaTree iteration in Appendix~\ref{app:algo}.
@@ -220,7 +260,7 @@ We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our targ
 All experiments are conducted on a single NVIDIA GPU with sufficient memory to accommodate both models simultaneously. We implement DynaTree in PyTorch~\cite{pytorch} using the HuggingFace Transformers library~\cite{transformers} for model loading and inference, leveraging dynamic key-value cache structures to minimize memory overhead during tree verification.
 
 \paragraph{Workloads and data preprocessing.}
-Unless otherwise specified, we evaluate on a generation task producing 500 new tokens from sampled prompts. For the main efficiency benchmark (Section~\ref{main-results}), we sample sequences from PG-19 and apply uniform preprocessing across all methods: when prompts are shorter than the required minimum length, we repeat the prefix to meet the length requirement. This controlled setting enables precise performance measurement and fair comparison. To validate generalization to natural text distributions without preprocessing, we conduct cross-dataset evaluation on unmodified WikiText-2 and PG-19 samples (Section~\ref{dataset-robustness}), demonstrating consistent performance gains across diverse text characteristics. Results are averaged over 5 independent runs (10 runs for cross-dataset experiments), with the first run discarded as warmup to eliminate one-time initialization costs. To ensure fair comparison, we synchronize GPU execution and clear cached states between different methods.
+Our primary benchmark uses WikiText-2~\citep{merity2016pointer}. For each sampled prompt, we generate \(T\) new tokens using greedy decoding, where \(T=1000\) for the main results (Section~\ref{main-results}). We truncate prompts to a maximum length \(L_{\max}\) to control prefill cost, and use a fixed \(L_{\max}=800\) throughout WikiText-2 experiments. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup; we report the mean and standard deviation over the remaining runs. To ensure fair comparison, we synchronize GPU execution and reset cached states between methods. We additionally report cross-dataset results on PG-19~\citep{rae2019compressive} (Section~\ref{dataset-robustness}) to validate robustness beyond Wikipedia-style text; full experimental configurations are summarized in Appendix~\ref{app:exp-config}.
 
 \subsection{Evaluation Metrics}
 We measure \textbf{throughput} (tokens per second) as the primary performance indicator, computed as the total number of generated tokens divided by the wall-clock time excluding warmup. We additionally report \textbf{speedup}, defined as the ratio of a method's throughput to that of the autoregressive baseline. When applicable, we also include the \textbf{acceptance rate}---the fraction of drafted tokens that match the target model's greedy predictions---and \textbf{tokens per iteration}, the average number of tokens committed in each decoding round.
@@ -413,6 +453,14 @@ We introduced DynaTree, a tree-based speculative decoding framework that drafts 
 \bibliography{references}
 
 \appendix
+\section{Experimental Configuration Details}
+\label{app:exp-config}
+\paragraph{Common settings.}
+Unless stated otherwise, we use WikiText-2 prompts, truncate the prompt length to \(L_{\max}=800\), and generate \(T\) new tokens with greedy decoding. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup.
+\paragraph{Fixed-tree baseline.}
+For the static-tree baseline, we use depth \(D=5\), branching factor \(B=2\), and a node budget \(N_{\max}=256\).
+\paragraph{Adaptive DynaTree (Phase~3).}
+Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\).
 \section{Hyperparameter Sweep Details}
 \label{app:sweep}
 We perform an exhaustive grid search over tree depth $D \in \{3,4,5,6,7,8\}$, branching factor $B \in \{2,3,4\}$, and pruning threshold $\tau \in \{0.01,0.02,0.03,0.05,0.1\}$ across generation lengths 100--1000 tokens, totaling 450 distinct configurations. Each configuration is evaluated with 2 independent runs (excluding warmup) to estimate average throughput and speedup. Figure~\ref{fig:param-sweep} visualizes the relationships between hyperparameters and performance, revealing the complex trade-offs between tree exploration, verification cost, and effective path length. The results confirm that no single configuration dominates across all generation lengths, motivating adaptive hyperparameter selection based on the target workload.
@@ -451,35 +499,33 @@ DynaTree (D=7, B=2) & 5883.7 & 5822.9 & 5853.3 & +0.45\% \\
 \small
 \begin{algorithmic}[1]
 \Require Prefix tokens \(x_{1:t}\); target KV cache \(\mathcal{K}_T\); prefix next-token logits \(\mathbf{s}_{\text{last}}\);
-tree depth \(D\); branch factor \(B\); pruning threshold \(\tau\); node budget \(N_{\max}\).
+branch bounds \(B_{\min}\le B_{\mathrm{mid}}\le B_{\max}\); confidence thresholds \(0<\tau_\ell<\tau_h<1\); base depth \(D_0\); max depth \(D_{\max}\); depth thresholds \(0<\rho_{\mathrm{stop}}<\rho_{\mathrm{deep}}<1\); pruning threshold \(\tau\); node budget \(N_{\max}\); history window \(W\).
 \Ensure Committed tokens \(y_{t+1:t+L}\) and updated \(\mathcal{K}_T\).
 
 \State \(\ell \gets \Call{SeqLen}{\mathcal{K}_T}\) \Comment{record prefix cache length}
-\State \(\mathcal{T} \gets \Call{DraftTree}{x_{1:t}, D, B, \tau, N_{\max}}\)
+\State \(\mathcal{T} \gets \Call{DraftTree}{x_{1:t}, B_{\min}, B_{\mathrm{mid}}, B_{\max}, \tau_\ell, \tau_h, D_0, D_{\max}, \rho_{\mathrm{stop}}, \rho_{\mathrm{deep}}, \tau, N_{\max}}\)
 \State \(\mathbf{z}_{1:n} \gets \Call{BFSFlatten}{\mathcal{T}}\); \(\mathbf{A} \gets \Call{TreeMask}{\mathcal{T}, \ell}\) \Comment{prefix + ancestors only}
 \State \(\mathbf{s}_{1:n} \gets M_T(\mathbf{z}_{1:n}; \mathbf{A}, \mathcal{K}_T)\); \(\hat{\mathbf{y}} \gets \arg\max \mathbf{s}_{1:n}\)
 \State \(y_{t+1:t+L} \gets \Call{SelectCommit}{\mathcal{T}, \hat{\mathbf{y}}, \mathbf{s}_{\text{last}}}\)
 \State \(\mathcal{K}_T \gets \Call{Crop}{\mathcal{K}_T,\ell}\); \(\mathcal{K}_T \gets M_T(y_{t+1:t+L}; \mathcal{K}_T)\) \Comment{rollback + rebuild}
+\State \Call{UpdateHistory}{$y_{t+1:t+L}, \mathcal{T}, W$}; \Call{Adjust}{$\tau_\ell,\tau_h,D_0$} \Comment{historical adjustment}
 \State \Return \(y_{t+1:t+L}\)
 
 \Statex
-\Function{\textproc{DraftTree}}{$x_{1:t}, D, B, \tau, N_{\max}$}
-  \Comment{Draft a candidate token tree with probability-threshold pruning and a node budget.}
+\Function{\textproc{DraftTree}}{$x_{1:t}, B_{\min}, B_{\mathrm{mid}}, B_{\max}, \tau_\ell, \tau_h, D_0, D_{\max}, \rho_{\mathrm{stop}}, \rho_{\mathrm{deep}}, \tau, N_{\max}$}
+  \Comment{Draft a candidate token tree with adaptive branching, dynamic depth control, and pruning under a node budget.}
   \State Run \(M_D\) on \(x_{1:t}\); let \(u_0\) be the \(\top 1\) token; initialize \(\mathcal{T}\) with root \(u_0\)
-  \State \(\mathcal{A} \gets \{u_0\}\) \Comment{active leaves}
-  \For{$d=1$ \textbf{to} $D$}
-    \If{$|\mathcal{A}|=0$ \textbf{or} $|\mathcal{T}|\ge N_{\max}$} \State \textbf{break} \EndIf
-    \State \(\mathcal{A}' \gets \emptyset\)
-    \ForAll{$u \in \mathcal{A}$}
-      \If{$\bar{\ell}_u < \log \tau$} \State \textbf{continue} \EndIf \Comment{prune low-probability branches}
-      \State Do one cached step of \(M_D\) from \(u\); take \(\top B\) next-token candidates
-      \ForAll{candidates \(v\)}
-        \If{$|\mathcal{T}|\ge N_{\max}$} \State \textbf{break} \EndIf
-        \State Add child \(v\) to \(\mathcal{T}\); add \(v\) to \(\mathcal{A}'\)
-      \EndFor
-    \EndFor
-    \State \(\mathcal{A} \gets \mathcal{A}'\)
-  \EndFor
+  \State \(\mathcal{A} \gets \{u_0\}\) \Comment{active frontier}
+  \While{$|\mathcal{A}|>0$ \textbf{and} $|\mathcal{T}|<N_{\max}$}
+    \State Pop an element \(u\) from \(\mathcal{A}\)
+    \If{$\exp(\bar{\ell}_u) < \tau$} \State \textbf{continue} \EndIf \Comment{probability-threshold pruning}
+    \If{$d(u)\ge D_{\max}$} \State \textbf{continue} \EndIf
+    \If{$\exp(\bar{\ell}_u) < \rho_{\mathrm{stop}}$} \State \textbf{continue} \EndIf \Comment{early stopping}
+    \If{$d(u)\ge D_0$ \textbf{and} $\exp(\bar{\ell}_u) < \rho_{\mathrm{deep}}$} \State \textbf{continue} \EndIf \Comment{depth gating}
+    \State Do one cached step of \(M_D\) from \(u\); compute confidence \(c(u)=\max \mathrm{softmax}(\mathbf{h}(u))\)
+    \State Set \(B(u)\gets B_{\min}\) if \(c(u)\ge\tau_h\), \(B_{\max}\) if \(c(u)<\tau_\ell\), else \(B_{\mathrm{mid}}\)
+    \State Take \(\top B(u)\) next-token candidates; add each child \(v\) to \(\mathcal{T}\) and push \(v\) into \(\mathcal{A}\) until \(N_{\max}\)
+  \EndWhile
   \State \Return \(\mathcal{T}\)
 \EndFunction
 
