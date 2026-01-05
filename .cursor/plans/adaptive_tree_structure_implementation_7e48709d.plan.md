@@ -236,8 +236,5 @@ Phase 3: 历史接受率调整
    └── TreeSpeculativeGeneratorV2AdaptiveV3
    └── benchmark_adaptive_full.py
    └── 运行完整对照实验
+
 ```
-
----
-
-## 预期收益

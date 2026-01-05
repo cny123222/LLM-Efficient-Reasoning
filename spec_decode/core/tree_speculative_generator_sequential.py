@@ -42,3 +42,4 @@ class TreeSpeculativeGeneratorV2Sequential(TreeSpeculativeGeneratorV2):
         return self._verify_tree_sequential(tree)
 
 
+

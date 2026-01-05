@@ -1,0 +1,331 @@
+{
+  "experiment_info": {
+    "type": "ablation_study",
+    "focus": "pruning_strategy",
+    "target_model": "/mnt/disk1/models/pythia-2.8b",
+    "draft_model": "/mnt/disk1/models/pythia-70m",
+    "dataset": "WikiText-2 (ModelScope)",
+    "max_new_tokens": 500,
+    "num_samples": 10,
+    "warmup_runs": 2,
+    "max_prompt_length": 800
+  },
+  "results": [
+    {
+      "method": "Baseline (AR)",
+      "config": {},
+      "ttft_ms": 18.906109780073166,
+      "tpot_ms": 7.477640064433217,
+      "throughput_tps": 133.0673117857736,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.0,
+      "avg_path_length": 0.0,
+      "total_rounds": 0,
+      "peak_memory_mb": 5798.40234375,
+      "speedup": 1.0
+    },
+    {
+      "method": "对照组: Tree V2 (D=4, B=2) 有剪枝(t=0.05)",
+      "config": {
+        "tree_depth": 4,
+        "branch_factor": 2,
+        "probability_threshold": 0.05,
+        "pruning_enabled": true,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.916439399123192,
+      "tpot_ms": 6.113925956562161,
+      "throughput_tps": 164.87179003737194,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.9326942556036159,
+      "avg_path_length": 4.663471278018077,
+      "total_rounds": 108,
+      "peak_memory_mb": 5822.783203125,
+      "speedup": 1.2390104513631468
+    },
+    {
+      "method": "消融组: Tree V2 (D=4, B=2) 无剪枝",
+      "config": {
+        "tree_depth": 4,
+        "branch_factor": 2,
+        "probability_threshold": 0.0,
+        "pruning_enabled": false,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 14.95090238749981,
+      "tpot_ms": 10.520804763399065,
+      "throughput_tps": 95.75783098825285,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.9465622421423578,
+      "avg_path_length": 4.732811210711789,
+      "total_rounds": 106,
+      "peak_memory_mb": 5824.66748046875,
+      "speedup": 0.7196194895889558
+    },
+    {
+      "method": "对照组: Tree V2 (D=4, B=2) 有剪枝(t=0.03)",
+      "config": {
+        "tree_depth": 4,
+        "branch_factor": 2,
+        "probability_threshold": 0.03,
+        "pruning_enabled": true,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.850629724562168,
+      "tpot_ms": 6.106551086530089,
+      "throughput_tps": 165.13303647730285,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.9337186673723397,
+      "avg_path_length": 4.668593336861698,
+      "total_rounds": 108,
+      "peak_memory_mb": 5822.783203125,
+      "speedup": 1.2409737166942412
+    },
+    {
+      "method": "消融组: Tree V2 (D=4, B=2) 无剪枝",
+      "config": {
+        "tree_depth": 4,
+        "branch_factor": 2,
+        "probability_threshold": 0.0,
+        "pruning_enabled": false,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.500638421624899,
+      "tpot_ms": 10.463301295228302,
+      "throughput_tps": 96.23232633652049,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.9465622421423578,
+      "avg_path_length": 4.732811210711789,
+      "total_rounds": 106,
+      "peak_memory_mb": 5824.66748046875,
+      "speedup": 0.7231853191071138
+    },
+    {
+      "method": "对照组: Tree V2 (D=5, B=2) 有剪枝(t=0.05)",
+      "config": {
+        "tree_depth": 5,
+        "branch_factor": 2,
+        "probability_threshold": 0.05,
+        "pruning_enabled": true,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 13.485798984766006,
+      "tpot_ms": 6.539811656437815,
+      "throughput_tps": 164.23195943685744,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.8610115836638099,
+      "avg_path_length": 5.166069501982859,
+      "total_rounds": 98,
+      "peak_memory_mb": 5822.6298828125,
+      "speedup": 1.2342021284780753
+    },
+    {
+      "method": "消融组: Tree V2 (D=5, B=2) 无剪枝",
+      "config": {
+        "tree_depth": 5,
+        "branch_factor": 2,
+        "probability_threshold": 0.0,
+        "pruning_enabled": false,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.411588802933693,
+      "tpot_ms": 15.886138435266911,
+      "throughput_tps": 64.17081653279277,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.8466978871834383,
+      "avg_path_length": 5.080187323100631,
+      "total_rounds": 100,
+      "peak_memory_mb": 5834.962890625,
+      "speedup": 0.4822432772678388
+    },
+    {
+      "method": "对照组: Tree V2 (D=6, B=2) 有剪枝(t=0.05)",
+      "config": {
+        "tree_depth": 6,
+        "branch_factor": 2,
+        "probability_threshold": 0.05,
+        "pruning_enabled": true,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.307230290025473,
+      "tpot_ms": 5.4515438104048375,
+      "throughput_tps": 185.4162556339427,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.7945805516644963,
+      "avg_path_length": 5.562063861651474,
+      "total_rounds": 91,
+      "peak_memory_mb": 5822.466796875,
+      "speedup": 1.3934019793865393
+    },
+    {
+      "method": "消融组: Tree V2 (D=6, B=2) 无剪枝",
+      "config": {
+        "tree_depth": 6,
+        "branch_factor": 2,
+        "probability_threshold": 0.0,
+        "pruning_enabled": false,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.303360551595688,
+      "tpot_ms": 29.041523508541285,
+      "throughput_tps": 35.65582991600318,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.7408791448478105,
+      "avg_path_length": 5.186154013934672,
+      "total_rounds": 98,
+      "peak_memory_mb": 5862.4375,
+      "speedup": 0.2679533345755557
+    },
+    {
+      "method": "对照组: Tree V2 (D=7, B=2) 有剪枝(t=0.05)",
+      "config": {
+        "tree_depth": 7,
+        "branch_factor": 2,
+        "probability_threshold": 0.05,
+        "pruning_enabled": true,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 12.434185948222876,
+      "tpot_ms": 5.544964064285159,
+      "throughput_tps": 183.96627151399727,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.725749380982352,
+      "avg_path_length": 5.805995047858816,
+      "total_rounds": 89,
+      "peak_memory_mb": 5822.94140625,
+      "speedup": 1.382505357966248
+    },
+    {
+      "method": "消融组: Tree V2 (D=7, B=2) 无剪枝",
+      "config": {
+        "tree_depth": 7,
+        "branch_factor": 2,
+        "probability_threshold": 0.0,
+        "pruning_enabled": false,
+        "max_tree_nodes": 128
+      },
+      "ttft_ms": 15.149207040667534,
+      "tpot_ms": 49.71075947955251,
+      "throughput_tps": 20.709475714560586,
+      "total_tokens_generated": 500,
+      "acceptance_rate": 0.6556148770889149,
+      "avg_path_length": 5.244919016711319,
+      "total_rounds": 98,
+      "peak_memory_mb": 5861.50634765625,
+      "speedup": 0.15563157800843666
+    }
+  ],
+  "comparison": [
+    {
+      "config": "D=4, B=2",
+      "original_threshold": 0.05,
+      "with_pruning": {
+        "throughput": 164.87179003737194,
+        "speedup": 1.2390104513631468,
+        "acceptance_rate": 0.9326942556036159,
+        "avg_path_length": 4.663471278018077
+      },
+      "without_pruning": {
+        "throughput": 96.23232633652049,
+        "speedup": 0.7231853191071138,
+        "acceptance_rate": 0.9465622421423578,
+        "avg_path_length": 4.732811210711789
+      },
+      "pruning_impact": {
+        "throughput_diff": 68.63946370085145,
+        "throughput_ratio": 1.713268257288326,
+        "acceptance_diff": -0.013867986538741994,
+        "path_length_diff": -0.06933993269371186
+      }
+    },
+    {
+      "config": "D=4, B=2",
+      "original_threshold": 0.03,
+      "with_pruning": {
+        "throughput": 165.13303647730285,
+        "speedup": 1.2409737166942412,
+        "acceptance_rate": 0.9337186673723397,
+        "avg_path_length": 4.668593336861698
+      },
+      "without_pruning": {
+        "throughput": 96.23232633652049,
+        "speedup": 0.7231853191071138,
+        "acceptance_rate": 0.9465622421423578,
+        "avg_path_length": 4.732811210711789
+      },
+      "pruning_impact": {
+        "throughput_diff": 68.90071014078237,
+        "throughput_ratio": 1.715983004503491,
+        "acceptance_diff": -0.012843574770018185,
+        "path_length_diff": -0.06421787385009115
+      }
+    },
+    {
+      "config": "D=5, B=2",
+      "original_threshold": 0.05,
+      "with_pruning": {
+        "throughput": 164.23195943685744,
+        "speedup": 1.2342021284780753,
+        "acceptance_rate": 0.8610115836638099,
+        "avg_path_length": 5.166069501982859
+      },
+      "without_pruning": {
+        "throughput": 64.17081653279277,
+        "speedup": 0.4822432772678388,
+        "acceptance_rate": 0.8466978871834383,
+        "avg_path_length": 5.080187323100631
+      },
+      "pruning_impact": {
+        "throughput_diff": 100.06114290406467,
+        "throughput_ratio": 2.5592935903025498,
+        "acceptance_diff": 0.014313696480371618,
+        "path_length_diff": 0.08588217888222793
+      }
+    },
+    {
+      "config": "D=6, B=2",
+      "original_threshold": 0.05,
+      "with_pruning": {
+        "throughput": 185.4162556339427,
+        "speedup": 1.3934019793865393,
+        "acceptance_rate": 0.7945805516644963,
+        "avg_path_length": 5.562063861651474
+      },
+      "without_pruning": {
+        "throughput": 35.65582991600318,
+        "speedup": 0.2679533345755557,
+        "acceptance_rate": 0.7408791448478105,
+        "avg_path_length": 5.186154013934672
+      },
+      "pruning_impact": {
+        "throughput_diff": 149.76042571793954,
+        "throughput_ratio": 5.200166594656195,
+        "acceptance_diff": 0.05370140681668578,
+        "path_length_diff": 0.3759098477168017
+      }
+    },
+    {
+      "config": "D=7, B=2",
+      "original_threshold": 0.05,
+      "with_pruning": {
+        "throughput": 183.96627151399727,
+        "speedup": 1.382505357966248,
+        "acceptance_rate": 0.725749380982352,
+        "avg_path_length": 5.805995047858816
+      },
+      "without_pruning": {
+        "throughput": 20.709475714560586,
+        "speedup": 0.15563157800843666,
+        "acceptance_rate": 0.6556148770889149,
+        "avg_path_length": 5.244919016711319
+      },
+      "pruning_impact": {
+        "throughput_diff": 163.25679579943667,
+        "throughput_ratio": 8.88319308753204,
+        "acceptance_diff": 0.07013450389343712,
+        "path_length_diff": 0.5610760311474969
+      }
+    }
+  ],
+  "timestamp": "2026-01-04T08:14:22.738016"
+}

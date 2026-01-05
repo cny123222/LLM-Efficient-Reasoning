@@ -1,0 +1,102 @@
+{
+  "experiment_info": {
+    "study": "adaptive_tree_speculative_decoding_pg19",
+    "target_model": "/mnt/disk1/models/pythia-2.8b",
+    "draft_model": "/mnt/disk1/models/pythia-70m",
+    "dataset": "PG-19 (parquet)",
+    "pg19_path": "/mnt/disk1/ljm/LLM-Efficient-Reasoning/data/pg19.parquet",
+    "num_samples": 10,
+    "warmup_runs": 2,
+    "max_prompt_length": 1000
+  },
+  "all_results": [
+    {
+      "method": "Baseline (AR)",
+      "config": {
+        "max_new_tokens": 1000
+      },
+      "throughput_tps": 132.47369659943465,
+      "speedup": 1.0,
+      "ttft_ms": 32.42578860372305,
+      "ttft_std": 28.424449762070353,
+      "tpot_ms": 7.516550556477159,
+      "tpot_std": 0.028512151532224337,
+      "total_time_ms": 7548.976345080882,
+      "total_tokens_generated": 1000,
+      "tokens_per_round": 1.0,
+      "acceptance_rate": 0.0,
+      "avg_path_length": 0.0,
+      "total_rounds": 1000,
+      "high_conf_ratio": 0.0,
+      "early_stops": 0,
+      "deep_expansions": 0,
+      "total_adjustments": 0,
+      "peak_memory_mb": 6001.56689453125,
+      "throughput_std": 0.8427052070342144,
+      "acceptance_std": 0.0,
+      "path_length_std": 0.0
+    },
+    {
+      "method": "Tree Spec Decode (D=5, B=2)",
+      "config": {
+        "max_new_tokens": 1000,
+        "tree_depth": 5,
+        "branch_factor": 2,
+        "max_tree_nodes": 256
+      },
+      "throughput_tps": 174.4571461587843,
+      "speedup": 1.3169191366818764,
+      "ttft_ms": 9.415343683212996,
+      "ttft_std": 0.47660050956659183,
+      "tpot_ms": 5.830571879260242,
+      "tpot_std": 0.7896501568502357,
+      "total_time_ms": 0.0,
+      "total_tokens_generated": 1000,
+      "tokens_per_round": 5.46448087431694,
+      "acceptance_rate": 0.7890498940709004,
+      "avg_path_length": 5.523349258496302,
+      "total_rounds": 183,
+      "high_conf_ratio": 0.0,
+      "early_stops": 0,
+      "deep_expansions": 0,
+      "total_adjustments": 0,
+      "peak_memory_mb": 6151.23828125,
+      "throughput_std": 24.029453000826912,
+      "acceptance_std": 0.09269027554575753,
+      "path_length_std": 0.6488319288203027
+    },
+    {
+      "method": "Adaptive Tree (Phase 3)",
+      "config": {
+        "max_new_tokens": 1000,
+        "base_depth": 5,
+        "max_depth": 9,
+        "high_conf_threshold": 0.9,
+        "low_conf_threshold": 0.4,
+        "min_branch": 1,
+        "max_branch": 3
+      },
+      "throughput_tps": 177.49053543402073,
+      "speedup": 1.3398171862804211,
+      "ttft_ms": 9.055895917117596,
+      "ttft_std": 0.6005842974037974,
+      "tpot_ms": 5.837274041213095,
+      "tpot_std": 1.119633129277455,
+      "total_time_ms": 0.0,
+      "total_tokens_generated": 1000,
+      "tokens_per_round": 5.405405405405405,
+      "acceptance_rate": 0.8138387499401848,
+      "avg_path_length": 5.696871249581294,
+      "total_rounds": 185,
+      "high_conf_ratio": 0.6671971482550362,
+      "early_stops": 561,
+      "deep_expansions": 139,
+      "total_adjustments": 8,
+      "peak_memory_mb": 6150.8916015625,
+      "throughput_std": 35.19141170869435,
+      "acceptance_std": 0.21087155659596662,
+      "path_length_std": 1.4761008961717665
+    }
+  ],
+  "timestamp": "2026-01-05T01:51:19.728169"
+}

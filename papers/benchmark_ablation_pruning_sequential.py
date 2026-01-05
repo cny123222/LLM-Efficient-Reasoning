@@ -281,7 +281,7 @@ class PruningAblationBenchmark:
         print(f"Benchmarking: {method_name}")
         print("="*70)
         
-        from spec_decode.core.tree_speculative_generator import TreeSpeculativeGeneratorV2
+        from spec_decode.core.tree_speculative_generator_sequential import TreeSpeculativeGeneratorV2Sequential as TreeSpeculativeGeneratorV2
         
         metrics = AblationMetrics(
             method=method_name,
