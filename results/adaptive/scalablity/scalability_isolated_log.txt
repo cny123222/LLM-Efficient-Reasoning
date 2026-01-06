@@ -1,0 +1,418 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+
+============================================================
+Running scalability experiment for 100 tokens
+============================================================
+Loading models...
+Loading dataset...
+Downloading data:   0%|          | 0.00/4.72M [00:00<?, ?B/s]Downloading data:  35%|███▍      | 1.63M/4.72M [00:00<00:00, 16.3MB/s]Downloading data: 100%|█████████▉| 4.71M/4.72M [00:00<00:00, 23.0MB/s]Downloading data: 100%|██████████| 4.72M/4.72M [00:00<00:00, 22.0MB/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 4358 examples [00:00, 63193.70 examples/s]
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 7015 examples [00:00, 70012.02 examples/s]Generating train split: 14023 examples [00:00, 70047.30 examples/s]Generating train split: 24695 examples [00:00, 70407.87 examples/s]Generating train split: 31770 examples [00:00, 70517.07 examples/s]Generating train split: 36718 examples [00:00, 70215.30 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 3760 examples [00:00, 69195.93 examples/s]
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/_inductor/compile_fx.py:312: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+W0105 17:27:00.752000 1421507 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:27:00.752000 1421507 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:27:00.752000 1421507 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:27:00.752000 1421507 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:27:00.752000 1421507 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+[1/4] Baseline (AR)...
+  Throughput: 75.7 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:31:18.054000 1436461 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:31:18.054000 1436461 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:31:18.054000 1436461 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:31:18.054000 1436461 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:31:18.054000 1436461 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 200 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 111.6 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:35:15.847000 1446641 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:35:15.847000 1446641 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:35:15.847000 1446641 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:35:15.847000 1446641 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:35:15.847000 1446641 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 300 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 111.7 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:39:32.557000 1455957 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:39:32.557000 1455957 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:39:32.557000 1455957 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:39:32.557000 1455957 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:39:32.557000 1455957 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 500 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 113.8 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:44:28.674000 1466113 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:44:28.674000 1466113 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:44:28.674000 1466113 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:44:28.674000 1466113 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:44:28.674000 1466113 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 750 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 107.7 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:50:12.743000 1477672 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:50:12.743000 1477672 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:50:12.743000 1477672 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:50:12.743000 1477672 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:50:12.743000 1477672 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 1000 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 98.4 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using the latest cached version of the module from /home/ljm/.cache/huggingface/modules/datasets_modules/datasets/wikitext/6280e5a53c82b20da4f99f484fa6f0ca9de738ff12f59efb0815fe7d8ae21478 (last modified on Sat Jan  3 14:36:01 2026) since it couldn't be found locally at wikitext, or remotely on the Hugging Face Hub.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+The attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+W0105 17:56:07.635000 1491096 torch/_dynamo/convert_frame.py:1358] [0/8] torch._dynamo hit config.recompile_limit (8)
+W0105 17:56:07.635000 1491096 torch/_dynamo/convert_frame.py:1358] [0/8]    function: 'wrapper' (/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/transformers/utils/generic.py:912)
+W0105 17:56:07.635000 1491096 torch/_dynamo/convert_frame.py:1358] [0/8]    last reason: 0/6: kwargs['input_ids'].stride()[0] == kwargs['input_ids'].size()[1]  # (unknown source kwargs['input_ids'].stride()[0], please file a bug)
+W0105 17:56:07.635000 1491096 torch/_dynamo/convert_frame.py:1358] [0/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0105 17:56:07.635000 1491096 torch/_dynamo/convert_frame.py:1358] [0/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html
+
+============================================================
+Running scalability experiment for 1500 tokens
+============================================================
+Loading models...
+Loading dataset...
+
+[1/4] Baseline (AR)...
+  Throughput: 113.9 t/s
+
+[2/4] Linear Spec (K=5)...
+Traceback (most recent call last):
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 353, in <module>
+    results = run_experiment(token_length, num_samples, warmup_runs, max_prompt_length)
+  File "/mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/_isolated_experiment.py", line 155, in run_experiment
+    output, stats = generator.generate(prompt, max_new_tokens=token_length, return_stats=True)
+  File "/mnt/disk1/ljm/llm-inference/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+TypeError: SpeculativeGenerator.generate() got an unexpected keyword argument 'return_stats'
+================================================================================
+SCALABILITY EXPERIMENT - ISOLATED PROCESSES
+================================================================================
+CUDA Device: 0
+Token lengths: [100, 200, 300, 500, 750, 1000, 1500]
+Samples per config: 10
+Warmup runs: 2
+================================================================================
+
+############################################################
+# Starting isolated process for 100 tokens
+############################################################
+Error running experiment for 100 tokens
+
+############################################################
+# Starting isolated process for 200 tokens
+############################################################
+Error running experiment for 200 tokens
+
+############################################################
+# Starting isolated process for 300 tokens
+############################################################
+Error running experiment for 300 tokens
+
+############################################################
+# Starting isolated process for 500 tokens
+############################################################
+Error running experiment for 500 tokens
+
+############################################################
+# Starting isolated process for 750 tokens
+############################################################
+Error running experiment for 750 tokens
+
+############################################################
+# Starting isolated process for 1000 tokens
+############################################################
+Error running experiment for 1000 tokens
+
+############################################################
+# Starting isolated process for 1500 tokens
+############################################################
+Error running experiment for 1500 tokens
+
+================================================================================
+EXPERIMENT COMPLETE
+================================================================================
+Results saved to: /mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/scalability_isolated_20260105_175610.json
+CSV saved to: /mnt/disk1/ljm/LLM-Efficient-Reasoning/results/adaptive/scalablity/scalability_isolated_20260105_175610.csv
+
+------------------------------------------------------------
+SUMMARY
+------------------------------------------------------------
+Tokens   Method                    Throughput      Speedup   
+------------------------------------------------------------

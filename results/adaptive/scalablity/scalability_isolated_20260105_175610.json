@@ -1,0 +1,17 @@
+{
+  "experiment": "scalability_isolated",
+  "cuda_device": "0",
+  "token_lengths": [
+    100,
+    200,
+    300,
+    500,
+    750,
+    1000,
+    1500
+  ],
+  "num_samples": 10,
+  "warmup_runs": 2,
+  "timestamp": "20260105_175610",
+  "results": []
+}
