@@ -451,6 +451,16 @@ AR & 133.5\(\pm\)0.6 & 1.00\(\times\) & 0.0\% \\
   \label{fig:parameter-sensitivity}
 \end{figure}
 
+\subsection{Fixed-tree Hyperparameter Sweep}
+We perform a fixed-tree hyperparameter sweep under the same evaluation protocol as our main benchmark to ensure the static-tree baseline is reasonably tuned. Figure~\ref{fig:fixed-tree-sweep} summarizes the sweep over depth \(D\), branching factor \(B\), and pruning threshold \(\tau\) on WikiText-2 at \(T=1500\).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/fixed_tree_sweep.pdf}
+  \caption{\textbf{Fixed-tree hyperparameter sweep under the paper protocol (WikiText-2, \(T=1500\)).} Speedup is computed relative to autoregressive decoding under the same setting. Stars indicate the best configuration observed in the sweep.}
+  \label{fig:fixed-tree-sweep}
+\end{figure}
+
 \subsection{Prompt Length Sensitivity}
 We evaluate the impact of input context length by varying the maximum prompt length \(L_{\max}\) on WikiText-2 under the same \(T=1500\) generation setting as the main benchmark. Figure~\ref{fig:prompt-length-sensitivity} reports throughput and speedup as functions of \(L_{\max}\), illustrating how speculative decoding performance changes as prefill cost increases.
 
