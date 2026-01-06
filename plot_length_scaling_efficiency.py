@@ -81,7 +81,9 @@ def main() -> None:
             v = t / 1000.0
             return f"{v:g}k"
         return str(t)
-    xticklabels = [fmt_T(t) for t in lengths]
+    # Avoid crowded labels in the 1k+ region: keep ticks but hide some labels.
+    show_labels = {100, 200, 300, 500, 1000, 1800}
+    xticklabels = [fmt_T(t) if t in show_labels else "" for t in lengths]
 
     # (a) tokens/iter
     ax = axes[0]
@@ -101,7 +103,7 @@ def main() -> None:
     ax.set_ylabel(r"$\bar{L}$ (tokens/iter)", fontsize=11)
     ax.set_xscale("log")
     ax.set_xticks(lengths)
-    ax.set_xticklabels(xticklabels, fontsize=9)
+    ax.set_xticklabels(xticklabels, fontsize=8)
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
     ax.legend(loc="upper left", frameon=True, framealpha=0.95, edgecolor="#999999", fontsize=9)
     ymax = max(max(v) for v in lbar.values()) * 1.15
@@ -124,7 +126,7 @@ def main() -> None:
     ax.set_ylabel(r"$\bar{\ell}$ (tokens)", fontsize=11)
     ax.set_xscale("log")
     ax.set_xticks(lengths)
-    ax.set_xticklabels(xticklabels, fontsize=9)
+    ax.set_xticklabels(xticklabels, fontsize=8)
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
     # Avoid warnings from the AR masked series (all-NaN).
     ymax = np.nanmax([np.nanmax(v) for k, v in ellbar.items() if k != "Baseline (AR)"]) * 1.15
@@ -147,7 +149,7 @@ def main() -> None:
     ax.set_ylabel("Accept. (%)", fontsize=11)
     ax.set_xscale("log")
     ax.set_xticks(lengths)
-    ax.set_xticklabels(xticklabels, fontsize=9)
+    ax.set_xticklabels(xticklabels, fontsize=8)
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
     # Avoid warnings from the AR masked series (all-NaN).
     ax.set_ylim(0, min(110, np.nanmax([np.nanmax(v) for k, v in acc.items() if k != "Baseline (AR)"]) * 1.10))
