@@ -373,16 +373,16 @@ We provide a progressive ablation on WikiText-2 under the same \(T=1500\) settin
 
 \begin{table}[tbp]
 \centering
-\caption{\textbf{Ablation-style progressive comparison on WikiText-2 (\(T=1500\)).} We compare a tuned fixed tree (\(D=8,B=3,\tau=0.1\)) with variants that add Dynamic Breadth \& Depth and History Adaptation. Speedup is computed relative to the autoregressive baseline.}
+\caption{\textbf{Ablation-style progressive comparison on WikiText-2 (\(T=1500\)).} We compare a fixed tree (\(D_0=5,B=2\)) with variants that add Dynamic Breadth \& Depth and History Adaptation. Speedup is computed relative to the autoregressive baseline.}
 \label{tab:ablation}
 \small
 \begin{tabular}{lccc}
     \toprule
 Variant & Throughput (t/s) & Speedup & \(\Delta\) vs Fixed \\
     \midrule
-Fixed Tree (\(D=8,B=3,\tau=0.1\)) & 200.7\(\pm\)41.7 & 1.50\(\times\) & 0.0\% \\
-+ Dynamic Breadth \& Depth & 214.2\(\pm\)25.5 & 1.61\(\times\) & +6.7\% \\
-\textbf{+ History Adaptation} & \textbf{219.5\(\pm\)22.2} & \textbf{1.64\(\times\)} & \textbf{+9.4\%} \\
+Fixed Tree (\(D_0=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
++ Dynamic Breadth \& Depth & 213.2\(\pm\)26.1 & 1.61\(\times\) & +13.4\% \\
+\textbf{+ History Adaptation} & \textbf{218.5\(\pm\)22.2} & \textbf{1.65\(\times\)} & \textbf{+16.2\%} \\
     \bottomrule
   \end{tabular}
 \end{table}
