@@ -1,0 +1,223 @@
+{
+  "config": {
+    "target_model": "/mnt/disk1/models/pythia-2.8b",
+    "draft_model": "/mnt/disk1/models/pythia-70m",
+    "dataset": "WikiText-2 (ModelScope)",
+    "protocol": "Paper Protocol",
+    "depths": [
+      4,
+      5,
+      6
+    ],
+    "branches": [
+      2,
+      3
+    ],
+    "thresholds": [
+      0.02,
+      0.05
+    ],
+    "max_new_tokens": 100,
+    "num_runs": 1,
+    "num_prompts": 2,
+    "prompt_length": 800,
+    "timestamp": "20260106_041258"
+  },
+  "baseline": {
+    "throughput": 44.002502478970285
+  },
+  "prompts": [
+    {
+      "length": 693,
+      "preview": "Homarus gammarus , known as the European lobster or common lobster , is a species of <unk> lobster f"
+    },
+    {
+      "length": 800,
+      "preview": "Homarus gammarus is a large <unk> , with a body length up to 60 centimetres ( 24 in ) and weighing u"
+    }
+  ],
+  "results": [
+    {
+      "depth": 4,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 35.619219517276385,
+      "speedup": 0.8094816774182231,
+      "avg_path_length": 2.4390243902439024,
+      "acceptance_rate": 0.4065040650406504,
+      "total_rounds": 41.0,
+      "ttft": 0.06847495322183865,
+      "tpot": 0.028074730820953846,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 45.55404347081589,
+      "speedup": 1.0352602898570853,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.3968253968253968,
+      "total_rounds": 42.0,
+      "ttft": 0.052266543198909075,
+      "tpot": 0.021951948143541813,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 82.86117216824499,
+      "speedup": 1.8831013578794995,
+      "avg_path_length": 5.555555555555555,
+      "acceptance_rate": 0.9259259259259259,
+      "total_rounds": 18.0,
+      "ttft": 0.06704654798118605,
+      "tpot": 0.012068378636613489,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 47.48560546327424,
+      "speedup": 1.079156929448924,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.3968253968253968,
+      "total_rounds": 42.0,
+      "ttft": 0.05014050800708078,
+      "tpot": 0.02105901336297393,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 44.67976122659182,
+      "speedup": 1.0153913688873766,
+      "avg_path_length": 2.4390243902439024,
+      "acceptance_rate": 0.34843205574912894,
+      "total_rounds": 41.0,
+      "ttft": 0.054589020247321304,
+      "tpot": 0.022381498301401733,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 48.27838509631024,
+      "speedup": 1.0971736236906864,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.3401360544217687,
+      "total_rounds": 42.0,
+      "ttft": 0.04931715044326016,
+      "tpot": 0.020713203186169267,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 94.64738212651545,
+      "speedup": 2.150954532000752,
+      "avg_path_length": 6.25,
+      "acceptance_rate": 0.8928571428571429,
+      "total_rounds": 16.0,
+      "ttft": 0.06603457866003737,
+      "tpot": 0.01056553258560598,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 47.32144747024601,
+      "speedup": 1.0754262781500192,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.3401360544217687,
+      "total_rounds": 42.0,
+      "ttft": 0.050314445314662795,
+      "tpot": 0.021132067032158374,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 73.92403856183151,
+      "speedup": 1.67999623651317,
+      "avg_path_length": 2.4390243902439024,
+      "acceptance_rate": 0.3048780487804878,
+      "total_rounds": 41.0,
+      "ttft": 0.03299365724187072,
+      "tpot": 0.013527399469166994,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 94.90908502675198,
+      "speedup": 2.1569019869292894,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.2976190476190476,
+      "total_rounds": 42.0,
+      "ttft": 0.025086664572535528,
+      "tpot": 0.010536399120464921,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 179.3744881064178,
+      "speedup": 4.076461064734775,
+      "avg_path_length": 6.666666666666667,
+      "acceptance_rate": 0.8333333333333334,
+      "total_rounds": 15.0,
+      "ttft": 0.03716619201004505,
+      "tpot": 0.0055749288015067575,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 93.53666750133515,
+      "speedup": 2.125712453423263,
+      "avg_path_length": 2.380952380952381,
+      "acceptance_rate": 0.2976190476190476,
+      "total_rounds": 42.0,
+      "ttft": 0.025454748865394367,
+      "tpot": 0.010690994523465634,
+      "baseline_throughput": 44.002502478970285,
+      "success": true
+    }
+  ],
+  "best_overall": {
+    "depth": 6,
+    "branch": 3,
+    "threshold": 0.02,
+    "throughput": 179.3744881064178,
+    "speedup": 4.076461064734775,
+    "avg_path_length": 6.666666666666667,
+    "acceptance_rate": 0.8333333333333334,
+    "total_rounds": 15.0,
+    "ttft": 0.03716619201004505,
+    "tpot": 0.0055749288015067575,
+    "baseline_throughput": 44.002502478970285,
+    "success": true
+  }
+}

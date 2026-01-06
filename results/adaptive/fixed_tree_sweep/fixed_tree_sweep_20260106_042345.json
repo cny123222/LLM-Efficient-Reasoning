@@ -1,0 +1,255 @@
+{
+  "config": {
+    "target_model": "/mnt/disk1/models/pythia-2.8b",
+    "draft_model": "/mnt/disk1/models/pythia-70m",
+    "dataset": "WikiText-2 (ModelScope)",
+    "protocol": "Paper Protocol",
+    "depths": [
+      4,
+      5,
+      6
+    ],
+    "branches": [
+      2,
+      3
+    ],
+    "thresholds": [
+      0.02,
+      0.05
+    ],
+    "max_new_tokens": 1500,
+    "num_runs": 2,
+    "num_prompts": 10,
+    "prompt_length": 800,
+    "timestamp": "20260106_042345"
+  },
+  "baseline": {
+    "throughput": 120.28859134634766
+  },
+  "prompts": [
+    {
+      "length": 693,
+      "preview": "Homarus gammarus , known as the European lobster or common lobster , is a species of <unk> lobster f"
+    },
+    {
+      "length": 800,
+      "preview": "Homarus gammarus is a large <unk> , with a body length up to 60 centimetres ( 24 in ) and weighing u"
+    },
+    {
+      "length": 800,
+      "preview": "Female H. gammarus reach sexual maturity when they have grown to a carapace length of 80 \u2013 85 millim"
+    },
+    {
+      "length": 800,
+      "preview": "Homarus gammarus is found across the north @-@ eastern Atlantic Ocean from northern Norway to the Az"
+    },
+    {
+      "length": 800,
+      "preview": "Adult H. gammarus live on the continental shelf at depths of 0 \u2013 150 metres ( 0 \u2013 <unk> ft ) , altho"
+    },
+    {
+      "length": 800,
+      "preview": "Homarus gammarus is traditionally \" highly esteemed \" as a <unk> and was mentioned in \" The <unk> \" "
+    },
+    {
+      "length": 800,
+      "preview": "Homarus gammarus was first given a binomial name by Carl Linnaeus in the tenth edition of his System"
+    },
+    {
+      "length": 800,
+      "preview": "Air Vice Marshal Frank <unk> , CB , CBE ( 15 July 1914 \u2013 23 December 1976 ) was a senior commander i"
+    },
+    {
+      "length": 800,
+      "preview": "The son of farmers Malcolm and Hilda <unk> , Frank <unk> was born on 15 July 1914 in <unk> , Tasmani"
+    },
+    {
+      "length": 800,
+      "preview": "Following the outbreak of World War II , No. 1 Squadron was engaged in convoy escort and maritime re"
+    }
+  ],
+  "results": [
+    {
+      "depth": 4,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 160.10369056630375,
+      "speedup": 1.330996470856627,
+      "avg_path_length": 5.2368940557139725,
+      "acceptance_rate": 0.8728156759523287,
+      "total_rounds": 286.5,
+      "ttft": 0.03270925168078272,
+      "tpot": 0.006245952679465214,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 172.8079959879954,
+      "speedup": 1.4366116857286018,
+      "avg_path_length": 5.291416768285096,
+      "acceptance_rate": 0.8819027947141826,
+      "total_rounds": 283.5,
+      "ttft": 0.030690736597632128,
+      "tpot": 0.005797861814498901,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 167.73873567509798,
+      "speedup": 1.3944691994282885,
+      "avg_path_length": 5.353978408134026,
+      "acceptance_rate": 0.8923297346890042,
+      "total_rounds": 284.0,
+      "ttft": 0.032286040878429324,
+      "tpot": 0.006158089693946143,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 4,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 174.32374074133958,
+      "speedup": 1.449212587745817,
+      "avg_path_length": 5.210594876248372,
+      "acceptance_rate": 0.8684324793747286,
+      "total_rounds": 288.0,
+      "ttft": 0.029907130871127438,
+      "tpot": 0.005744020230757693,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 185.62820495138604,
+      "speedup": 1.5431904461904091,
+      "avg_path_length": 6.012241357152037,
+      "acceptance_rate": 0.8588916224502909,
+      "total_rounds": 249.5,
+      "ttft": 0.03249655653336249,
+      "tpot": 0.005407038589629034,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 191.5438586378475,
+      "speedup": 1.5923692886745522,
+      "avg_path_length": 5.828956899674031,
+      "acceptance_rate": 0.8327081285248616,
+      "total_rounds": 257.5,
+      "ttft": 0.03042716997367293,
+      "tpot": 0.005221095428181191,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 163.41631883812863,
+      "speedup": 1.3585354771310194,
+      "avg_path_length": 5.602904040404041,
+      "acceptance_rate": 0.8004148629148629,
+      "total_rounds": 284.0,
+      "ttft": 0.03605487043352959,
+      "tpot": 0.0070473573782170815,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 5,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 193.76222337163165,
+      "speedup": 1.6108113097253831,
+      "avg_path_length": 5.9296875,
+      "acceptance_rate": 0.8470982142857142,
+      "total_rounds": 253.0,
+      "ttft": 0.03060256558339461,
+      "tpot": 0.005160970241452257,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 2,
+      "threshold": 0.02,
+      "throughput": 195.09102146411936,
+      "speedup": 1.6218580605237334,
+      "avg_path_length": 6.593693241102137,
+      "acceptance_rate": 0.8242116551377672,
+      "total_rounds": 227.5,
+      "ttft": 0.03389246179430727,
+      "tpot": 0.005142037700551251,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 2,
+      "threshold": 0.05,
+      "throughput": 198.1648626084804,
+      "speedup": 1.6474119481364873,
+      "avg_path_length": 6.550718004462498,
+      "acceptance_rate": 0.8188397505578122,
+      "total_rounds": 229.0,
+      "ttft": 0.033099604664154056,
+      "tpot": 0.005054610514392455,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 3,
+      "threshold": 0.02,
+      "throughput": 182.44040965612908,
+      "speedup": 1.5166892189370422,
+      "avg_path_length": 6.606942889137738,
+      "acceptance_rate": 0.8258678611422172,
+      "total_rounds": 236.0,
+      "ttft": 0.037356272830477336,
+      "tpot": 0.005996827308709422,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    },
+    {
+      "depth": 6,
+      "branch": 3,
+      "threshold": 0.05,
+      "throughput": 202.33493960643017,
+      "speedup": 1.682079217503229,
+      "avg_path_length": 6.637687969924812,
+      "acceptance_rate": 0.8297109962406015,
+      "total_rounds": 226.0,
+      "ttft": 0.03280838749988266,
+      "tpot": 0.004943394022062421,
+      "baseline_throughput": 120.28859134634766,
+      "success": true
+    }
+  ],
+  "best_overall": {
+    "depth": 6,
+    "branch": 3,
+    "threshold": 0.05,
+    "throughput": 202.33493960643017,
+    "speedup": 1.682079217503229,
+    "avg_path_length": 6.637687969924812,
+    "acceptance_rate": 0.8297109962406015,
+    "total_rounds": 226.0,
+    "ttft": 0.03280838749988266,
+    "tpot": 0.004943394022062421,
+    "baseline_throughput": 120.28859134634766,
+    "success": true
+  }
+}
