@@ -293,7 +293,7 @@ Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-
 
 \begin{table}[tbp]
 \centering
-\caption{\textbf{Main results (\(T=1500\)).} Throughput (t/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup).}
+\caption{\textbf{Main results (\(T=1500\)).} Throughput (t/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup). For linear speculation, we use \(K=8\) on WikiText-2 and \(K=5\) on PG-19.}
 \label{tab:main-results}
 \small
 \begin{tabular}{lcccc}
@@ -302,10 +302,10 @@ Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 & Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
 \midrule
-AR & 133.4\(\pm\)0.5 & 1.00\(\times\) & 133.7\(\pm\)0.7 & 1.00\(\times\) \\
-Linear Spec (\(K=8\)) & 196.1\(\pm\)37.8 & 1.47\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
-Fixed Tree (\(D=8,B=3,\tau=0.1\)) & 200.7\(\pm\)41.7 & 1.50\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
-\textbf{DynaTree} & \textbf{219.5\(\pm\)22.2} & \textbf{1.64\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
+AR & 133.4\(\pm\)0.5 & 1.00\(\times\) & 114.8\(\pm\)20.6 & 1.00\(\times\) \\
+Linear Spec & 196.1\(\pm\)37.8 & 1.47\(\times\) & 144.9\(\pm\)28.6 & 1.26\(\times\) \\
+Fixed Tree (\(D=8,B=3,\tau=0.1\)) & 200.7\(\pm\)41.7 & 1.50\(\times\) & 185.5\(\pm\)33.2 & 1.62\(\times\) \\
+\textbf{DynaTree} & \textbf{219.5\(\pm\)22.2} & \textbf{1.64\(\times\)} & \textbf{194.9\(\pm\)35.6} & \textbf{1.70\(\times\)} \\
 \bottomrule
 \end{tabular}
 \end{table}
