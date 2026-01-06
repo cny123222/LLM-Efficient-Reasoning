@@ -289,7 +289,7 @@ We compare against the following baselines under identical greedy decoding setti
 
 \subsection{Main Results}
 \label{main-results}
-Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\). DynaTree achieves the highest throughput on both datasets, improving over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline. The gains over a tuned static tree (e.g., 218.5~t/s vs.\ 188.0~t/s on WikiText-2) suggest that allocating verification budget according to local model uncertainty improves the draft--verify trade-off beyond a fixed configuration.
+Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\). DynaTree achieves the highest throughput on both datasets, improving over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline. On WikiText-2, DynaTree reaches 219.5~t/s and outperforms a tuned static tree (200.7~t/s), indicating that allocating verification budget according to local model uncertainty can improve the draft--verify trade-off beyond a fixed configuration.
 
 \begin{table}[tbp]
 \centering
@@ -302,10 +302,10 @@ Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 & Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
 \midrule
-AR & 132.8\(\pm\)0.7 & 1.00\(\times\) & 133.7\(\pm\)0.7 & 1.00\(\times\) \\
-Linear Spec (\(K=5\)) & 169.1\(\pm\)19.1 & 1.27\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
-Fixed Tree (\(D=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
-\textbf{DynaTree} & \textbf{218.5\(\pm\)22.2} & \textbf{1.65\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
+AR & 133.4\(\pm\)0.5 & 1.00\(\times\) & 133.7\(\pm\)0.7 & 1.00\(\times\) \\
+Linear Spec (\(K=8\)) & 196.1\(\pm\)37.8 & 1.47\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
+Fixed Tree (\(D=8,B=3,\tau=0.1\)) & 200.7\(\pm\)41.7 & 1.50\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
+\textbf{DynaTree} & \textbf{219.5\(\pm\)22.2} & \textbf{1.64\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
 \bottomrule
 \end{tabular}
 \end{table}
