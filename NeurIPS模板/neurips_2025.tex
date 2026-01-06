@@ -447,12 +447,12 @@ Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), m
 Some auxiliary result files include a placeholder \texttt{speedup} field. Throughout this appendix, we compute speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
 
 \subsection{Parameter Sensitivity}
-We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Figure~\ref{fig:parameter-sensitivity} summarizes the sweep as throughput heatmaps; blank cells correspond to parameter pairs that were not evaluated.
+We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Since the sweep does not enumerate a full Cartesian grid for every parameter pair, we visualize thresholds as a sparse 2D scatter and use mean\(\pm\)std plots for breadth and depth.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{../figures/parameter_sensitivity.pdf}
-\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} Heatmaps show throughput (tokens/s) as a function of (a) confidence thresholds \((\tau_h,\tau_\ell)\), (b) branch bounds \((B_{\min},B_{\max})\), and (c) depth bounds \((D_0,D_{\max})\). Each panel annotates the autoregressive and fixed-tree throughputs measured in the same sweep run; untested parameter pairs are shown as blank cells.}
+\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} \textbf{(a)} Threshold sweep shown as a sparse 2D scatter over \((\tau_h,\tau_\ell)\), colored by throughput (tokens/s). \textbf{(b--c)} Breadth and depth sweeps shown as throughput mean\(\pm\)std across tested pair configurations. Horizontal lines denote the autoregressive and fixed-tree baselines measured in the same sweep run.}
   \label{fig:parameter-sensitivity}
 \end{figure}
 
