@@ -50,7 +50,7 @@
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage{hyperref}       % hyperlinks
+\usepackage[hypertexnames=false]{hyperref}       % hyperlinks (avoid duplicate destination warnings)
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{multirow}       % multirow cells in tables
@@ -254,29 +254,29 @@ Let \(n=|\mathcal{N}|\le N_{\max}\) be the number of drafted nodes. Drafting req
 
 \subsection{Experimental Setup}
 \paragraph{Models.}
-We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our target model \(M_T\) is Pythia-2.8B (2.8 billion parameters), and our draft model \(M_D\) is Pythia-70M (70 million parameters). All experiments use deterministic greedy decoding, ensuring that the output sequence is uniquely determined by the model and prefix.
+We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our target model \(M_T\) is Pythia-2.8B (2.8B parameters) and our draft model \(M_D\) is Pythia-70M (70M parameters). Throughout, we use deterministic greedy decoding so the generated sequence is uniquely determined by the model and prefix.
 
 \paragraph{Hardware and software.}
-All experiments are conducted on a single NVIDIA GPU with sufficient memory to accommodate both models simultaneously. We implement DynaTree in PyTorch~\cite{pytorch} using the HuggingFace Transformers library~\cite{transformers} for model loading and inference, leveraging dynamic key-value cache structures to minimize memory overhead during tree verification.
+All experiments run on a single NVIDIA GPU with sufficient memory to host both models. We implement DynaTree in PyTorch~\cite{pytorch} on top of HuggingFace Transformers~\cite{transformers}. Across methods, we reuse KV caches where appropriate and synchronize GPU execution for timing to ensure a consistent measurement protocol.
 
 \paragraph{Workloads and data preprocessing.}
-Our primary benchmarks use WikiText-2~\citep{merity2016pointer} and PG-19~\citep{rae2019compressive}. For each sampled prompt, we generate \(T\) new tokens using greedy decoding, where \(T=1500\) for the main results (Section~\ref{main-results}). We truncate prompts to a maximum length \(L_{\max}\) to control prefill cost, using \(L_{\max}=800\) for WikiText-2 and \(L_{\max}=1000\) for PG-19. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup; we report the mean and standard deviation over the remaining runs. To ensure fair comparison, we synchronize GPU execution and reset cached states between methods. Full experimental configurations are summarized in Appendix~\ref{app:exp-config}.
+We report results on WikiText-2~\citep{merity2016pointer} and PG-19~\citep{rae2019compressive}. For each sampled prompt, we generate \(T\) new tokens with greedy decoding; unless stated otherwise, \(T=1500\). To control prefill cost, prompts are truncated to a maximum length \(L_{\max}\) (\(L_{\max}=800\) for WikiText-2 and \(L_{\max}=1000\) for PG-19). We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup, reporting mean and standard deviation over the remaining runs. Appendix~\ref{app:exp-config} summarizes the common configurations.
 
 \subsection{Evaluation Metrics}
-We report \textbf{throughput} (tokens per second) as the primary metric, computed as \(T\) divided by the wall-clock decoding time (excluding warmup). We additionally report \textbf{speedup} relative to autoregressive decoding, i.e., \(\mathrm{speedup}=\mathrm{TPS}/\mathrm{TPS}_{\mathrm{AR}}\). To characterize verification efficiency, we measure the \textbf{acceptance rate} \(a\), defined as the fraction of drafted tokens that match the target model's greedy predictions under the corresponding conditioning contexts, and the average \textbf{tokens per iteration} \(\bar{L}\), i.e., the number of committed tokens per verification round. We also report \textbf{average path length} \(\bar{\ell}\) (the mean depth of the greedy-consistent committed path before the bonus token) to reflect how far each verification step progresses. For latency, we include \textbf{time-to-first-token} (TTFT) and \textbf{time-per-output-token} (TPOT), averaged over prompts.
+We use \textbf{throughput} (tokens/s) as the primary metric, computed as \(T\) divided by the wall-clock decoding time (excluding warmup). We report \textbf{speedup} relative to autoregressive decoding, \(\mathrm{speedup}=\mathrm{TPS}/\mathrm{TPS}_{\mathrm{AR}}\), under the same dataset and prompt-length cap. To characterize verification efficiency, we report the \textbf{acceptance rate} \(a\) (fraction of drafted tokens matching the target model's greedy predictions under the corresponding conditioning contexts) and the average \textbf{tokens per iteration} \(\bar{L}\) (tokens committed per verification round). For tree-based methods, we additionally report the \textbf{average committed path length} \(\bar{\ell}\) (mean depth of the greedy-consistent committed path before the bonus token). For latency, we include \textbf{time-to-first-token} (TTFT) and \textbf{time-per-output-token} (TPOT), averaged over prompts.
 
 \subsection{Baselines}
-We compare the proposed confidence-aware adaptive decoding against the following baselines and variants under identical greedy decoding settings:
+We compare against the following baselines under identical greedy decoding settings:
 \begin{itemize}
   \item \textbf{Autoregressive (AR):} Standard greedy decoding with the target model, serving as the performance baseline.
   \item \textbf{Linear speculative decoding:} A linear-chain speculative decoder that drafts \(K\) tokens with the draft model and verifies them with the target model in parallel, committing the longest greedy-consistent prefix~\citep{leviathan2023fast}.
   \item \textbf{Fixed Tree:} A static tree speculative decoder with fixed depth \(D\), fixed branching factor \(B\), and node budget \(N_{\max}\), representing a non-adaptive tree baseline.
-  \item \textbf{DynaTree:} Our final method, which adds three adaptive components on top of the fixed-tree backbone: Phase~1 (Dynamic Breadth), Phase~2 (Dynamic Depth), and Phase~3 (History Adaptation).
+  \item \textbf{DynaTree:} Our full method that augments the fixed-tree backbone with (i)~\emph{Dynamic Breadth}, (ii)~\emph{Dynamic Depth}, and (iii)~\emph{History Adaptation}. We ablate these components in Section~\ref{sec:ablation}.
 \end{itemize}
 
 \subsection{Main Results}
 \label{main-results}
-Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\) token generation. Across both datasets, DynaTree yields the highest throughput and improves over both autoregressive decoding and linear speculative decoding. Compared with a fixed tree, DynaTree provides an additional gain on both datasets (e.g., 218.5~t/s vs.\ 188.0~t/s on WikiText-2), indicating that adapting the draft structure to local model uncertainty improves the draft--verify trade-off beyond a static configuration.
+Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\). DynaTree achieves the highest throughput on both datasets, improving over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline. The gains over a tuned static tree (e.g., 218.5~t/s vs.\ 188.0~t/s on WikiText-2) suggest that allocating verification budget according to local model uncertainty improves the draft--verify trade-off beyond a fixed configuration.
 
 \begin{table}[t]
 \centering
@@ -297,10 +297,10 @@ Fixed Tree (\(D=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 183.7\(\pm\)24.8 
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:main-results} visualizes the throughput and speedup comparison. Linear speculative decoding can achieve high acceptance but is fragile to early mismatches: once a divergence occurs, the remaining drafted tokens in the chain cannot be reused. Tree-based drafting mitigates this failure mode by exploring multiple continuations in parallel and committing the longest greedy-consistent prefix. DynaTree further concentrates the verification budget on high-confidence regions while limiting wasted expansion in uncertain regions, improving throughput across both datasets.
+Figure~\ref{fig:main-results} visualizes throughput and speedup. Linear speculative decoding can attain high acceptance when the draft closely matches the target; however, a mismatch truncates the reusable prefix and wastes the remaining drafted tokens in the chain. Tree-based drafting mitigates this failure mode by exploring multiple continuations in parallel and committing the longest greedy-consistent prefix. DynaTree further concentrates the node budget on high-confidence regions while limiting expansion in uncertain regions, improving throughput across both datasets.
 
 \paragraph{Latency breakdown analysis.}
-Table~\ref{tab:latency-metrics} reports TTFT and TPOT on both datasets for \(T=1500\). Across datasets, speculative decoding reduces TTFT relative to autoregressive decoding, and DynaTree achieves the lowest TPOT by committing longer prefixes per verification step.
+Table~\ref{tab:latency-metrics} reports TTFT and TPOT for \(T=1500\). Across datasets, speculative decoding reduces TTFT relative to autoregressive decoding by amortizing verification over multiple tokens, and DynaTree achieves the lowest TPOT by committing longer prefixes per verification step.
 
 \begin{table}[t]
 \centering
@@ -322,7 +322,7 @@ Fixed Tree (\(D=5,B=2\)) & 15.0\(\pm\)3.9 & 5.35\(\pm\)0.50 & 10.4\(\pm\)0.4 & 5
 \end{table}
 
 \paragraph{Verification efficiency.}
-To contextualize throughput gains, Table~\ref{tab:verification-efficiency} reports auxiliary verification statistics on both datasets: tokens committed per verification round, average committed path length, and the number of verification rounds required to generate \(T=1500\) tokens. Tree-based methods commit longer prefixes per step and therefore require fewer rounds than autoregressive decoding; DynaTree further reduces rounds by allocating more verification budget to high-confidence regions.
+To contextualize throughput gains, Table~\ref{tab:verification-efficiency} reports auxiliary verification statistics: tokens committed per verification round (\(\bar{L}\)), average committed path length (\(\bar{\ell}\)), and the number of verification rounds required to generate \(T=1500\) tokens. Tree-based methods commit longer prefixes per step and thus require fewer rounds than autoregressive decoding; DynaTree further reduces the number of rounds by adapting the draft structure to recent verification outcomes.
 
 \begin{table}[t]
 \centering
@@ -353,7 +353,7 @@ Fixed Tree (\(D=5,B=2\)) & 82.6\% & 5.75 & 5.78 & 261 & 82.9\% & 5.75 & 5.80 & 2
 
 \subsection{Ablation Study}
 \label{sec:ablation}
-We provide a progressive ablation on WikiText-2 under the same \(T=1500\) setting as the main benchmark, isolating the contribution of each adaptive component relative to a fixed-tree backbone. In this regime, adapting breadth alone can introduce control overhead without reliably increasing the committed prefix length, whereas dynamic depth control more directly increases per-iteration progress and yields the dominant throughput gain. Table~\ref{tab:ablation} therefore reports the combined effect of \emph{Dynamic Breadth \& Depth}, followed by the additional improvement from \emph{History Adaptation}, which stabilizes the draft configuration by reacting to recent verification outcomes.
+We provide a progressive ablation on WikiText-2 under the same \(T=1500\) setting as the main benchmark, isolating the contribution of each adaptive component relative to a fixed-tree backbone. In this regime, adapting breadth alone may introduce control overhead without reliably increasing the committed prefix length, whereas dynamic depth control more directly increases per-iteration progress and yields the dominant throughput gain. Table~\ref{tab:ablation} therefore reports the combined effect of \emph{Dynamic Breadth \& Depth}, followed by the additional improvement from \emph{History Adaptation}, which stabilizes the configuration by reacting to recent verification outcomes.
 
 \begin{table}[t]
 \centering
@@ -380,7 +380,7 @@ Fixed Tree (\(D_0=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
 
 \subsection{Sequence Length Scaling}
 \label{sec:length-scaling}
-We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree configuration, and DynaTree. Figure~\ref{fig:length-scaling} summarizes the throughput trends across \(T\).
+We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree baseline, and DynaTree. Figure~\ref{fig:length-scaling} summarizes throughput trends across \(T\). Figure~\ref{fig:length-scaling-efficiency} further decomposes these trends via \(\bar{L}\), \(\bar{\ell}\), and acceptance rate, illustrating how per-iteration progress and verification success vary with generation length.
 
 \begin{figure}[t]
   \centering
@@ -401,30 +401,37 @@ We place supplementary parameter sensitivity analyses in Appendix~\ref{app:addit
 
 
 \section{Conclusion}
-We presented DynaTree, a greedy-consistent tree-based speculative decoding method that drafts a candidate token tree and verifies all nodes in a single target-model pass via a structured attention mask. The key contribution is an adaptive drafting strategy that allocates verification budget to likely regions of the search space through dynamic breadth and depth control, and further stabilizes the configuration through lightweight history-based adjustment. On WikiText-2 and PG-19 with \(T=1500\), DynaTree improves end-to-end throughput over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline, while reducing per-token latency by committing longer prefixes per verification step. Future work includes extending the evaluation to broader serving conditions (e.g., varying prompt lengths, batch sizes, and longer contexts), and reducing system overhead through kernel-level optimizations and hardware-aware tree construction.
+We presented DynaTree, a greedy-consistent tree-based speculative decoding method that drafts a candidate token tree with a lightweight model and verifies all nodes in a single target-model pass using a structured attention mask. DynaTree adaptively allocates the verification budget via dynamic breadth and depth control and stabilizes the configuration through history-based adjustment. Across WikiText-2 and PG-19 at \(T=1500\), DynaTree improves throughput and reduces per-token latency relative to autoregressive decoding, linear speculative decoding, and a fixed-tree baseline by committing longer greedy-consistent prefixes per verification step. Future work includes evaluating broader serving regimes (e.g., longer contexts, different prompt lengths and batch sizes) and reducing system overhead via kernel-level optimizations and hardware-aware tree construction.
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
 
 \appendix
+% Avoid duplicate hyperref anchors when float counters reset/behave differently in the appendix.
+% (pdfTeX warning: destination with the same identifier has been already used)
+\makeatletter
+\renewcommand{\theHfigure}{\theHsection.\arabic{figure}}
+\renewcommand{\theHtable}{\theHsection.\arabic{table}}
+\makeatother
+
 \section{Experimental Configuration Details}
 \label{app:exp-config}
 \paragraph{Common settings.}
-Unless stated otherwise, we use WikiText-2 prompts, truncate the prompt length to \(L_{\max}=800\), and generate \(T\) new tokens with greedy decoding. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup.
+Unless stated otherwise, we use WikiText-2 prompts, truncate the prompt length to \(L_{\max}=800\), and generate \(T\) new tokens with greedy decoding. We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup. Reported values are mean and standard deviation over the remaining runs.
 \paragraph{PG-19 setting.}
 For PG-19, we use the same model pair and greedy decoding, with a maximum prompt length \(L_{\max}=1000\).
 \paragraph{Fixed-tree baseline.}
-For the static-tree baseline, we use depth \(D=5\), branching factor \(B=2\), and a node budget \(N_{\max}=256\).
+For the static-tree baseline, we use depth \(D=5\), branching factor \(B=2\), and a node budget \(N_{\max}=256\). We additionally report a fixed-tree hyperparameter sweep under the paper protocol in Appendix~\ref{app:additional-analyses} to verify that this baseline is reasonably tuned.
 \paragraph{DynaTree.}
-Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\).
+Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\). History Adaptation updates a small subset of these parameters based on recent verification outcomes.
 
 \section{Additional Experimental Analyses}
 \label{app:additional-analyses}
 \paragraph{Speedup computation.}
-Some auxiliary result files include a placeholder \texttt{speedup} field; throughout this appendix we report speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
+Some auxiliary result files include a placeholder \texttt{speedup} field. Throughout this appendix, we compute speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
 
 \subsection{Parameter Sensitivity}
-We study the sensitivity of DynaTree to confidence thresholds \((\tau_h,\tau_\ell)\) and branch bounds \((B_{\min},B_{\max})\) on WikiText-2 at \(T=1500\). The released sweep logs cover a coarse grid of representative configurations; Table~\ref{tab:appendix-sensitivity} reports these settings.
+We study the sensitivity of DynaTree to confidence thresholds \((\tau_h,\tau_\ell)\) and branch bounds \((B_{\min},B_{\max})\) on WikiText-2 at \(T=1500\). The released logs cover a coarse grid of representative configurations; Table~\ref{tab:appendix-sensitivity} reports these settings and Figure~\ref{fig:parameter-sensitivity} visualizes the resulting throughput trends.
 
 \begin{table}[t]
 \centering
