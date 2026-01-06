@@ -447,12 +447,12 @@ Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), m
 Some auxiliary result files include a placeholder \texttt{speedup} field. Throughout this appendix, we compute speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
 
 \subsection{Parameter Sensitivity}
-We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Figure~\ref{fig:parameter-sensitivity} summarizes the sweep; speedup is computed relative to the autoregressive throughput measured in the same sweep run.
+We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Figure~\ref{fig:parameter-sensitivity} summarizes the sweep as throughput heatmaps; blank cells correspond to parameter pairs that were not evaluated.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{../figures/parameter_sensitivity.pdf}
-\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} Throughput (mean\(\pm\)std) under threshold, breadth, and depth sweeps. Dashed and dotted lines denote the autoregressive and fixed-tree baselines measured in the same sweep run.}
+\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} Heatmaps show throughput (tokens/s) as a function of (a) confidence thresholds \((\tau_h,\tau_\ell)\), (b) branch bounds \((B_{\min},B_{\max})\), and (c) depth bounds \((D_0,D_{\max})\). Each panel annotates the autoregressive and fixed-tree throughputs measured in the same sweep run; untested parameter pairs are shown as blank cells.}
   \label{fig:parameter-sensitivity}
 \end{figure}
 
