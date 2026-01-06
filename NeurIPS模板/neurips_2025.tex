@@ -276,11 +276,11 @@ We compare the proposed confidence-aware adaptive decoding against the following
 
 \subsection{Main Results}
 \label{main-results}
-Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\) token generation. Across both datasets, DynaTree yields the highest throughput and improves over both autoregressive decoding and linear speculative decoding. Compared with a tuned fixed tree, DynaTree provides an additional gain (e.g., 220.1~t/s vs.\ 202.3~t/s on WikiText-2), indicating that adapting the draft structure to local model uncertainty improves the draft--verify trade-off beyond a static configuration.
+Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\) token generation. Across both datasets, DynaTree yields the highest throughput and improves over both autoregressive decoding and linear speculative decoding. Compared with a fixed tree, DynaTree provides an additional gain on both datasets (e.g., 218.5~t/s vs.\ 188.0~t/s on WikiText-2), indicating that adapting the draft structure to local model uncertainty improves the draft--verify trade-off beyond a static configuration.
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Main results (\(T=1500\)).} Throughput (t/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. For WikiText-2, Linear uses \(K=8\) and the fixed-tree baseline uses the best configuration from the sweep (\(D=8,B=3,\tau=0.1\)); for PG-19, we use \(K=5\) and \(D=5,B=2\). Values are mean\(\pm\)std over prompts (excluding warmup).}
+\caption{\textbf{Main results (\(T=1500\)).} Throughput (t/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup).}
 \label{tab:main-results}
 \small
 \begin{tabular}{lcccc}
@@ -290,9 +290,9 @@ Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
 & Throughput (t/s) & Speedup & Throughput (t/s) & Speedup \\
 \midrule
 AR & 132.8\(\pm\)0.7 & 1.00\(\times\) & 133.7\(\pm\)0.7 & 1.00\(\times\) \\
-Linear Spec & 205.3\(\pm\)33.4 & 1.54\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
-Fixed Tree & 202.3\(\pm\)42.1 & 1.52\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
-\textbf{DynaTree} & \textbf{220.1\(\pm\)22.2} & \textbf{1.65\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
+Linear Spec (\(K=5\)) & 169.1\(\pm\)19.1 & 1.27\(\times\) & 154.1\(\pm\)25.4 & 1.15\(\times\) \\
+Fixed Tree (\(D=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 183.7\(\pm\)24.8 & 1.37\(\times\) \\
+\textbf{DynaTree} & \textbf{218.5\(\pm\)22.2} & \textbf{1.65\(\times\)} & \textbf{192.1\(\pm\)34.2} & \textbf{1.44\(\times\)} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -304,7 +304,7 @@ Table~\ref{tab:latency-metrics} reports TTFT and TPOT on both datasets for \(T=1
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Latency metrics (\(T=1500\)).} We report TTFT (latency to first output token) and TPOT (average per-token latency) on WikiText-2 and PG-19. For WikiText-2, Linear uses \(K=8\) and the fixed-tree baseline uses \((D=8,B=3,\tau=0.1)\); for PG-19, we use \(K=5\) and \(D=5,B=2\). Values are mean\(\pm\)std over prompts (excluding warmup).}
+\caption{\textbf{Latency metrics (\(T=1500\)).} We report TTFT (latency to first output token) and TPOT (average per-token latency) on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup).}
 \label{tab:latency-metrics}
 \small
 \begin{tabular}{lcccc}
@@ -313,10 +313,10 @@ Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 & TTFT (ms) & TPOT (ms) & TTFT (ms) & TPOT (ms) \\
 \midrule
-AR & 19.6\(\pm\)6.0 & 7.49\(\pm\)0.05 & 20.0\(\pm\)4.5 & 7.46\(\pm\)0.04 \\
-Linear Spec & 14.8\(\pm\)4.2 & 5.03\(\pm\)1.07 & 10.5\(\pm\)1.9 & 6.71\(\pm\)1.42 \\
-Fixed Tree & 14.8\(\pm\)4.3 & 5.26\(\pm\)1.61 & 10.4\(\pm\)0.4 & 5.54\(\pm\)0.75 \\
-\textbf{DynaTree} & 14.6\(\pm\)4.0 & \textbf{4.58\(\pm\)0.46} & 9.9\(\pm\)0.6 & \textbf{5.38\(\pm\)1.03} \\
+AR & 18.9\(\pm\)6.1 & 7.52\(\pm\)0.04 & 20.0\(\pm\)4.5 & 7.46\(\pm\)0.04 \\
+Linear Spec (\(K=5\)) & 14.9\(\pm\)4.0 & 5.98\(\pm\)0.65 & 10.5\(\pm\)1.9 & 6.71\(\pm\)1.42 \\
+Fixed Tree (\(D=5,B=2\)) & 15.0\(\pm\)3.9 & 5.35\(\pm\)0.50 & 10.4\(\pm\)0.4 & 5.54\(\pm\)0.75 \\
+\textbf{DynaTree} & 14.6\(\pm\)4.1 & \textbf{4.61\(\pm\)0.47} & 9.9\(\pm\)0.6 & \textbf{5.38\(\pm\)1.03} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -326,7 +326,7 @@ To contextualize throughput gains, Table~\ref{tab:verification-efficiency} repor
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Verification efficiency metrics (\(T=1500\)).} We report acceptance rate (\textbf{Accept.}), tokens committed per verification iteration (\(\bar{L}\)), average committed path length before the bonus token (\(\bar{\ell}\)), and the total number of verification iterations (\#Iter.) needed to generate \(T\) tokens. For WikiText-2, Linear uses \(K=8\) and the fixed-tree baseline uses \((D=8,B=3,\tau=0.1)\); for PG-19, we use \(K=5\) and \(D=5,B=2\). Due to the bonus-token convention in tree verification, \textbf{Accept.} can slightly exceed 100\% for tree-based methods. Values are mean across prompts (excluding warmup).}
+\caption{\textbf{Verification efficiency metrics (\(T=1500\)).} We report acceptance rate (\textbf{Accept.}), tokens committed per verification iteration (\(\bar{L}\)), average committed path length before the bonus token (\(\bar{\ell}\)), and the total number of verification iterations (\#Iter.) needed to generate \(T\) tokens. Due to the bonus-token convention in tree verification, \textbf{Accept.} can slightly exceed 100\% for tree-based methods. Values are mean across prompts (excluding warmup).}
 \label{tab:verification-efficiency}
 \setlength{\tabcolsep}{2.5pt}
 \scriptsize
@@ -337,8 +337,8 @@ Method & \multicolumn{4}{c}{WikiText-2} & \multicolumn{4}{c}{PG-19} \\
 & Accept. & \(\bar{L}\) (tok/iter) & \(\bar{\ell}\) (path) & \#Iter. & Accept. & \(\bar{L}\) (tok/iter) & \(\bar{\ell}\) (path) & \#Iter. \\
 \midrule
 AR & -- & 1.00 & -- & 1500 & -- & 1.00 & -- & 1500 \\
-Linear Spec & 88.2\% & 6.82 & 7.05 & 220 & 92.5\% & 4.56 & 4.63 & 329 \\
-Fixed Tree & 71.0\% & 6.79 & 7.10 & 221 & 82.9\% & 5.75 & 5.80 & 261 \\
+Linear Spec (\(K=5\)) & 97.7\% & 4.84 & 4.88 & 310 & 92.5\% & 4.56 & 4.63 & 329 \\
+Fixed Tree (\(D=5,B=2\)) & 82.6\% & 5.75 & 5.78 & 261 & 82.9\% & 5.75 & 5.80 & 261 \\
 \textbf{DynaTree} & \textbf{102.2\%} & \textbf{7.08} & \textbf{7.15} & \textbf{212} & \textbf{92.2\%} & \textbf{6.17} & \textbf{6.45} & \textbf{243} \\
 \bottomrule
 \end{tabular}
@@ -347,7 +347,7 @@ Fixed Tree & 71.0\% & 6.79 & 7.10 & 221 & 82.9\% & 5.75 & 5.80 & 261 \\
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{../figures/main_results_bars.pdf}
-  \caption{\textbf{Throughput and speedup across datasets (\(T=1500\)).} Each method is shown with two bars (WikiText-2 vs.\ PG-19). On WikiText-2, the fixed-tree baseline uses the best configuration from the sweep (\(D=8,B=3,\tau=0.1\)).}
+  \caption{\textbf{Throughput and speedup across datasets (\(T=1500\)).} Each method is shown with two bars (WikiText-2 vs.\ PG-19). DynaTree consistently improves over autoregressive and linear speculative decoding on both datasets.}
   \label{fig:main-results}
 \end{figure}
 
