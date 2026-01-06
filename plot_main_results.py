@@ -2,7 +2,7 @@
 """
 Generate grouped bar chart for main results across two datasets (WikiText-2 vs PG-19).
 Data sources (source of truth):
-  - results/adaptive/main/paper_benchmark_main_1500tokens_2.json
+  - results/adaptive/main_D8B3/1500/results.json  (WikiText-2, D8B3 protocol run)
   - results/adaptive/pg19/pg19_benchmark_1500tokens.json
 
 Each subplot shows grouped bars per method with two bars (WikiText-2, PG-19).
@@ -24,24 +24,34 @@ plt.rcParams['axes.labelcolor'] = '#333333'
 plt.rcParams['xtick.color'] = '#333333'
 plt.rcParams['ytick.color'] = '#333333'
 
-wt_path = Path("results/adaptive/main/paper_benchmark_main_1500tokens_2.json")
+wt_path = Path("results/adaptive/main_D8B3/1500/results.json")
 pg_path = Path("results/adaptive/pg19/pg19_benchmark_1500tokens.json")
 wt = json.loads(wt_path.read_text())
 pg = json.loads(pg_path.read_text())
 
-wt_map = {r["method"]: r for r in wt["all_results"]}
+wt_map_raw = {r["method"]: r for r in wt["all_results"]}
 pg_map_raw = {r["method"]: r for r in pg["all_results"]}
 pg_map = {
-    "Baseline (AR)": pg_map_raw["Baseline (AR)"],
-    "Linear Spec (K=5)": pg_map_raw["Linear Spec (K=5)"],
-    "Fixed Tree (D=5, B=2)": pg_map_raw["Tree Spec Decode (D=5, B=2)"],
+    "AR": pg_map_raw["Baseline (AR)"],
+    "Linear": pg_map_raw["Linear Spec (K=5)"],
+    "FixedTree": pg_map_raw["Tree Spec Decode (D=5, B=2)"],
     "DynaTree": pg_map_raw["Adaptive Tree (Phase 3)"],
 }
 
+# WikiText-2 keys vary (K, tuned fixed-tree config). Normalize to stable names.
+wt_linear_key = next(k for k in wt_map_raw.keys() if k.startswith("Linear Spec"))
+wt_fixed_tree_key = next(k for k in wt_map_raw.keys() if k.startswith("Fixed Tree"))
+wt_map = {
+    "AR": wt_map_raw["Baseline (AR)"],
+    "Linear": wt_map_raw[wt_linear_key],
+    "FixedTree": wt_map_raw[wt_fixed_tree_key],
+    "DynaTree": wt_map_raw["Phase 3: + History Adjust"],
+}
+
 plot_methods = [
-    ("Baseline (AR)", "AR"),
-    ("Linear Spec (K=5)", "Linear\n(K=5)"),
-    ("Fixed Tree (D=5, B=2)", "Fixed\nTree"),
+    ("AR", "AR"),
+    ("Linear", "Linear"),
+    ("FixedTree", "Fixed\nTree"),
     ("DynaTree", "DynaTree"),
 ]
 
@@ -51,17 +61,13 @@ wt_speedup = []
 pg_speedup = []
 labels = []
 
-wt_ar_thr = wt_map["Baseline (AR)"]["throughput_tps"]
-pg_ar_thr = pg_map["Baseline (AR)"]["throughput_tps"]
+wt_ar_thr = wt_map["AR"]["throughput_tps"]
+pg_ar_thr = pg_map["AR"]["throughput_tps"]
 
 for key, label in plot_methods:
     labels.append(label)
-    if key == "DynaTree":
-        wt_r = wt_map["Phase 3: + History Adjust"]
-        pg_r = pg_map["DynaTree"]
-    else:
-        wt_r = wt_map[key]
-        pg_r = pg_map[key]
+    wt_r = wt_map[key]
+    pg_r = pg_map[key]
     wt_throughput.append(wt_r["throughput_tps"])
     pg_throughput.append(pg_r["throughput_tps"])
     # Some result files contain a placeholder speedup field; compute from throughputs for consistency.
