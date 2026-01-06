@@ -87,16 +87,13 @@ def main() -> None:
             return f"{v:g}k"
         return str(t)
 
-    # Avoid crowded labels in the 1k+ region: keep ticks but hide some labels.
-    show_labels = {100, 200, 300, 500, 1000, 1800}
-    xticklabels = [fmt_T(t) if t in show_labels else "" for t in lengths]
-
     fig, axes = plt.subplots(2, 2, figsize=(10.5, 6.6))
 
     def common_x(ax):
-        ax.set_xscale("log")
         ax.set_xticks(lengths)
-        ax.set_xticklabels(xticklabels, fontsize=8)
+        # Use a linear x-axis for readability (log scale compresses the large-T region).
+        ax.set_xticklabels([fmt_T(t) for t in lengths], fontsize=8)
+        ax.set_xlim(min(lengths) - 60, max(lengths) + 80)
         ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
 
     # (a) Throughput
