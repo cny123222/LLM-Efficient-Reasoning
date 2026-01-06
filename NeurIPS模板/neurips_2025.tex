@@ -326,20 +326,20 @@ To contextualize throughput gains, Table~\ref{tab:verification-efficiency} repor
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Verification efficiency metrics (\(T=1500\)).} Tokens per round (\(\bar{L}\)) and average path length (\(\bar{\ell}\)) reflect per-iteration progress; \#Rounds is the total number of verification iterations needed to generate \(T\) tokens. Values are mean across prompts (excluding warmup).}
+\caption{\textbf{Verification efficiency metrics (\(T=1500\)).} We report acceptance rate (\textbf{Accept.}), tokens committed per verification iteration (\(\bar{L}\)), average committed path length before the bonus token (\(\bar{\ell}\)), and the total number of verification iterations (\#Iter.) needed to generate \(T\) tokens. Due to the bonus-token convention in tree verification, \textbf{Accept.} can slightly exceed 100\% for tree-based methods. Values are mean across prompts (excluding warmup).}
 \label{tab:verification-efficiency}
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{2.5pt}
 \scriptsize
-\begin{tabular}{lcccccc}
+\begin{tabular}{lcccccccc}
 \toprule
-Method & \multicolumn{3}{c}{WikiText-2} & \multicolumn{3}{c}{PG-19} \\
-\cmidrule(lr){2-4} \cmidrule(lr){5-7}
-& \(\bar{L}\) & \(\bar{\ell}\) & \#Rounds & \(\bar{L}\) & \(\bar{\ell}\) & \#Rounds \\
+Method & \multicolumn{4}{c}{WikiText-2} & \multicolumn{4}{c}{PG-19} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9}
+& Accept. & \(\bar{L}\) (tok/iter) & \(\bar{\ell}\) (path) & \#Iter. & Accept. & \(\bar{L}\) (tok/iter) & \(\bar{\ell}\) (path) & \#Iter. \\
 \midrule
-AR & 1.00 & -- & 1500 & 1.00 & -- & 1500 \\
-Linear Spec (\(K=5\)) & 4.84 & 4.88 & 310 & 4.56 & 4.63 & 329 \\
-Fixed Tree (\(D=5,B=2\)) & 5.75 & 5.78 & 261 & 5.75 & 5.80 & 261 \\
-\textbf{DynaTree} & \textbf{7.08} & \textbf{7.15} & \textbf{212} & \textbf{6.17} & \textbf{6.45} & \textbf{243} \\
+AR & -- & 1.00 & -- & 1500 & -- & 1.00 & -- & 1500 \\
+Linear Spec (\(K=5\)) & 97.7\% & 4.84 & 4.88 & 310 & 92.5\% & 4.56 & 4.63 & 329 \\
+Fixed Tree (\(D=5,B=2\)) & 82.6\% & 5.75 & 5.78 & 261 & 82.9\% & 5.75 & 5.80 & 261 \\
+\textbf{DynaTree} & \textbf{102.2\%} & \textbf{7.08} & \textbf{7.15} & \textbf{212} & \textbf{92.2\%} & \textbf{6.17} & \textbf{6.45} & \textbf{243} \\
 \bottomrule
 \end{tabular}
 \end{table}
