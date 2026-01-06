@@ -79,40 +79,40 @@ def main() -> None:
 
     # Panels (2x3) similar to the reference figure
     fig, axes = plt.subplots(2, 3, figsize=(12.0, 6.2))
-    star = dict(marker="*", s=140, color="#D97757", edgecolor="#333333", linewidth=0.6, zorder=5)
+    # No star markers (paper robustness presentation); avoid drawing attention to a single point.
 
     # (a) Best speedup vs depth (fix B=best_B)
     ax = axes[0, 0]
     x = np.array(depths)
     y = np.array([best_speedup[(D, best_B)][0] for D in depths])
     ax.plot(x, y, marker="o", linewidth=2.0, color="#4A708B", alpha=0.9)
-    ax.scatter([best_D], [best_speedup[(best_D, best_B)][0]], **star)
     ax.set_title("(a) Speedup vs Depth", fontsize=11, pad=8)
     ax.set_xlabel(r"Tree depth $D$ (fix $B$)", fontsize=10)
     ax.set_ylabel("Speedup", fontsize=10)
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
+    ax.set_ylim(1.0, max(2.6, float(np.max(y)) * 1.25))
 
     # (b) Best speedup vs branching factor (fix D=best_D)
     ax = axes[0, 1]
     x = np.array(branches)
     y = np.array([best_speedup[(best_D, B)][0] for B in branches])
     ax.plot(x, y, marker="s", linewidth=2.0, color="#8BACC6", alpha=0.9)
-    ax.scatter([best_B], [best_speedup[(best_D, best_B)][0]], **star)
     ax.set_title("(b) Speedup vs Branching Factor", fontsize=11, pad=8)
     ax.set_xlabel(r"Branch factor $B$ (fix $D$)", fontsize=10)
     ax.set_ylabel("Speedup", fontsize=10)
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
+    ax.set_ylim(1.0, max(2.6, float(np.max(y)) * 1.25))
 
     # (c) Speedup vs pruning threshold (fix D=best_D,B=best_B)
     ax = axes[0, 2]
     y = np.array([speedup_of(sel(best_D, best_B, tau)) for tau in taus])
     ax.plot(taus, y, marker="^", linewidth=2.0, color="#6495B8", alpha=0.9)
-    ax.scatter([best_tau], [speedup_of(sel(best_D, best_B, best_tau))], **star)
     ax.set_title("(c) Speedup vs Threshold", fontsize=11, pad=8)
     ax.set_xlabel(r"Pruning threshold $\tau$ (log)", fontsize=10)
     ax.set_ylabel("Speedup", fontsize=10)
     ax.set_xscale("log")
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
+    ax.set_ylim(1.0, max(2.6, float(np.max(y)) * 1.25))
 
     # (d) Heatmap: best speedup over tau for each (D,B)
     ax = axes[1, 0]
@@ -128,8 +128,18 @@ def main() -> None:
     ax.set_xlabel(r"$B$", fontsize=10)
     ax.set_ylabel(r"$D$", fontsize=10)
     ax.set_title("(d) Best speedup over $\\tau$", fontsize=11, pad=8)
-    # annotate best cell
-    ax.scatter([branches.index(best_B)], [depths.index(best_D)], **star)
+    # highlight best cell with a dashed rectangle (no star marker)
+    from matplotlib.patches import Rectangle
+    rect = Rectangle(
+        (branches.index(best_B) - 0.5, depths.index(best_D) - 0.5),
+        1,
+        1,
+        linewidth=2.0,
+        edgecolor="#D97757",
+        facecolor="none",
+        linestyle="--",
+    )
+    ax.add_patch(rect)
     cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label("Speedup", fontsize=9)
 
@@ -148,7 +158,16 @@ def main() -> None:
     ax.set_xlabel(r"$B$", fontsize=10)
     ax.set_ylabel(r"$D$", fontsize=10)
     ax.set_title("(e) Avg path length at best $\\tau$", fontsize=11, pad=8)
-    ax.scatter([branches.index(best_B)], [depths.index(best_D)], **star)
+    rect2 = Rectangle(
+        (branches.index(best_B) - 0.5, depths.index(best_D) - 0.5),
+        1,
+        1,
+        linewidth=2.0,
+        edgecolor="#D97757",
+        facecolor="none",
+        linestyle="--",
+    )
+    ax.add_patch(rect2)
     cbar2 = plt.colorbar(im2, ax=ax, fraction=0.046, pad=0.04)
     cbar2.set_label(r"$\bar{\ell}$", fontsize=9)
 
@@ -156,12 +175,12 @@ def main() -> None:
     ax = axes[1, 2]
     acc = np.array([float(sel(best_D, best_B, tau).get("acceptance_rate", 0.0)) for tau in taus]) * 100.0
     ax.plot(taus, acc, marker="D", linewidth=2.0, color="#4A708B", alpha=0.9)
-    ax.scatter([best_tau], [float(sel(best_D, best_B, best_tau).get("acceptance_rate", 0.0)) * 100.0], **star)
     ax.set_title("(f) Acceptance vs Threshold", fontsize=11, pad=8)
     ax.set_xlabel(r"Pruning threshold $\tau$ (log)", fontsize=10)
     ax.set_ylabel("Accept. (%)", fontsize=10)
     ax.set_xscale("log")
     ax.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
+    ax.set_ylim(0, 110)
 
     suptitle = (
         r"Fixed Tree hyperparameter sweep (WikiText-2, $T=1500$, $L_{\max}=800$): "
