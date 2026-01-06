@@ -447,31 +447,12 @@ Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), m
 Some auxiliary result files include a placeholder \texttt{speedup} field. Throughout this appendix, we compute speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
 
 \subsection{Parameter Sensitivity}
-We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Table~\ref{tab:appendix-sensitivity} reports representative high-performing configurations from this sweep, and Figure~\ref{fig:parameter-sensitivity} summarizes throughput trends by sweep category. Speedup is computed relative to the autoregressive throughput measured in the same sweep run.
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Parameter sensitivity on WikiText-2 (\(T=1500\)).} We report representative high-performing configurations from a comprehensive sweep over thresholds \((\tau_h,\tau_\ell)\), branch bounds \((B_{\min},B_{\max})\), and depth ranges \((D_0,D_{\max})\). Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is computed relative to AR measured in the same sweep run. Acceptance rate (Accept.) can slightly exceed 100\% due to the bonus-token convention in tree verification.}
-\label{tab:appendix-sensitivity}
-\small
-\begin{tabular}{lccc}
-\toprule
-Setting & Throughput (t/s) & Speedup & Accept. \\
-\midrule
-AR & 113.9\(\pm\)17.9 & 1.00\(\times\) & 0.0\% \\
-Fixed Tree (\(D=5,B=2\)) & 168.7\(\pm\)29.8 & 1.48\(\times\) & 83.4\% \\
-Depth sweep: \(D_0=8,D_{\max}=12\) & 256.0\(\pm\)3.2 & 2.25\(\times\) & 97.3\% \\
-Cross: high-throughput preset & 238.8\(\pm\)2.1 & 2.10\(\times\) & 101.6\% \\
-Branch sweep: \(B_{\min}=1,B_{\max}=4\) & 223.1\(\pm\)10.4 & 1.96\(\times\) & 104.4\% \\
-Threshold sweep: \((\tau_h,\tau_\ell)=(0.9,0.7)\) & 221.1\(\pm\)19.8 & 1.94\(\times\) & 102.9\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Figure~\ref{fig:parameter-sensitivity} summarizes the sweep; speedup is computed relative to the autoregressive throughput measured in the same sweep run.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{../figures/parameter_sensitivity.pdf}
-\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} We summarize a comprehensive sweep by grouping configurations into threshold, branch, depth, and cross-combination categories; dashed lines indicate the autoregressive throughput measured in the same sweep run.}
+\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} Left: throughput distribution across sweep categories (threshold, branch, depth, and cross-combinations); dashed line indicates the autoregressive throughput measured in the same sweep run. Right: throughput--acceptance tradeoff across all configurations.}
   \label{fig:parameter-sensitivity}
 \end{figure}
 

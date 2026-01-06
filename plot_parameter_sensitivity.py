@@ -44,65 +44,137 @@ def main() -> None:
     def sp(r: dict) -> float:
         return float(r.get("throughput_tps", 0.0)) / ar_thr if ar_thr > 0 else 0.0
 
-    # Split by category
+    fixed = next(
+        r for r in rows if r.get("category") == "baseline" and str(r.get("config_name", "")).startswith("Fixed Tree")
+    )
+
+    # Split by category (non-baseline)
     cats = ["threshold", "branch", "depth", "cross"]
     by_cat = {c: [r for r in rows if r.get("category") == c] for c in cats}
-    for c in cats:
-        by_cat[c] = sorted(by_cat[c], key=lambda r: float(r.get("throughput_tps", 0.0)))
 
-    # 2x2 horizontal bar charts, one per category (sorted by throughput)
-    fig, axes = plt.subplots(2, 2, figsize=(11.0, 7.0))
-    axes = axes.reshape(2, 2)
-
-    cat_titles = {
-        "threshold": r"(a) Threshold sweep $(\tau_h,\tau_\ell)$",
-        "branch": r"(b) Branch sweep $(B_{\min},B_{\max})$",
-        "depth": r"(c) Depth sweep $(D_0,D_{\max})$",
-        "cross": r"(d) Cross combinations",
+    colors = {
+        "threshold": "#4A708B",  # steel blue
+        "branch": "#6FAF8A",     # green
+        "depth": "#8BACC6",      # sky blue
+        "cross": "#D97757",      # terra cotta
     }
+    markers = {"threshold": "o", "branch": "s", "depth": "D", "cross": "^"}
 
-    base_color = "#8BACC6"
-    best_color = "#D97757"
+    # Find best non-baseline config by throughput
+    all_non_base = [r for r in rows if r.get("category") in cats]
+    best = max(all_non_base, key=lambda r: float(r.get("throughput_tps", 0.0)))
 
-    def short_name(r: dict) -> str:
-        name = str(r.get("config_name", ""))
-        # Keep the important part, remove prefixes to reduce clutter.
-        name = name.replace("thresh_", "h").replace("_l", " l")
-        name = name.replace("branch_", "B ").replace("depth_", "D ").replace("cross_", "")
-        return name
+    # --- Figure: 1x2 panels (distribution + tradeoff) ---
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2))
 
-    for ax, cat in zip([axes[0, 0], axes[0, 1], axes[1, 0], axes[1, 1]], cats):
-        data_cat = by_cat[cat]
+    # (a) Throughput distribution by category (jittered scatter)
+    rng = np.random.default_rng(0)
+    for i, c in enumerate(cats):
+        data_cat = by_cat[c]
         if not data_cat:
-            ax.axis("off")
             continue
-        y = np.arange(len(data_cat))
         thr = np.array([float(r.get("throughput_tps", 0.0)) for r in data_cat])
-        best_idx = int(np.argmax(thr))
-
-        colors = [base_color for _ in data_cat]
-        colors[best_idx] = best_color
-
-        ax.barh(y, thr, color=colors, edgecolor="#333333", linewidth=0.4, alpha=0.92)
-        ax.axvline(ar_thr, color="#777777", linestyle="--", linewidth=0.9, alpha=0.6)
-
-        ax.set_yticks(y)
-        ax.set_yticklabels([short_name(r) for r in data_cat], fontsize=8)
-        ax.set_title(cat_titles[cat], fontsize=11, pad=6)
-        ax.set_xlabel("Throughput (tokens/s)", fontsize=10)
-        ax.grid(axis="x", linestyle=":", alpha=0.35, linewidth=0.6)
-
-        # annotate speedup on the best bar only (avoid clutter)
-        r_best = data_cat[best_idx]
-        ax.text(
-            thr[best_idx] + (thr.max() * 0.01),
-            best_idx,
-            f"{sp(r_best):.2f}×",
-            va="center",
-            ha="left",
-            fontsize=9,
-            color="#333333",
+        std = np.array([float(r.get("throughput_std", 0.0)) for r in data_cat])
+        x = i + rng.uniform(-0.14, 0.14, size=len(data_cat))
+        ax1.scatter(
+            x,
+            thr,
+            s=42,
+            marker=markers[c],
+            color=colors[c],
+            edgecolor="#333333",
+            linewidth=0.35,
+            alpha=0.9,
+            label=c,
         )
+        # thin error bars (std), to show variability without clutter
+        ax1.errorbar(x, thr, yerr=std, fmt="none", ecolor="#666666", elinewidth=0.5, alpha=0.25, capsize=0)
+
+    # Baselines as reference lines/markers
+    ax1.axhline(ar_thr, color="#777777", linestyle="--", linewidth=0.9, alpha=0.7, label="AR (sweep)")
+    ax1.axhline(float(fixed.get("throughput_tps", 0.0)), color="#777777", linestyle=":", linewidth=0.9, alpha=0.7, label="Fixed Tree")
+
+    # Highlight best
+    ax1.scatter(
+        [cats.index(best["category"])],
+        [float(best["throughput_tps"])],
+        s=120,
+        marker="*",
+        color="#D97757",
+        edgecolor="#333333",
+        linewidth=0.5,
+        zorder=5,
+    )
+    ax1.text(
+        cats.index(best["category"]) + 0.05,
+        float(best["throughput_tps"]) + 2.0,
+        f"best {sp(best):.2f}×",
+        fontsize=9,
+        color="#333333",
+    )
+
+    ax1.set_title(r"(a) Throughput across sweep categories", fontsize=11, pad=8)
+    ax1.set_xticks(np.arange(len(cats)))
+    ax1.set_xticklabels(["thresh", "branch", "depth", "cross"], fontsize=9)
+    ax1.set_ylabel("Throughput (tokens/s)", fontsize=11)
+    ax1.grid(True, axis="y", linestyle=":", alpha=0.35, linewidth=0.6)
+
+    # (b) Tradeoff: throughput vs acceptance
+    for c in cats:
+        data_cat = by_cat[c]
+        if not data_cat:
+            continue
+        thr = np.array([float(r.get("throughput_tps", 0.0)) for r in data_cat])
+        acc = np.array([float(r.get("acceptance_rate", 0.0)) * 100.0 for r in data_cat])
+        ax2.scatter(
+            acc,
+            thr,
+            s=46,
+            marker=markers[c],
+            color=colors[c],
+            edgecolor="#333333",
+            linewidth=0.35,
+            alpha=0.9,
+            label=c,
+        )
+
+    # Baseline points
+    ax2.scatter([0.0], [ar_thr], s=70, marker="x", color="#333333", linewidth=1.6, label="AR (sweep)")
+    ax2.scatter(
+        [float(fixed.get("acceptance_rate", 0.0)) * 100.0],
+        [float(fixed.get("throughput_tps", 0.0))],
+        s=80,
+        marker="P",
+        color="#777777",
+        edgecolor="#333333",
+        linewidth=0.35,
+        label="Fixed Tree",
+    )
+
+    ax2.scatter(
+        [float(best.get("acceptance_rate", 0.0)) * 100.0],
+        [float(best.get("throughput_tps", 0.0))],
+        s=140,
+        marker="*",
+        color="#D97757",
+        edgecolor="#333333",
+        linewidth=0.5,
+        zorder=5,
+    )
+
+    ax2.set_title(r"(b) Throughput vs acceptance", fontsize=11, pad=8)
+    ax2.set_xlabel("Accept. (%)", fontsize=11)
+    ax2.set_ylabel("Throughput (tokens/s)", fontsize=11)
+    ax2.grid(True, linestyle=":", alpha=0.35, linewidth=0.6)
+    ax2.set_xlim(0, 110)
+
+    # Keep a compact legend
+    handles, labels_ = ax2.get_legend_handles_labels()
+    uniq = {}
+    for h, l in zip(handles, labels_):
+        if l not in uniq:
+            uniq[l] = h
+    ax2.legend(list(uniq.values()), list(uniq.keys()), loc="lower right", frameon=True, framealpha=0.95, edgecolor="#999999", fontsize=9)
 
     plt.tight_layout()
 
