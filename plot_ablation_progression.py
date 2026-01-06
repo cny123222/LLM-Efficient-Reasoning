@@ -28,16 +28,12 @@ plt.rcParams["font.size"] = 10
 
 
 def main() -> None:
-    # D8B3 WikiText-2 main run (T=1500) used for the progressive ablation figure.
-    src = Path("results/adaptive/main_D8B3/1500_2/results.json")
+    src = Path("results/adaptive/main/paper_benchmark_main_1500tokens_2.json")
     data = json.loads(src.read_text())
     m = {r["method"]: r for r in data["all_results"]}
 
     ar = m["Baseline (AR)"]
-    fixed = m["Fixed Tree (D=8, B=3, τ=0.1)"]
-    # Phase naming is consistent across JSONs:
-    #   Phase 2: adds Dynamic Depth (with Dynamic Breadth already enabled)
-    #   Phase 3: adds History Adaptation (full DynaTree)
+    fixed = m["Fixed Tree (D=5, B=2)"]
     phase2 = m["Phase 2: + Dynamic Depth"]  # corresponds to "+ Dynamic Breadth & Depth"
     phase3 = m["Phase 3: + History Adjust"]  # corresponds to "+ History Adaptation" (DynaTree)
 
