@@ -321,6 +321,29 @@ Fixed Tree (\(D=5,B=2\)) & 15.0\(\pm\)3.9 & 5.35\(\pm\)0.50 & 10.4\(\pm\)0.4 & 5
 \end{tabular}
 \end{table}
 
+\paragraph{Verification efficiency.}
+To contextualize throughput gains, Table~\ref{tab:verification-efficiency} reports auxiliary verification statistics on both datasets: tokens committed per verification round, average committed path length, and the number of verification rounds required to generate \(T=1500\) tokens. Tree-based methods commit longer prefixes per step and therefore require fewer rounds than autoregressive decoding; DynaTree further reduces rounds by allocating more verification budget to high-confidence regions.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Verification efficiency metrics (\(T=1500\)).} Tokens per round (\(\bar{L}\)) and average path length (\(\bar{\ell}\)) reflect per-iteration progress; \#Rounds is the total number of verification iterations needed to generate \(T\) tokens. Values are mean across prompts (excluding warmup).}
+\label{tab:verification-efficiency}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular}{lcccccc}
+\toprule
+Method & \multicolumn{3}{c}{WikiText-2} & \multicolumn{3}{c}{PG-19} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+& \(\bar{L}\) & \(\bar{\ell}\) & \#Rounds & \(\bar{L}\) & \(\bar{\ell}\) & \#Rounds \\
+\midrule
+AR & 1.00 & -- & 1500 & 1.00 & -- & 1500 \\
+Linear Spec (\(K=5\)) & 4.84 & 4.88 & 310 & 4.56 & 4.63 & 329 \\
+Fixed Tree (\(D=5,B=2\)) & 5.75 & 5.78 & 261 & 5.75 & 5.80 & 261 \\
+\textbf{DynaTree} & \textbf{7.08} & \textbf{7.15} & \textbf{212} & \textbf{6.17} & \textbf{6.45} & \textbf{243} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{../figures/main_results_bars.pdf}
@@ -350,7 +373,7 @@ Fixed Tree (\(D_0=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
 
 \subsection{Sequence Length Scaling}
 \label{sec:length-scaling}
-We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree configuration, and DynaTree. Table~\ref{tab:length-scaling} reports throughput for each \(T\), along with the DynaTree speedup relative to autoregressive decoding.
+We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree configuration, and DynaTree. Figure~\ref{fig:length-scaling} summarizes the throughput trends across \(T\).
 
 \begin{figure}[t]
   \centering
@@ -358,28 +381,6 @@ We evaluate how throughput varies with generation length \(T\) on WikiText-2, co
   \caption{\textbf{Throughput across generation lengths on WikiText-2.} Throughput (tokens/s) as a function of \(T\) for AR, linear speculative decoding, a fixed tree baseline, and DynaTree.}
   \label{fig:length-scaling}
 \end{figure}
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Sequence length scaling on WikiText-2.} Results are computed from the experiment logs released with this work. Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is relative to AR at the same \(T\).}
-\label{tab:length-scaling}
-\setlength{\tabcolsep}{3pt}
-\scriptsize
-\begin{tabular}{cccccc}
-\toprule
-\(T\) & AR (t/s) & Linear (t/s) & Fixed Tree (t/s) & DynaTree (t/s) & Speedup \\
-\midrule
-100  & 83.3\(\pm\)27.7 & 94.3\(\pm\)27.7 & 103.5\(\pm\)39.2 & \textbf{116.6\(\pm\)35.6} & 1.40\(\times\) \\
-200  & 110.1\(\pm\)27.8 & 117.7\(\pm\)26.4 & 139.4\(\pm\)28.3 & \textbf{142.0\(\pm\)34.6} & 1.29\(\times\) \\
-300  & 131.9\(\pm\)0.7 & 134.6\(\pm\)25.3 & \textbf{158.3\(\pm\)27.2} & 144.7\(\pm\)48.7 & 1.10\(\times\) \\
-500  & 123.9\(\pm\)18.0 & 148.0\(\pm\)23.4 & 158.1\(\pm\)37.4 & \textbf{185.8\(\pm\)32.0} & 1.50\(\times\) \\
-1000 & 136.5\(\pm\)0.6 & 166.4\(\pm\)22.6 & 192.4\(\pm\)13.0 & \textbf{215.4\(\pm\)26.5} & 1.58\(\times\) \\
-1200 & 128.8\(\pm\)12.4 & 168.3\(\pm\)20.9 & 169.2\(\pm\)31.5 & \textbf{218.4\(\pm\)24.8} & 1.70\(\times\) \\
-1500 & 132.8\(\pm\)0.7 & 169.1\(\pm\)19.1 & 188.0\(\pm\)16.5 & \textbf{218.5\(\pm\)22.2} & 1.65\(\times\) \\
-1800 & 133.2\(\pm\)0.8 & 160.8\(\pm\)28.2 & 188.0\(\pm\)17.8 & \textbf{219.1\(\pm\)21.0} & 1.64\(\times\) \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \paragraph{Additional analyses.}
 We place supplementary parameter sensitivity analyses in Appendix~\ref{app:additional-analyses}.
