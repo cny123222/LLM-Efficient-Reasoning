@@ -399,13 +399,12 @@ Dynamic depth control primarily improves throughput by increasing per-iteration 
 
 \subsection{Sequence Length Scaling}
 \label{sec:length-scaling}
-We evaluate how throughput varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree baseline, and DynaTree. Figure~\ref{fig:length-scaling} summarizes throughput trends across \(T\) (left) and decomposes these trends via \(\bar{L}\), \(\bar{\ell}\), and acceptance rate (right), illustrating how per-iteration progress and verification success vary with generation length.
+We evaluate how performance varies with generation length \(T\) on WikiText-2, comparing autoregressive decoding, linear speculative decoding, a fixed tree baseline, and DynaTree. Figure~\ref{fig:length-scaling} summarizes both end-to-end throughput and auxiliary verification statistics across \(T\).
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.49\linewidth]{../figures/length_scaling.pdf}\hfill
-  \includegraphics[width=0.49\linewidth]{../figures/length_scaling_efficiency.pdf}
-  \caption{\textbf{Sequence length scaling on WikiText-2.} \textbf{Left:} Throughput (tokens/s) as a function of \(T\) for AR, linear speculative decoding, a fixed tree baseline, and DynaTree. \textbf{Right:} Verification efficiency (\(\bar{L}\), \(\bar{\ell}\), and acceptance rate) as functions of \(T\).}
+  \includegraphics[width=\linewidth]{../figures/length_scaling_fourpanel.pdf}
+  \caption{\textbf{Sequence length scaling on WikiText-2.} (a) Throughput (tokens/s) as a function of \(T\) for AR, linear speculative decoding, a fixed tree baseline, and DynaTree. (b--d) Auxiliary verification statistics: tokens per iteration (\(\bar{L}\)), average committed path length (\(\bar{\ell}\)), and acceptance rate.}
   \label{fig:length-scaling}
 \end{figure}
 
@@ -448,23 +447,23 @@ Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), m
 Some auxiliary result files include a placeholder \texttt{speedup} field. Throughout this appendix, we compute speedup as the ratio between the method throughput and the corresponding autoregressive throughput under the same setting.
 
 \subsection{Parameter Sensitivity}
-We study the sensitivity of DynaTree to confidence thresholds \((\tau_h,\tau_\ell)\) and branch bounds \((B_{\min},B_{\max})\) on WikiText-2 at \(T=1500\). The released logs cover a coarse grid of representative configurations; Table~\ref{tab:appendix-sensitivity} reports these settings and Figure~\ref{fig:parameter-sensitivity} visualizes the resulting throughput trends.
+We study the sensitivity of DynaTree to key drafting hyperparameters on WikiText-2 at \(T=1500\) using a comprehensive sweep that varies confidence thresholds, branch bounds, depth ranges, and selected cross-combinations. Table~\ref{tab:appendix-sensitivity} reports representative high-performing configurations from this sweep, and Figure~\ref{fig:parameter-sensitivity} summarizes throughput trends by sweep category. Speedup is computed relative to the autoregressive throughput measured in the same sweep run.
 
 \begin{table}[t]
 \centering
-\caption{\textbf{Parameter sensitivity on WikiText-2 (\(T=1500\)).} We vary \((\tau_h,\tau_\ell)\) and \((B_{\min},B_{\max})\) and report released configurations from the sweep logs. Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is computed relative to AR under the same setting. Acceptance rate (Accept.) can slightly exceed 100\% due to the bonus-token convention in tree verification.}
+\caption{\textbf{Parameter sensitivity on WikiText-2 (\(T=1500\)).} We report representative high-performing configurations from a comprehensive sweep over thresholds \((\tau_h,\tau_\ell)\), branch bounds \((B_{\min},B_{\max})\), and depth ranges \((D_0,D_{\max})\). Throughput is in tokens/s (mean\(\pm\)std across prompts), and speedup is computed relative to AR measured in the same sweep run. Acceptance rate (Accept.) can slightly exceed 100\% due to the bonus-token convention in tree verification.}
 \label{tab:appendix-sensitivity}
 \small
 \begin{tabular}{lccc}
 \toprule
 Setting & Throughput (t/s) & Speedup & Accept. \\
 \midrule
-AR & 132.9\(\pm\)0.5 & 1.00\(\times\) & 0.0\% \\
-\((\tau_h,\tau_\ell)=(0.9,0.4),\ (B_{\min},B_{\max})=(1,3)\) & 217.8\(\pm\)22.2 & 1.64\(\times\) & 102.2\% \\
-\((\tau_h,\tau_\ell)=(0.9,0.4),\ (B_{\min},B_{\max})=(1,2)\) & 217.8\(\pm\)34.6 & 1.64\(\times\) & 100.7\% \\
-\((\tau_h,\tau_\ell)=(0.9,0.4),\ (B_{\min},B_{\max})=(1,4)\) & 217.7\(\pm\)22.9 & 1.64\(\times\) & 102.6\% \\
-\((\tau_h,\tau_\ell)=(0.7,0.2),\ (B_{\min},B_{\max})=(1,3)\) & 211.9\(\pm\)34.1 & 1.59\(\times\) & 97.8\% \\
-\((\tau_h,\tau_\ell)=(0.8,0.3),\ (B_{\min},B_{\max})=(1,3)\) & 201.6\(\pm\)24.7 & 1.52\(\times\) & 100.1\% \\
+AR & 113.9\(\pm\)17.9 & 1.00\(\times\) & 0.0\% \\
+Fixed Tree (\(D=5,B=2\)) & 168.7\(\pm\)29.8 & 1.48\(\times\) & 83.4\% \\
+Depth sweep: \(D_0=8,D_{\max}=12\) & 256.0\(\pm\)3.2 & 2.25\(\times\) & 97.3\% \\
+Cross: high-throughput preset & 238.8\(\pm\)2.1 & 2.10\(\times\) & 101.6\% \\
+Branch sweep: \(B_{\min}=1,B_{\max}=4\) & 223.1\(\pm\)10.4 & 1.96\(\times\) & 104.4\% \\
+Threshold sweep: \((\tau_h,\tau_\ell)=(0.9,0.7)\) & 221.1\(\pm\)19.8 & 1.94\(\times\) & 102.9\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -472,7 +471,7 @@ AR & 132.9\(\pm\)0.5 & 1.00\(\times\) & 0.0\% \\
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{../figures/parameter_sensitivity.pdf}
-\caption{\textbf{Sensitivity of DynaTree to confidence thresholds and branching bounds (WikiText-2, \(T=1500\)).} We visualize how throughput varies with the confidence thresholds \((\tau_h,\tau_\ell)\) and the branch upper bound \(B_{\max}\) (with \(B_{\min}=1\)), and summarize the throughput--acceptance tradeoff across the evaluated configurations.}
+\caption{\textbf{Sensitivity of DynaTree to drafting hyperparameters (WikiText-2, \(T=1500\)).} We summarize a comprehensive sweep by grouping configurations into threshold, branch, depth, and cross-combination categories; dashed lines indicate the autoregressive throughput measured in the same sweep run.}
   \label{fig:parameter-sensitivity}
 \end{figure}
 
