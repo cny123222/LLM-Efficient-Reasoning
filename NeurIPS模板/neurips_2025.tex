@@ -370,14 +370,14 @@ We provide a progressive ablation on WikiText-2 under the same \(T=1500\) settin
 
 \begin{table}[tbp]
 \centering
-\caption{\textbf{Ablation-style progressive comparison on WikiText-2 (\(T=1500\)).} We compare a fixed tree (\(D_0=5,B=2\)) with variants that add Dynamic Breadth \& Depth and History Adaptation. Speedup is computed relative to the autoregressive baseline.}
+\caption{\textbf{Ablation-style progressive comparison on WikiText-2 (\(T=1500\)).} We compare a fixed tree (\(D=5,B=2\)) with variants that add Dynamic Breadth \& Depth and History Adaptation. Speedup is computed relative to the autoregressive baseline.}
 \label{tab:ablation}
 \small
 \begin{tabular}{lccc}
     \toprule
 Variant & Throughput (t/s) & Speedup & \(\Delta\) vs Fixed \\
     \midrule
-Fixed Tree (\(D_0=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
+Fixed Tree (\(D=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
 + Dynamic Breadth \& Depth & 213.2\(\pm\)26.1 & 1.61\(\times\) & +13.4\% \\
 \textbf{+ History Adaptation} & \textbf{218.5\(\pm\)22.2} & \textbf{1.65\(\times\)} & \textbf{+16.2\%} \\
     \bottomrule
@@ -439,7 +439,7 @@ For PG-19, we use the same model pair and greedy decoding, with a maximum prompt
 \paragraph{Fixed-tree baseline.}
 We use a static-tree speculative decoder with a fixed \((D,B,\tau)\) configuration and node budget \(N_{\max}=256\). We report the exact configuration used alongside the corresponding results. We additionally report a fixed-tree hyperparameter sweep under the paper protocol in Appendix~\ref{app:additional-analyses} to verify that the static-tree baseline used in the main benchmark is reasonably tuned.
 \paragraph{DynaTree.}
-Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\). History Adaptation updates a small subset of these parameters based on recent verification outcomes.
+Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), maximum depth \(D_{\max}=8\) on WikiText-2 (\(D_{\max}=9\) on PG-19), branch bounds \((B_{\min},B_{\max})=(1,3)\), and confidence thresholds \((\tau_h,\tau_\ell)=(0.9,0.4)\). History Adaptation updates a small subset of these parameters based on recent verification outcomes.
 
 \section{DynaTree Iteration Pseudocode}
 \label{app:algo}
