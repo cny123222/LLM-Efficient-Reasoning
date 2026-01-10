@@ -123,10 +123,12 @@ In summary, our contributions are:
   \item Experiments on WikiText-2 and PG-19 demonstrate consistent throughput and latency improvements over autoregressive decoding, linear speculative decoding, and tuned fixed-tree baselines, with up to 1.70$\times$ speedup at \(T=1500\).
 \end{itemize}
 
+Figure~\ref{fig:decode-comparison} provides a schematic comparison of autoregressive decoding, linear speculative decoding, and tree-based speculative decoding.
+
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.92\linewidth]{../figures/decode-v1.png}
-  \caption{\textbf{Comparison of three decoding paradigms.} \textbf{Left:} Autoregressive (AR) decoding generates tokens sequentially, requiring one LLM forward pass per token. \textbf{Middle:} Linear speculative decoding drafts a single token chain; early rejection wastes all subsequent drafted tokens. \textbf{Right:} Tree-based speculative decoding (DynaTree) explores multiple paths in parallel, enabling recovery from draft errors and committing longer sequences per iteration. The multi-path exploration fundamentally addresses the brittleness of linear drafting while maintaining output correctness through structured tree attention verification.}
+  \includegraphics[width=0.92\linewidth]{../figures/decode-v2.png}
+  \caption{\textbf{Comparison of three decoding paradigms.} \textbf{(a) Autoregressive (AR):} the target LLM generates one token per iteration sequentially. \textbf{(b) Linear speculative decoding:} a draft model proposes a length-\(K\) chain that is verified by the target LLM; once an early token is rejected, all subsequent drafted tokens in the chain are discarded, reducing effective progress per iteration. \textbf{(c) Tree-based speculative decoding (e.g., DynaTree):} the draft model proposes a token tree and the target LLM verifies all candidates in parallel (one forward pass with a structured attention mask), then commits the longest greedy-consistent path (plus a bonus token), improving robustness to draft mismatch.}
   \label{fig:decode-comparison}
 \end{figure}
 
@@ -163,10 +165,12 @@ DynaTree generalizes linear speculative decoding from a single draft chain to a 
 \textbf{(ii) Dynamic Depth} gates expansion using cumulative path probability with early stopping and selective deep expansion up to \(D_{\max}\);
 and \textbf{(iii) History Adaptation} updates a small subset of drafting hyperparameters online using recent acceptance statistics.
 
+Figure~\ref{fig:arch} illustrates the end-to-end pipeline of a single DynaTree iteration.
+
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.92\linewidth]{../figures/dynatree-v10.png}
-  \caption{\textbf{One iteration of DynaTree decoding.} The process consists of six main stages: (1)~\emph{Adaptive Tree Drafting:} The draft model expands a candidate tree with three adaptive mechanisms: \emph{Dynamic Breadth} adjusts the number of child nodes (1--3) per expansion based on draft model confidence; \emph{Dynamic Depth} implements early stopping for low cumulative probability branches and deep expansion for high-probability paths; adaptive pruning removes branches below probability threshold $\tau$ or exceeding node budget $N_{\max}$. (2)~\emph{Flattening \& Masking:} The pruned tree is serialized in breadth-first order, and a causal attention mask is constructed to ensure each node attends only to its ancestors. (3)~\emph{Parallel Verification:} The target model verifies all candidates in a single forward pass. (4)~\emph{Path Selection:} The longest path where drafted tokens match the target model's greedy predictions is identified. (5)~\emph{Cache Update:} The committed tokens are used to update the context and key-value cache for the next iteration. (6)~\emph{History Adaptation:} Acceptance statistics from recent rounds feed back to adjust drafting hyperparameters for the next iteration. This three-component adaptation enables efficient multi-path exploration while maintaining correctness guarantees for greedy decoding.}
+  \includegraphics[width=1.0\linewidth]{../figures/dynatree-v10.png}
+  \caption{\textbf{One iteration of DynaTree decoding (end-to-end pipeline).} (1)~\textbf{Adaptive tree drafting:} the draft model expands a candidate token tree under node budget \(N_{\max}\), using \emph{Dynamic Breadth} (confidence-thresholded branching) and \emph{Dynamic Depth} (early stopping / selective deep expansion), with probability-threshold pruning. (2)~\textbf{Flattening \& masking:} the pruned tree is serialized (BFS order) and converted into a tree-attention mask so each node attends only to its prefix and ancestors. (3)~\textbf{Parallel verification:} the target model verifies all drafted candidates in a single forward pass. (4)~\textbf{Path selection \& commit:} we identify the longest greedy-consistent path (plus a bonus token) and commit it. (5)~\textbf{Cache update:} committed tokens update the context and target-model KV cache. (6)~\textbf{History adaptation:} recent acceptance statistics adjust drafting hyperparameters for the next iteration.}
   \label{fig:arch}
 \end{figure}
 
@@ -366,7 +370,7 @@ Two trends help explain the observed speedups. First, compared with linear draft
 
 \subsection{Ablation Study}
 \label{sec:ablation}
-We provide a progressive ablation on WikiText-2 under the same \(T=1500\) setting as the main benchmark, measuring the contribution of each adaptive component relative to a fixed-tree backbone. Since \emph{Dynamic Breadth} and \emph{Dynamic Depth} are coupled in how they trade verification breadth against the length of the committed path, we report them jointly as \emph{Dynamic Breadth \& Depth}. We then add \emph{History Adaptation}, which adjusts drafting hyperparameters based on recent verification outcomes.
+We provide a progressive ablation on WikiText-2 under the same \(T=1500\) setting as the main benchmark (Table~\ref{tab:ablation}), measuring the contribution of each adaptive component relative to a fixed-tree backbone. Since \emph{Dynamic Breadth} and \emph{Dynamic Depth} are coupled in how they trade verification breadth against the length of the committed path, we report them jointly as \emph{Dynamic Breadth \& Depth}. We then add \emph{History Adaptation}, which adjusts drafting hyperparameters based on recent verification outcomes.
 
 \begin{table}[tbp]
 \centering
@@ -443,6 +447,8 @@ Unless stated otherwise, the adaptive configuration uses base depth \(D_0=5\), m
 
 \section{DynaTree Iteration Pseudocode}
 \label{app:algo}
+\paragraph{Reference implementation.}
+Algorithm~\ref{alg:dynatree} provides a self-contained pseudocode listing for one greedy-consistent DynaTree iteration, matching the pipeline in Figure~\ref{fig:arch}.
 \begin{algorithm}[t]
 \caption{\textbf{DynaTree: one iteration (greedy-consistent).}}
 \label{alg:dynatree}
