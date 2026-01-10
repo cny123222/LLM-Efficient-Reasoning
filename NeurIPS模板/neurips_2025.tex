@@ -300,6 +300,7 @@ We compare against the following baselines under identical greedy decoding setti
 \subsection{Main Results}
 \label{main-results}
 Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\). DynaTree achieves the best throughput on both datasets, improving over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline. On WikiText-2, DynaTree reaches 219.5~t/s versus 200.7~t/s for the static tree, demonstrating that adapting the draft structure can improve the draft--verify trade-off over a fixed configuration under the same evaluation protocol.
+To ensure a fair comparison, the fixed-tree baseline configuration is selected via a grid search under the same evaluation protocol and reported as the best (or near-best) setting in the sweep (Appendix, Figure~\ref{fig:fixed-tree-sweep}).
 
 \begin{table}[tbp]
 \centering
