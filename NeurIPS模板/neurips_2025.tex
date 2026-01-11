@@ -140,7 +140,7 @@ Speculative decoding improves generation efficiency by verifying draft proposals
 
 \subsection{Tree-Based Speculative Decoding}
 
-Tree-based speculative decoding generalizes linear drafting by verifying a token tree with a structured attention mask in a single target-model pass~\cite{specinfer,opt_tree,medusa,traversal_verification}. SpecInfer~\cite{specinfer} pioneered practical token-tree verification mechanisms, while OPT-Tree~\cite{opt_tree} searches for draft tree structures that improve the expected committed prefix length. Medusa~\cite{medusa} explores multi-token prediction via additional decoding heads. These approaches typically employ fixed tree structures, which motivates adaptive policies that allocate verification budget based on context-dependent uncertainty.
+Tree-based speculative decoding generalizes linear drafting by verifying a token tree with a structured attention mask in a single target-model pass~\cite{specinfer,opt_tree,medusa,traversal_verification}. SpecInfer~\cite{specinfer} pioneered practical token-tree verification mechanisms, while OPT-Tree~\cite{opt_tree} searches for draft tree structures that improve the expected committed prefix length. Medusa~\cite{medusa} explores multi-token prediction via additional decoding heads. Recent work further improves the efficiency of tree-structured verification via optimized tree-attention implementations~\cite{deft}. These approaches typically employ fixed tree structures, which motivates adaptive policies that allocate verification budget based on context-dependent uncertainty.
 
 Adaptive speculative decoding modulates drafting aggressiveness using confidence signals or learned predictors~\cite{cm_asd,adaeagle,cas_spec}. In contrast to adaptive \emph{length}-only policies, DynaTree adapts the tree structure itself by jointly controlling \emph{Dynamic Tree Breadth} and \emph{Dynamic Tree Depth} and incorporating \emph{History Adaptation}, while remaining training-free.
 
@@ -383,7 +383,6 @@ Two trends help explain the observed speedups. First, compared with linear draft
 \subsection{Ablation Study}
 \label{sec:ablation}
 We provide a progressive ablation on WikiText-2 under the same \(T=1500\) setting as the main benchmark (Table~\ref{tab:ablation}), measuring the contribution of each adaptive component relative to a fixed-tree backbone. Since \emph{Dynamic Tree Breadth} and \emph{Dynamic Tree Depth} are coupled in how they trade verification breadth against the length of the committed path, we report them jointly as \emph{Dynamic Tree Breadth \& Depth}. We then add \emph{History Adaptation}, which adjusts drafting hyperparameters based on recent verification outcomes.
-For a finer-grained progressive breakdown of the three adaptive components (Fixed \(\rightarrow\) +Breadth \(\rightarrow\) +Depth \(\rightarrow\) +History) using the logged phase variants, see Appendix Table~\ref{tab:ablation-progressive-phases}.
 
 \begin{table}[tbp]
 \centering
@@ -518,28 +517,6 @@ branch bounds \(B_{\min}\le B_{\mathrm{mid}}\le B_{\max}\); confidence threshold
 \label{app:additional-analyses}
 \paragraph{Scope.}
 This appendix reports additional analyses that support the main claims: (i)~a fixed-tree sweep that validates the static-tree baseline is reasonably tuned; (ii)~sensitivity of DynaTree to drafting hyperparameters; (iii)~prompt-length sensitivity; and (iv)~memory footprint.
-
-\subsection{Progressive Breakdown of Adaptive Components}
-\label{app:ablation-progressive}
-Table~\ref{tab:ablation-progressive-phases} reports a fine-grained progressive breakdown of the three adaptive components on WikiText-2 at \(T=1500\), using the logged phase variants from our ablation runs. Here, Phase~1 corresponds to \textbf{+ Dynamic Tree Breadth}; Phase~2 adds \textbf{+ Dynamic Tree Depth}; and Phase~3 adds \textbf{+ History Adaptation}.
-
-\begin{table}[t]
-\centering
-\caption{\textbf{Progressive component breakdown on WikiText-2 (\(T=1500\)).} Throughput (tokens/s) and speedup are computed relative to the autoregressive baseline under the same setting. \(\Delta\) vs.\ Fixed is computed relative to the fixed-tree backbone in this ablation run.}
-\label{tab:ablation-progressive-phases}
-\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{lccc}
-    \toprule
-Variant & Throughput (tokens/s) & Speedup & \(\Delta\) vs Fixed \\
-    \midrule
-Fixed Tree (\(D=5,B=2\)) & 188.0\(\pm\)16.5 & 1.42\(\times\) & 0.0\% \\
-Phase 1: + Dynamic Tree Breadth & 186.5\(\pm\)25.2 & 1.40\(\times\) & -0.8\% \\
-Phase 2: + Dynamic Tree Depth & 213.2\(\pm\)26.1 & 1.61\(\times\) & +13.4\% \\
-Phase 3: + History Adaptation & 218.5\(\pm\)22.2 & 1.65\(\times\) & +16.2\% \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
 \subsection{Fixed-tree Hyperparameter Sweep}
 We perform a fixed-tree hyperparameter sweep under the paper protocol to ensure the static-tree baseline is reasonably tuned. The sweep varies depth \(D\), branching factor \(B\), and pruning threshold \(\tau\) while holding the node budget fixed. Figure~\ref{fig:fixed-tree-sweep} summarizes how throughput-related metrics change across the grid, and illustrates that the baseline configuration reported in the main tables lies in a stable high-performing region rather than being a brittle outlier.
