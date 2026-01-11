@@ -3,11 +3,13 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](requirements.txt)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Paper](https://img.shields.io/badge/paper-PDF-orange)](paper/dynatree.pdf)
+[![GitHub](https://img.shields.io/badge/GitHub-cny123222%2FDynaTree-black)](https://github.com/cny123222/DynaTree)
 
 **Tags**: speculative decoding, tree verification, training-free inference acceleration, greedy decoding (exact)
 
 This repo contains the research code and reproducibility artifacts for **DynaTree**, a **training-free** adaptive tree speculative decoding method for efficient LLM inference.
 
+- **Repository**: `https://github.com/cny123222/DynaTree`
 - **Paper**: `paper/dynatree.pdf` (source: `paper/dynatree.tex`)
 - **Main results figure**: `figures/main_results_bars.png`
 - **Result logs (source of truth)**: `results/` (JSON)
@@ -28,6 +30,13 @@ DynaTree is a tree-based speculative decoder that **adapts the draft structure o
 ---
 
 ## Quickstart
+
+### 0) Clone
+
+```bash
+git clone https://github.com/cny123222/DynaTree.git
+cd DynaTree
+```
 
 ### 1) Install
 Recommended (auto-detects CUDA and installs PyTorch accordingly):
@@ -171,7 +180,7 @@ plots/       plotting utilities
 
 - **Authors**: Nuoyan Chen, Jiamin Liu, Zhaocheng Li (Shanghai Jiao Tong University)
 - **Email**: `cny123222@sjtu.edu.cn`, `logic-1.0@sjtu.edu.cn`, `lzc050419@sjtu.edu.cn`
-- For questions/bugs: please open a GitHub issue in this repository.
+- For questions/bugs: please open a GitHub issue at `https://github.com/cny123222/DynaTree/issues`.
 
 ---
 
