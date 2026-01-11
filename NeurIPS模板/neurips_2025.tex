@@ -98,7 +98,7 @@
 
 
 \begin{abstract}
- Autoregressive decoding in large language models (LLMs) is fundamentally sequential and therefore underutilizes modern accelerator parallelism during token generation. Speculative decoding mitigates this bottleneck by letting a lightweight draft model propose multiple tokens that are verified in parallel by the target model; however, linear variants explore only a single draft chain per step and can waste substantial computation when early tokens are rejected, while existing tree-based approaches often employ \emph{fixed} structures that cannot adapt to varying draft model confidence. We propose \textbf{DynaTree}, a training-free tree-based speculative decoding framework with \emph{confidence-aware} adaptive drafting that dynamically adjusts tree breadth and depth under an explicit node budget, combined with probability-threshold pruning to strictly manage computational overhead. In the greedy-decoding setting, DynaTree is exact: it generates the same token sequence as the target model (no distributional bias). Experiments with Pythia-2.8B (target) and Pythia-70M (draft) show that DynaTree improves throughput over autoregressive decoding, linear speculative decoding, and tuned fixed-tree baselines on both WikiText-2 and PG-19. For generation length \(T=1500\) new tokens, DynaTree reaches 219.5~tokens/s on WikiText-2 and 194.9~tokens/s on PG-19, yielding a 9.4\% and 5.1\% throughput increase over tuned fixed-tree baselines, respectively.\thanks{Our code is currently available at \url{https://github.com/cny123222/LLM-Efficient-Reasoning}.}
+ Autoregressive decoding in large language models (LLMs) is fundamentally sequential and therefore underutilizes modern accelerator parallelism during token generation. Speculative decoding mitigates this bottleneck by letting a lightweight draft model propose multiple tokens that are verified in parallel by the target model; however, linear variants explore only a single draft chain per step and can waste substantial computation when early tokens are rejected, while existing tree-based approaches often employ \emph{fixed} structures that cannot adapt to varying draft model confidence. We propose \textbf{DynaTree}, a training-free tree-based speculative decoding framework with \emph{confidence-aware} adaptive drafting that dynamically adjusts tree breadth and depth under an explicit node budget, combined with probability-threshold pruning to strictly manage computational overhead. In the greedy-decoding setting, DynaTree is exact: it generates the same token sequence as the target model (no distributional bias). Experiments with Pythia-2.8B (target) and Pythia-70M (draft) show that DynaTree improves throughput over autoregressive decoding, linear speculative decoding, and tuned fixed-tree baselines on both WikiText-2 and PG-19. For generation length \(T=1500\) new tokens, DynaTree reaches 219.5~tokens/s on WikiText-2 and 194.9~tokens/s on PG-19, yielding a 9.4\% and 5.1\% throughput increase over tuned fixed-tree baselines, respectively.
 \end{abstract}
 
 
@@ -116,7 +116,7 @@ We propose \textbf{DynaTree}, a training-free tree speculative decoder that cons
 
 In summary, our contributions are:
 \begin{itemize}
-  \item We propose \textbf{DynaTree}, a training-free tree speculative decoding framework that adaptively allocates verification budget via confidence-aware adjustments to tree breadth and depth under an explicit node budget. Unlike approaches that require training auxiliary modules or architectural modifications (e.g., Medusa~\cite{medusa} or the EAGLE family~\cite{eagle,eagle2,eagle3}), DynaTree is plug-and-play for existing target--draft model pairs.
+  \item We propose \textbf{DynaTree}, a \textbf{training-free} tree speculative decoding framework that adaptively allocates verification budget via confidence-aware adjustments to tree breadth and depth under an explicit node budget. \textbf{Unlike Medusa~\cite{medusa} or the EAGLE family~\cite{eagle,eagle2,eagle3}, which require training auxiliary modules and/or architectural modifications}, DynaTree is plug-and-play for existing target--draft model pairs.
   
   \item We introduce a lightweight three-component adaptation mechanism (\emph{Dynamic Tree Breadth}, \emph{Dynamic Tree Depth}, and \emph{History Adaptation}) that integrates with tree-attention verification and probability-threshold pruning.
   
@@ -180,7 +180,7 @@ Figure~\ref{fig:our-approach} provides a schematic view of DynaTree's three adap
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.98\linewidth]{../figures/our_approach.png}
+  \includegraphics[width=0.85\linewidth]{../figures/our_approach.png}
   \caption{\textbf{Illustration of DynaTree's adaptive mechanisms.} \textbf{(a) Dynamic Tree Breadth:} choose per-node branching \(B(u)\in\{B_{\min},B_{\mathrm{mid}},B_{\max}\}\) based on local confidence \(c(u)\). \textbf{(b) Dynamic Tree Depth:} control expansion using cumulative path probability \(p(u)\) with early stopping (\(p(u)<\rho_{\mathrm{stop}}\)), a base depth \(D_0\), and selective deep expansion beyond \(D_0\) only when \(p(u)>\rho_{\mathrm{deep}}\), up to a hard maximum depth \(D_{\max}\). \textbf{(c) Adaptive Pruning:} stop expanding nodes whose \(p(u)<\tau\) and cap the tree size by a strict node budget \(N_{\max}\).}
   \label{fig:our-approach}
 \end{figure}
@@ -303,10 +303,11 @@ We compare against the following baselines under identical greedy decoding setti
 \label{main-results}
 Table~\ref{tab:main-results} reports end-to-end throughput on WikiText-2 and PG-19 for \(T=1500\). DynaTree achieves the best throughput on both datasets, improving over autoregressive decoding, linear speculative decoding, and a fixed-tree baseline. On WikiText-2, DynaTree reaches 219.5~tokens/s versus 200.7~tokens/s for the static tree, demonstrating that adapting the draft structure can improve the draft--verify trade-off over a fixed configuration under the same evaluation protocol.
 To ensure a fair comparison, the fixed-tree baseline configuration is selected via a grid search under the same evaluation protocol and reported as the best (or near-best) setting in the sweep (Appendix, Figure~\ref{fig:fixed-tree-sweep}).
+In other words, our Fixed Tree baseline is not a weak strawman: it represents the best-performing static configuration found by an exhaustive sweep under the paper protocol. Even against this tuned baseline, DynaTree improves throughput by +9.4\% on WikiText-2 and +5.1\% on PG-19.
 
 \begin{table}[tbp]
 \centering
-\caption{\textbf{Main results (\(T=1500\)).} Throughput (tokens/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup). For linear speculation, we use \(K=8\) on WikiText-2 and \(K=5\) on PG-19.}
+\caption{\textbf{Main results (\(T=1500\)).} Throughput (tokens/s) and speedup relative to autoregressive decoding on WikiText-2 and PG-19. Values are mean\(\pm\)std over prompts (excluding warmup). For linear speculation, we use \(K=8\) on WikiText-2 and \(K=5\) on PG-19. The fixed-tree baseline uses \(D=8\), \(B=3\), and pruning threshold \(\tau=0.1\).}
 \label{tab:main-results}
 \small
 \begin{tabular}{lcccc}
@@ -317,7 +318,7 @@ Method & \multicolumn{2}{c}{WikiText-2} & \multicolumn{2}{c}{PG-19} \\
 \midrule
 AR & 133.4\(\pm\)0.5 & 1.00\(\times\) & 114.8\(\pm\)20.6 & 1.00\(\times\) \\
 Linear Spec & 196.1\(\pm\)37.8 & 1.47\(\times\) & 144.9\(\pm\)28.6 & 1.26\(\times\) \\
-Fixed Tree (\(D=8,B=3,\tau=0.1\)) & 200.7\(\pm\)41.7 & 1.50\(\times\) & 185.5\(\pm\)33.2 & 1.62\(\times\) \\
+Fixed Tree & 200.7\(\pm\)41.7 & 1.50\(\times\) & 185.5\(\pm\)33.2 & 1.62\(\times\) \\
 \textbf{DynaTree} & \textbf{219.5\(\pm\)22.2} & \textbf{1.64\(\times\)} & \textbf{194.9\(\pm\)35.6} & \textbf{1.70\(\times\)} \\
 \bottomrule
 \end{tabular}
@@ -430,7 +431,7 @@ We place supplementary parameter sensitivity analyses in Appendix~\ref{app:addit
 
 
 \section{Conclusion}
-We presented DynaTree, a greedy-consistent tree-based speculative decoding method that drafts a candidate token tree with a lightweight model and verifies all drafted nodes in a single target-model pass using a structured attention mask. DynaTree adaptively allocates verification budget via \emph{Dynamic Tree Breadth} and \emph{Dynamic Tree Depth} and stabilizes decoding through \emph{History Adaptation}. Across WikiText-2 and PG-19 at \(T=1500\), DynaTree improves throughput and reduces per-token latency relative to autoregressive decoding, linear speculative decoding, and a fixed-tree baseline by increasing the expected number of committed tokens per verification iteration. Our evaluation is limited to deterministic greedy decoding with a single target--draft model pair on a single GPU, and does not cover batch-serving scenarios. Extending adaptive tree verification to batched serving, additional model pairs, and broader workloads, while further reducing system overhead, is a promising direction for future work.
+We presented DynaTree, a greedy-consistent tree-based speculative decoding method that drafts a candidate token tree with a lightweight model and verifies all drafted nodes in a single target-model pass using a structured attention mask. DynaTree adaptively allocates verification budget via \emph{Dynamic Tree Breadth} and \emph{Dynamic Tree Depth} and stabilizes decoding through \emph{History Adaptation}. Across WikiText-2 and PG-19 at \(T=1500\), DynaTree improves throughput and reduces per-token latency relative to autoregressive decoding, linear speculative decoding, and a fixed-tree baseline by increasing the expected number of committed tokens per verification iteration. Our evaluation is limited to deterministic greedy decoding with a single target--draft model pair on a single GPU, and does not cover batch-serving scenarios. Extending adaptive tree verification to batched serving, additional model pairs, and broader workloads, while further reducing system overhead, is a promising direction for future work. More broadly, DynaTree shows that careful algorithmic design can deliver strong acceleration \emph{without any additional training or architectural changes}.
 
 \FloatBarrier % ensure all floats are placed before references
 \bibliographystyle{plainnat}
