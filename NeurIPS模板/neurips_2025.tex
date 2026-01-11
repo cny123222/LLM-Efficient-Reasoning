@@ -280,7 +280,7 @@ Let \(n=|\mathcal{N}|\le N_{\max}\) be the number of drafted nodes. Drafting req
 We evaluate DynaTree using models from the Pythia family~\cite{pythia}. Our target model \(M_T\) is Pythia-2.8B (2.8B parameters) and our draft model \(M_D\) is Pythia-70M (70M parameters). Throughout, we use deterministic greedy decoding so the generated sequence is uniquely determined by the model and prefix.
 
 \paragraph{Hardware and software.}
-All experiments run on a single NVIDIA GPU. We implement DynaTree in PyTorch~\cite{pytorch} on top of HuggingFace Transformers~\cite{transformers}. Across methods, we reuse KV caches where applicable and synchronize GPU execution for timing to obtain comparable wall-clock measurements.
+All experiments run on a single NVIDIA A100 GPU with batch size \(1\) (one prompt per run). We implement DynaTree in PyTorch~\cite{pytorch} on top of HuggingFace Transformers~\cite{transformers}. Across methods, we reuse KV caches where applicable and synchronize GPU execution for timing (e.g., \texttt{torch.cuda.synchronize()}) to obtain comparable wall-clock measurements.
 
 \paragraph{Workloads and data preprocessing.}
 We report results on WikiText-2~\citep{merity2016pointer} and PG-19~\citep{rae2019compressive}. For each sampled prompt, we generate \(T\) new tokens with greedy decoding; unless stated otherwise, \(T=1500\). To control prefill cost, prompts are truncated to a maximum length \(L_{\max}\) (\(L_{\max}=800\) for WikiText-2 and \(L_{\max}=1000\) for PG-19). We evaluate \(N=10\) prompts and discard the first \(W=2\) runs as warmup, reporting mean and standard deviation over the remaining runs. Appendix~\ref{app:exp-config} summarizes the common settings.
