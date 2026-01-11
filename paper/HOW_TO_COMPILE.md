@@ -5,17 +5,17 @@
 ### 方法1：命令行编译（推荐）
 
 ```bash
-cd /root/LLM-Efficient-Reasoning/NeurIPS模板
+cd /root/LLM-Efficient-Reasoning/paper
 
 # 编译一次（生成PDF，但引用可能不完整）
-pdflatex neurips_2025.tex
+pdflatex dynatree.tex
 
 # 编译两次（确保引用正确）
-pdflatex neurips_2025.tex
-pdflatex neurips_2025.tex
+pdflatex dynatree.tex
+pdflatex dynatree.tex
 
 # 或者一行命令：
-pdflatex neurips_2025.tex && pdflatex neurips_2025.tex
+pdflatex dynatree.tex && pdflatex dynatree.tex
 ```
 
 ### 方法2：使用Make（如果有Makefile）
@@ -27,7 +27,7 @@ make
 ### 方法3：使用latexmk（自动处理引用）
 
 ```bash
-latexmk -pdf neurips_2025.tex
+latexmk -pdf dynatree.tex
 ```
 
 ---
@@ -36,13 +36,13 @@ latexmk -pdf neurips_2025.tex
 
 ```bash
 # Linux
-xdg-open neurips_2025.pdf
+xdg-open dynatree.pdf
 
 # macOS
-open neurips_2025.pdf
+open dynatree.pdf
 
 # 或者在IDE中直接打开
-# 文件路径：/root/LLM-Efficient-Reasoning/NeurIPS模板/neurips_2025.pdf
+# 文件路径：/root/LLM-Efficient-Reasoning/paper/dynatree.pdf
 ```
 
 ---
@@ -66,8 +66,8 @@ latexmk -c
 ### Q1: 编译报错 "undefined references"
 **解决**：需要编译两次以解决交叉引用问题
 ```bash
-pdflatex neurips_2025.tex
-pdflatex neurips_2025.tex
+pdflatex dynatree.tex
+pdflatex dynatree.tex
 ```
 
 ### Q2: 引用显示为 [?]
@@ -86,7 +86,7 @@ brew install mactex
 ### Q4: 中文显示问题
 **解决**：本文档使用英文撰写，无需中文支持。如需中文，使用XeLaTeX：
 ```bash
-xelatex neurips_2025.tex
+xelatex dynatree.tex
 ```
 
 ---
@@ -95,19 +95,19 @@ xelatex neurips_2025.tex
 
 ```bash
 #!/bin/bash
-cd /root/LLM-Efficient-Reasoning/NeurIPS模板
+cd /root/LLM-Efficient-Reasoning/paper
 
 # 清理旧文件
 rm -f *.aux *.log *.out *.toc
 
 # 编译两次
-pdflatex -interaction=nonstopmode neurips_2025.tex
-pdflatex -interaction=nonstopmode neurips_2025.tex
+pdflatex -interaction=nonstopmode dynatree.tex
+pdflatex -interaction=nonstopmode dynatree.tex
 
 # 检查结果
-if [ -f neurips_2025.pdf ]; then
-    echo "✓ 编译成功！PDF文件: neurips_2025.pdf"
-    ls -lh neurips_2025.pdf
+if [ -f dynatree.pdf ]; then
+    echo "✓ 编译成功！PDF文件: dynatree.pdf"
+    ls -lh dynatree.pdf
 else
     echo "✗ 编译失败，请查看错误信息"
 fi
@@ -125,11 +125,11 @@ chmod +x compile.sh
 
 ### VS Code
 1. 安装插件：`LaTeX Workshop`
-2. 打开 `neurips_2025.tex`
+2. 打开 `dynatree.tex`
 3. 按 `Ctrl+Alt+B` 或点击右上角的绿色播放按钮
 
 ### Overleaf（在线编辑）
-1. 上传 `neurips_2025.tex` 和相关文件
+1. 上传 `dynatree.tex` 和相关文件
 2. 点击 "Recompile" 按钮
 3. 自动生成PDF
 
@@ -153,9 +153,9 @@ chmod +x compile.sh
 
 ## 🔗 相关文件
 
-- 主文件：`neurips_2025.tex`
+- 主文件：`dynatree.tex`
 - 样式文件：`neurips_2025.sty`
-- 生成的PDF：`neurips_2025.pdf`
+- 生成的PDF：`dynatree.pdf`
 - 实验数据：`../papers/Tree_Speculative_Decoding_实验报告.md`
 - 文献综述：`../related_work.md`
 

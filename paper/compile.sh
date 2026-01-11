@@ -15,7 +15,7 @@ rm -f *.aux *.log *.out *.toc *.bbl *.blg *.synctex.gz *.fdb_latexmk *.fls
 
 # First compilation
 echo "[2/6] First compilation pass..."
-pdflatex -interaction=nonstopmode neurips_2025.tex > /dev/null 2>&1 || {
+pdflatex -interaction=nonstopmode dynatree.tex > /dev/null 2>&1 || {
     echo "⚠️  First pass completed with warnings (this is normal)"
 }
 
@@ -27,31 +27,31 @@ bibtex neurips_2025 > /dev/null 2>&1 || {
 
 # Second compilation (for references)
 echo "[4/6] Second compilation pass (resolving references)..."
-pdflatex -interaction=nonstopmode neurips_2025.tex > /dev/null 2>&1 || {
+pdflatex -interaction=nonstopmode dynatree.tex > /dev/null 2>&1 || {
     echo "⚠️  Second pass completed with warnings"
 }
 
 # Third compilation (finalize references)
 echo "[5/6] Third compilation pass (finalizing references)..."
-pdflatex -interaction=nonstopmode neurips_2025.tex > /dev/null 2>&1 || {
+pdflatex -interaction=nonstopmode dynatree.tex > /dev/null 2>&1 || {
     echo "⚠️  Third pass completed with warnings"
 }
 
 # Check result
 echo "[6/6] Checking output..."
-if [ -f neurips_2025.pdf ]; then
-    FILE_SIZE=$(ls -lh neurips_2025.pdf | awk '{print $5}')
-    PAGE_COUNT=$(pdfinfo neurips_2025.pdf 2>/dev/null | grep "Pages:" | awk '{print $2}')
+if [ -f dynatree.pdf ]; then
+    FILE_SIZE=$(ls -lh dynatree.pdf | awk '{print $5}')
+    PAGE_COUNT=$(pdfinfo dynatree.pdf 2>/dev/null | grep "Pages:" | awk '{print $2}')
     echo ""
     echo "=========================================="
     echo "✓ Compilation successful!"
     echo "=========================================="
-    echo "  File: neurips_2025.pdf"
+    echo "  File: dynatree.pdf"
     echo "  Size: $FILE_SIZE"
     echo "  Pages: $PAGE_COUNT"
     echo ""
     echo "To view the PDF:"
-    echo "  xdg-open neurips_2025.pdf"
+    echo "  xdg-open dynatree.pdf"
     echo ""
 else
     echo ""
