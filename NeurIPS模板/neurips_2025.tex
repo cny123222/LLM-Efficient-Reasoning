@@ -116,7 +116,7 @@ We propose \textbf{DynaTree}, a training-free tree speculative decoder that cons
 
 In summary, our contributions are:
 \begin{itemize}
-  \item We propose \textbf{DynaTree}, a training-free tree speculative decoding framework that adaptively allocates verification budget via confidence-aware adjustments to tree breadth and depth under an explicit node budget.
+  \item We propose \textbf{DynaTree}, a training-free tree speculative decoding framework that adaptively allocates verification budget via confidence-aware adjustments to tree breadth and depth under an explicit node budget. Unlike approaches that require training auxiliary modules or architectural modifications (e.g., Medusa~\cite{medusa} or the EAGLE family~\cite{eagle,eagle2,eagle3}), DynaTree is plug-and-play for existing target--draft model pairs.
   
   \item We introduce a lightweight three-component adaptation mechanism (\emph{Dynamic Tree Breadth}, \emph{Dynamic Tree Depth}, and \emph{History Adaptation}) that integrates with tree-attention verification and probability-threshold pruning.
   
@@ -229,7 +229,7 @@ Finally, DynaTree adapts a small subset of drafting hyperparameters online using
 \bar{a}_t \;=\; \frac{1}{W}\sum_{i=0}^{W-1} a_{t-i}.
 \]
 Here \(W\) is a fixed window size.
-We use a simple proportional-control update around a target acceptance level \(a^\star\in(0,1)\). For example, for base depth \(D_0\) and high-confidence threshold \(\tau_h\),
+We use a simple proportional-control update around a target acceptance level \(a^\star\in(0,1)\), forming a feedback control loop that stabilizes the acceptance behavior around a desired operating point. For example, for base depth \(D_0\) and high-confidence threshold \(\tau_h\),
 \[
 D_0 \leftarrow \mathrm{clip}\!\left(D_0 + \eta_D(\bar{a}_t-a^\star),\,1,\,D_{\max}-1\right),\quad
 \tau_h \leftarrow \mathrm{clip}\!\left(\tau_h - \eta_h(\bar{a}_t-a^\star),\,0,\,1\right),
@@ -295,7 +295,7 @@ We compare against the following baselines under identical greedy decoding setti
 \begin{itemize}
   \item \textbf{Autoregressive (AR):} Standard greedy decoding with the target model, serving as the performance baseline.
   \item \textbf{Linear speculative decoding:} A linear-chain speculative decoder that drafts \(K\) tokens with the draft model and verifies them with the target model in parallel, committing the longest greedy-consistent prefix~\citep{leviathan2023fast}.
-  \item \textbf{Fixed Tree:} A static tree speculative decoder with fixed depth \(D\), fixed branching factor \(B\), and node budget \(N_{\max}\), representing a non-adaptive tree baseline. We report the configuration used wherever results are shown.
+  \item \textbf{Fixed Tree:} A static tree speculative decoder with fixed depth \(D\), fixed branching factor \(B\), and node budget \(N_{\max}\), representing a non-adaptive tree baseline. This baseline captures the core \emph{static-tree} configuration strategy used by tree-verification decoders (e.g., SpecInfer~\cite{specinfer}) without incorporating their method-specific architectural or system optimizations. We report the configuration used wherever results are shown.
   \item \textbf{DynaTree:} Our full method that augments the fixed-tree backbone with (i)~\emph{Dynamic Tree Breadth}, (ii)~\emph{Dynamic Tree Depth}, and (iii)~\emph{History Adaptation}. We ablate these components in Section~\ref{sec:ablation}.
 \end{itemize}
 
